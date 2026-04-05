@@ -13,16 +13,27 @@ interface HeaderProps {
 }
 
 const NAV_ITEMS = [
-  { href: "/services",  label: "ニュース" },
   { href: "/ranking",   label: "ランキング" },
   { href: "/compare",   label: "比較" },
   { href: "/diagnosis", label: "診断" },
-  { href: "/articles",  label: "記事" },
+];
+
+const ARTICLE_CATEGORIES = [
+  { label: "すべての記事", href: "/articles" },
+  { label: "AI",           href: "/articles?category=AI" },
+  { label: "動画",         href: "/articles?category=動画" },
+  { label: "音楽",         href: "/articles?category=音楽" },
+  { label: "読書",         href: "/articles?category=読書" },
+  { label: "フィットネス", href: "/articles?category=フィットネス" },
+  { label: "学習",         href: "/articles?category=学習" },
+  { label: "ビジネス",     href: "/articles?category=ビジネス" },
+  { label: "その他",       href: "/articles?category=その他" },
 ];
 
 export default function Header({ articles = [] }: HeaderProps) {
   const { user, ready, logout } = useAuth();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen,    setDrawerOpen]    = useState(false);
+  const [articlesOpen,  setArticlesOpen]  = useState(false);
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -65,6 +76,7 @@ export default function Header({ articles = [] }: HeaderProps) {
 
   function closeDrawer() {
     setDrawerOpen(false);
+    setArticlesOpen(false);
   }
 
   function handleSearch(e?: React.FormEvent) {
@@ -278,6 +290,42 @@ export default function Header({ articles = [] }: HeaderProps) {
                   </Link>
                 </li>
               ))}
+
+              {/* 記事アコーディオン */}
+              <li>
+                <button
+                  onClick={() => setArticlesOpen((v) => !v)}
+                  className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
+                  style={{ color: "#1d1d1f", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  <span>記事</span>
+                  <span className="text-xs text-gray-400">{articlesOpen ? "▲" : "▼"}</span>
+                </button>
+
+                {/* カテゴリ一覧（アニメーション付き） */}
+                <div
+                  style={{
+                    overflow: "hidden",
+                    maxHeight: articlesOpen ? "400px" : "0",
+                    transition: "max-height 0.3s ease",
+                  }}
+                >
+                  <ul className="pb-1">
+                    {ARTICLE_CATEGORIES.map(({ label, href }) => (
+                      <li key={href}>
+                        <Link
+                          href={href}
+                          onClick={closeDrawer}
+                          className="block pl-6 pr-4 py-2 rounded-xl text-sm hover:text-gray-900 transition-colors"
+                          style={{ color: "#666666" }}
+                        >
+                          {label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
             </ul>
           </nav>
 
