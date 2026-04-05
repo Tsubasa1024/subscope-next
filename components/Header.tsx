@@ -33,8 +33,7 @@ const ARTICLE_CATEGORIES = [
 
 export default function Header({ articles = [] }: HeaderProps) {
   const { user, ready, logout } = useAuth();
-  const [drawerOpen,    setDrawerOpen]    = useState(false);
-  const [articlesOpen,  setArticlesOpen]  = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -77,7 +76,6 @@ export default function Header({ articles = [] }: HeaderProps) {
 
   function closeDrawer() {
     setDrawerOpen(false);
-    setArticlesOpen(false);
   }
 
   function handleSearch(e?: React.FormEvent) {
@@ -276,45 +274,47 @@ export default function Header({ articles = [] }: HeaderProps) {
             )}
           </form>
 
+          {/* カテゴリグリッド */}
+          <div className="mb-4">
+            {/* セクションラベル */}
+            <p className="text-xs font-bold tracking-widest uppercase px-1 mb-2" style={{ color: "#888888" }}>
+              CATEGORY　ジャンル・分野
+            </p>
+
+            {/* 2列グリッド */}
+            <div className="rounded-xl overflow-hidden" style={{ background: "#0a0a0a" }}>
+              <div className="grid grid-cols-2">
+                {ARTICLE_CATEGORIES.map(({ label, href }, i) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={closeDrawer}
+                    className="flex items-center justify-between p-4 hover:bg-gray-800 transition-colors"
+                    style={{
+                      color: "#ffffff",
+                      borderRight: i % 2 === 0 ? "1px solid #374151" : "none",
+                      borderBottom: i < ARTICLE_CATEGORIES.length - 2 ? "1px solid #374151" : "none",
+                    }}
+                  >
+                    <span className="text-xs font-bold tracking-widest uppercase leading-tight">
+                      {label}
+                    </span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 ml-1 opacity-50">
+                      <path d="M2.5 6h7M6 2.5l3.5 3.5-3.5 3.5" />
+                    </svg>
+                  </Link>
+                ))}
+                {/* 奇数個のとき最後のセルを空白で埋める */}
+                {ARTICLE_CATEGORIES.length % 2 !== 0 && (
+                  <div className="p-4" style={{ borderTop: "1px solid #374151" }} />
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* ナビリンク */}
           <nav>
             <ul className="space-y-1">
-              {/* 記事アコーディオン（検索の直下・ランキングより上）*/}
-              <li>
-                <button
-                  onClick={() => setArticlesOpen((v) => !v)}
-                  className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
-                  style={{ color: "#1d1d1f", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
-                >
-                  <span>すべての記事</span>
-                  <span className="text-xs text-gray-400">{articlesOpen ? "▲" : "▼"}</span>
-                </button>
-
-                {/* カテゴリ一覧（アニメーション付き） */}
-                <div
-                  style={{
-                    overflow: "hidden",
-                    maxHeight: articlesOpen ? "400px" : "0",
-                    transition: "max-height 0.3s ease",
-                  }}
-                >
-                  <ul className="pb-1">
-                    {ARTICLE_CATEGORIES.map(({ label, href }) => (
-                      <li key={href}>
-                        <Link
-                          href={href}
-                          onClick={closeDrawer}
-                          className="block pl-6 pr-4 py-2 rounded-xl text-sm hover:bg-gray-50 transition-colors"
-                          style={{ color: "#111111" }}
-                        >
-                          {label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </li>
-
               {NAV_ITEMS.map(({ href, label }) => (
                 <li key={href}>
                   <Link
