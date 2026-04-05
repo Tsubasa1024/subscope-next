@@ -20,7 +20,6 @@ const NAV_ITEMS = [
 
 
 const ARTICLE_CATEGORIES = [
-  { label: "すべての記事", href: "/articles" },
   { label: "AI",           href: "/articles?category=AI" },
   { label: "動画",         href: "/articles?category=動画" },
   { label: "音楽",         href: "/articles?category=音楽" },
@@ -276,38 +275,39 @@ export default function Header({ articles = [] }: HeaderProps) {
 
           {/* カテゴリグリッド */}
           <div className="mb-4">
-            {/* セクションラベル */}
-            <p className="text-xs font-bold tracking-widest uppercase px-1 mb-2" style={{ color: "#888888" }}>
-              CATEGORY　ジャンル・分野
-            </p>
+            {/* 「すべての記事 →」リンク見出し */}
+            <Link
+              href="/articles"
+              onClick={closeDrawer}
+              className="flex items-center gap-1 text-sm font-bold text-gray-900 mb-2 hover:underline"
+            >
+              すべての記事
+              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2.5 6h7M6 2.5l3.5 3.5-3.5 3.5" />
+              </svg>
+            </Link>
 
-            {/* 2列グリッド */}
-            <div className="rounded-xl overflow-hidden" style={{ background: "#0a0a0a" }}>
+            {/* 2列グリッド（8項目 = 4行×2列） */}
+            <div className="rounded-xl overflow-hidden border border-gray-200">
               <div className="grid grid-cols-2">
                 {ARTICLE_CATEGORIES.map(({ label, href }, i) => (
                   <Link
                     key={href}
                     href={href}
                     onClick={closeDrawer}
-                    className="flex items-center justify-between p-4 hover:bg-gray-800 transition-colors"
+                    className="flex items-center justify-between p-3 bg-white hover:bg-gray-50 transition-colors"
                     style={{
-                      color: "#ffffff",
-                      borderRight: i % 2 === 0 ? "1px solid #374151" : "none",
-                      borderBottom: i < ARTICLE_CATEGORIES.length - 2 ? "1px solid #374151" : "none",
+                      color: "#111111",
+                      borderRight: i % 2 === 0 ? "1px solid #e5e7eb" : "none",
+                      borderBottom: i < ARTICLE_CATEGORIES.length - 2 ? "1px solid #e5e7eb" : "none",
                     }}
                   >
-                    <span className="text-xs font-bold tracking-widest uppercase leading-tight">
-                      {label}
-                    </span>
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 ml-1 opacity-50">
+                    <span className="text-sm font-medium">{label}</span>
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 ml-1 opacity-30">
                       <path d="M2.5 6h7M6 2.5l3.5 3.5-3.5 3.5" />
                     </svg>
                   </Link>
                 ))}
-                {/* 奇数個のとき最後のセルを空白で埋める */}
-                {ARTICLE_CATEGORIES.length % 2 !== 0 && (
-                  <div className="p-4" style={{ borderTop: "1px solid #374151" }} />
-                )}
               </div>
             </div>
           </div>
