@@ -16,14 +16,15 @@ export const metadata: Metadata = {
 // カテゴリナビデータ
 // ============================================================
 const CATEGORY_NAV = [
-  { label: "すべて",   href: "/articles" },
-  { label: "動画",     href: "/articles?category=動画" },
-  { label: "音楽",     href: "/articles?category=音楽" },
-  { label: "読書",     href: "/articles?category=読書・マンガ" },
-  { label: "ゲーム",   href: "/articles?category=ゲーム" },
-  { label: "学習",     href: "/articles?category=学習" },
-  { label: "ビジネス", href: "/articles?category=ビジネス" },
-  { label: "美容",     href: "/articles?category=美容・ファッション" },
+  { label: "すべて",       href: "/articles" },
+  { label: "AI",           href: "/articles?category=AI" },
+  { label: "動画",         href: "/articles?category=動画" },
+  { label: "音楽",         href: "/articles?category=音楽" },
+  { label: "読書",         href: "/articles?category=読書" },
+  { label: "フィットネス", href: "/articles?category=フィットネス" },
+  { label: "学習",         href: "/articles?category=学習" },
+  { label: "ビジネス",     href: "/articles?category=ビジネス" },
+  { label: "その他",       href: "/articles?category=その他" },
 ];
 
 // ランキングダミーデータ（DBと連携するまで）
@@ -162,7 +163,7 @@ export default async function TopPage() {
       >
         <div className="container">
           <div
-            className="flex gap-1 overflow-x-auto py-3"
+            className="flex justify-center gap-1 overflow-x-auto py-3"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {CATEGORY_NAV.map(({ label, href }) => (

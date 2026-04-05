@@ -85,7 +85,7 @@ export default function AllArticlesClient({
         <div className="container">
           {/* カテゴリタブ（横スクロール） */}
           <div
-            className="flex gap-1 overflow-x-auto py-3"
+            className="flex justify-center gap-1 overflow-x-auto py-3"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {["すべて", ...categories].map((cat) => (

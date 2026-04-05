@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getArticles, normalizeCategory } from "@/lib/microcms";
+import { getArticles } from "@/lib/microcms";
 import AllArticlesClient from "./AllArticlesClient";
 
 export const revalidate = 60;
@@ -22,9 +22,8 @@ export default async function ArticlesPage({
 
   const articles = await getArticles(100).catch(() => []);
 
-  const categories = Array.from(
-    new Set(articles.map((a) => normalizeCategory(a.category)).filter(Boolean))
-  );
+  const CATEGORY_ORDER = ["AI", "動画", "音楽", "読書", "フィットネス", "学習", "ビジネス", "その他"];
+  const categories = CATEGORY_ORDER;
 
   return (
     <AllArticlesClient
