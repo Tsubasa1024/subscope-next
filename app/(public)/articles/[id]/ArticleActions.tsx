@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
@@ -9,26 +9,59 @@ interface Props {
   articleId: string;
   articleTitle: string;
   articleUrl: string;
-  children: React.ReactNode; // 上部アクションと下部アクションの間に挟まるコンテンツ
+  children: React.ReactNode;
 }
+
+// localStorage でのいいね管理（未ログイン用）
+const LS_KEY = "subscope_liked_articles";
+
+function getLocalLikes(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function setLocalLike(articleId: string, liked: boolean) {
+  const likes = getLocalLikes();
+  if (liked) {
+    if (!likes.includes(articleId)) likes.push(articleId);
+  } else {
+    const idx = likes.indexOf(articleId);
+    if (idx !== -1) likes.splice(idx, 1);
+  }
+  localStorage.setItem(LS_KEY, JSON.stringify(likes));
+}
+
+// パーティクルの飛び散り方向（4方向）
+const PARTICLES = [
+  { tx: "-22px", ty: "-34px" },
+  { tx:  "22px", ty: "-34px" },
+  { tx: "-32px", ty:  "-8px" },
+  { tx:  "32px", ty:  "-8px" },
+];
 
 export default function ArticleActions({ articleId, articleTitle, articleUrl, children }: Props) {
   const { user, ready } = useAuth();
   const router = useRouter();
 
-  const [likeCount,    setLikeCount]    = useState(0);
-  const [liked,        setLiked]        = useState(false);
-  const [saved,        setSaved]        = useState(false);
-  const [commentCount, setCommentCount] = useState(0);
-  const [copied,       setCopied]       = useState(false);
-  const [likeLoading,  setLikeLoading]  = useState(false);
-  const [saveLoading,  setSaveLoading]  = useState(false);
+  const [likeCount,     setLikeCount]     = useState(0);
+  const [liked,         setLiked]         = useState(false);
+  const [saved,         setSaved]         = useState(false);
+  const [commentCount,  setCommentCount]  = useState(0);
+  const [copied,        setCopied]        = useState(false);
+  const [likeLoading,   setLikeLoading]   = useState(false);
+  const [saveLoading,   setSaveLoading]   = useState(false);
+  const [likeAnimating, setLikeAnimating] = useState(false);
+  const [showParticles, setShowParticles] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
-    const supabase = createClient();
 
     async function load() {
+      const supabase = createClient();
+
       const { count: lc } = await supabase
         .from("article_likes")
         .select("*", { count: "exact", head: true })
@@ -42,6 +75,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
       setCommentCount(cc ?? 0);
 
       if (user) {
+        // ログイン済み → Supabase から取得
         const [{ data: likeRow }, { data: saveRow }] = await Promise.all([
           supabase.from("article_likes").select("id")
             .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
@@ -50,28 +84,51 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
         ]);
         setLiked(!!likeRow);
         setSaved(!!saveRow);
+      } else {
+        // 未ログイン → localStorage から取得
+        setLiked(getLocalLikes().includes(articleId));
       }
     }
 
     load();
   }, [ready, user, articleId]);
 
+  function triggerLikeAnimation() {
+    setLikeAnimating(true);
+    setShowParticles(true);
+    setTimeout(() => setLikeAnimating(false), 400);
+    setTimeout(() => setShowParticles(false), 700);
+  }
+
   async function handleLike() {
-    if (!user) { router.push("/login"); return; }
     if (likeLoading) return;
     setLikeLoading(true);
-    const supabase = createClient();
+
     if (liked) {
+      // いいね解除
       setLiked(false);
       setLikeCount((n) => Math.max(0, n - 1));
-      await supabase.from("article_likes").delete()
-        .eq("article_id", articleId).eq("user_id", user.uid);
+      if (user) {
+        const supabase = createClient();
+        await supabase.from("article_likes").delete()
+          .eq("article_id", articleId).eq("user_id", user.uid);
+      } else {
+        setLocalLike(articleId, false);
+      }
     } else {
+      // いいね → アニメーション発火
+      triggerLikeAnimation();
       setLiked(true);
       setLikeCount((n) => n + 1);
-      await supabase.from("article_likes")
-        .insert({ user_id: user.uid, article_id: articleId });
+      if (user) {
+        const supabase = createClient();
+        await supabase.from("article_likes")
+          .insert({ user_id: user.uid, article_id: articleId });
+      } else {
+        setLocalLike(articleId, true);
+      }
     }
+
     setLikeLoading(false);
   }
 
@@ -108,7 +165,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
 
   // ===== 共通ボタンパーツ =====
 
-  const SaveButton = ({ size }: { size: "sm" | "base" }) => (
+  const SaveButton = useCallback(({ size }: { size: "sm" | "base" }) => (
     <button
       onClick={handleSave}
       className="flex items-center gap-1.5 transition-all hover:opacity-70"
@@ -126,7 +183,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
         {saved ? "保存済" : "保存"}
       </span>
     </button>
-  );
+  ), [saved, saveLoading]);
 
   const TwitterButton = ({ size }: { size: "sm" | "base" }) => (
     <button
@@ -197,22 +254,54 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
         className="flex items-center gap-6 border-t pt-8 mb-8"
         style={{ borderColor: "#e5e5e5" }}
       >
-        {/* いいね */}
+        {/* いいね（アニメーション付き） */}
         <button
           onClick={handleLike}
-          className="flex items-center gap-2 transition-all hover:scale-105"
-          style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-                   color: liked ? "#e0355e" : "#9ca3af", padding: 0 }}
+          className="flex items-center gap-2 transition-colors"
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            fontFamily: "inherit", padding: 0,
+            color: liked ? "#ef4444" : "#9ca3af",
+            position: "relative",
+          }}
           aria-label={liked ? "いいねを取り消す" : "いいねする"}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24"
-            fill={liked ? "currentColor" : "none"}
-            stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round"
+          {/* パーティクル */}
+          {showParticles && PARTICLES.map((p, i) => (
+            <span
+              key={i}
+              className="like-particle"
+              style={{ "--tx": p.tx, "--ty": p.ty } as React.CSSProperties}
+            >
+              ❤️
+            </span>
+          ))}
+
+          {/* ハートアイコン */}
+          <span
+            className={likeAnimating ? "heart-pop" : ""}
+            style={{ display: "flex", alignItems: "center" }}
           >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-          <span className="text-base font-medium">{likeCount}</span>
+            <svg
+              width="22" height="22" viewBox="0 0 24 24"
+              fill={liked ? "currentColor" : "none"}
+              stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </span>
+
+          {/* カウント */}
+          <span
+            className="text-base font-medium"
+            style={{
+              transition: "transform 0.2s ease",
+              transform: likeAnimating ? "translateY(-2px)" : "translateY(0)",
+            }}
+          >
+            {likeCount}
+          </span>
         </button>
 
         {/* 保存 */}
@@ -235,7 +324,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
 
         <div className="flex-1" />
 
-        {/* シェア・コピー */}
         <TwitterButton size="base" />
         <CopyButton size="base" />
       </div>

@@ -146,3 +146,33 @@ ul {
     --spacing-section: 40px;
   }
 }
+
+/* ===== いいねアニメーション ===== */
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes particleFloat {
+  0%   { opacity: 1;  transform: translate(0, 0) scale(1); }
+  100% { opacity: 0;  transform: translate(var(--tx), var(--ty)) scale(0.3); }
+}
+
+.heart-pop {
+  animation: heartPop 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+.like-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 9px;
+  line-height: 1;
+  pointer-events: none;
+  animation: particleFloat 0.65s ease-out forwards;
+  margin-top: -6px;
+  margin-left: -5px;
+  color: #ef4444;
+}
