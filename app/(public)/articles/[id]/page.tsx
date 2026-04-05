@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getArticle, getAllArticleIds, getImageUrl, normalizeCategory } from "@/lib/microcms";
+import ArticleActions from "./ArticleActions";
+import ArticleComments from "./ArticleComments";
 
 // ISR: 60秒ごとに再検証
 export const revalidate = 60;
@@ -60,176 +62,122 @@ export default async function ArticlePage({ params }: Props) {
     notFound();
   }
 
-  const imgUrl = getImageUrl(article);
+  const imgUrl   = getImageUrl(article);
   const category = normalizeCategory(article.category);
-  const date = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
+  const date     = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
+  const articleUrl = `https://www.subscope.jp/articles/${id}`;
 
   return (
-    <main style={{ paddingTop: "80px" }}>
-      {/* ヒーロー画像 */}
-      {imgUrl && (
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "var(--container-width)",
-            margin: "0 auto",
-            padding: "24px 24px 0",
-          }}
-        >
-          <div
+    <>
+      {/* ===== 記事本文 ===== */}
+      <main style={{ paddingTop: "var(--header-h)", paddingBottom: "80px" }}>
+        <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px 0" }}>
+
+          {/* メタ情報 */}
+          <div className="flex items-center gap-2 flex-wrap mb-5">
+            {category && (
+              <span
+                className="rounded-full text-xs font-medium px-3 py-1"
+                style={{ background: "#f0f0f0", color: "#555555" }}
+              >
+                {category}
+              </span>
+            )}
+            {article.service && (
+              <span className="text-sm" style={{ color: "#888888" }}>{article.service}</span>
+            )}
+            {date && (
+              <span className="text-sm" style={{ color: "#aaaaaa" }}>{date}</span>
+            )}
+          </div>
+
+          {/* タイトル */}
+          <h1
             style={{
-              position: "relative",
-              width: "100%",
-              aspectRatio: "16 / 9",
-              borderRadius: "24px",
-              overflow: "hidden",
-              background: "#f0f0f0",
+              fontSize: "28px",
+              fontWeight: 700,
+              lineHeight: 1.5,
+              letterSpacing: "-0.02em",
+              marginBottom: "28px",
+              color: "#111111",
             }}
           >
-            <Image
-              src={imgUrl}
-              alt={article.title ?? ""}
-              fill
-              sizes="(max-width: 1080px) 100vw, 1080px"
-              style={{ objectFit: "cover" }}
-              priority
+            {article.title}
+          </h1>
+
+          {/* サムネイル */}
+          {imgUrl && (
+            <div
+              className="rounded-lg overflow-hidden mb-10"
+              style={{ position: "relative", aspectRatio: "16/9", background: "#f0f0f0" }}
+            >
+              <Image
+                src={imgUrl}
+                alt={article.title ?? ""}
+                fill
+                sizes="(max-width: 680px) 100vw, 680px"
+                style={{ objectFit: "cover" }}
+                priority
+              />
+            </div>
+          )}
+
+          {/* 本文 */}
+          {article.content && (
+            <div
+              className="article-body"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+              style={{ fontSize: "17px", lineHeight: 2.0, color: "#1f2937" }}
             />
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* 記事本文 */}
-      <article
-        style={{
-          maxWidth: "720px",
-          margin: "0 auto",
-          padding: "40px 24px 80px",
-        }}
-      >
-        {/* メタ情報 */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            marginBottom: "16px",
-            flexWrap: "wrap",
-          }}
-        >
-          {category && (
-            <span
-              style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                letterSpacing: "0.07em",
-                textTransform: "uppercase",
-                padding: "4px 12px",
-                borderRadius: "99px",
-                background: "#ebebef",
-                color: "#1d1d1f",
-              }}
+          {/* タグ */}
+          {article.tags && article.tags.length > 0 && (
+            <div
+              className="flex flex-wrap gap-2 mt-10 pt-6"
+              style={{ borderTop: "1px solid #e5e5e5" }}
             >
-              {category}
-            </span>
+              {article.tags.map((tag, i) => {
+                const tagName = typeof tag === "string" ? tag : tag.name || tag.id;
+                return (
+                  <span
+                    key={i}
+                    className="text-xs px-3 py-1 rounded-full"
+                    style={{ background: "#f0f0f0", color: "#666666" }}
+                  >
+                    #{tagName}
+                  </span>
+                );
+              })}
+            </div>
           )}
-          {article.service && (
-            <span
-              style={{
-                fontSize: "11px",
-                fontWeight: 700,
-                color: "#86868b",
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-              }}
+
+          {/* コメントセクション */}
+          <ArticleComments articleId={id} />
+
+          {/* 戻るリンク */}
+          <div className="mt-10 mb-4">
+            <Link
+              href="/articles"
+              className="inline-flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+              style={{ color: "#666666" }}
             >
-              {article.service}
-            </span>
-          )}
-          {date && (
-            <span style={{ fontSize: "11px", color: "#86868b", marginLeft: "auto" }}>
-              {date}
-            </span>
-          )}
-        </div>
-
-        {/* タイトル */}
-        <h1
-          style={{
-            fontSize: "clamp(1.6rem, 4vw, 2.2rem)",
-            fontWeight: 700,
-            lineHeight: 1.3,
-            letterSpacing: "-0.02em",
-            marginBottom: "24px",
-          }}
-        >
-          {article.title}
-        </h1>
-
-        {/* 本文 HTML */}
-        {article.content && (
-          <div
-            className="article-body"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-            style={{
-              lineHeight: 1.8,
-              fontSize: "1rem",
-              color: "#1d1d1f",
-            }}
-          />
-        )}
-
-        {/* タグ */}
-        {article.tags && article.tags.length > 0 && (
-          <div
-            style={{
-              marginTop: "40px",
-              paddingTop: "24px",
-              borderTop: "1px solid #d2d2d7",
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "8px",
-            }}
-          >
-            {article.tags.map((tag, i) => {
-              const tagName = typeof tag === "string" ? tag : tag.name || tag.id;
-              return (
-                <span
-                  key={i}
-                  style={{
-                    fontSize: "12px",
-                    padding: "4px 12px",
-                    borderRadius: "99px",
-                    background: "#f5f5f7",
-                    color: "#86868b",
-                  }}
-                >
-                  #{tagName}
-                </span>
-              );
-            })}
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11.5 7h-9M5 2.5L.5 7 5 11.5" />
+              </svg>
+              記事一覧へ戻る
+            </Link>
           </div>
-        )}
 
-        {/* 戻るボタン */}
-        <div style={{ marginTop: "48px" }}>
-          <Link
-            href="/articles"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "0.9rem",
-              fontWeight: 600,
-              color: "#1d1d1f",
-              padding: "10px 24px",
-              borderRadius: "40px",
-              border: "1px solid rgba(0,0,0,0.12)",
-            }}
-          >
-            ← 記事一覧へ戻る
-          </Link>
         </div>
-      </article>
-    </main>
+      </main>
+
+      {/* ===== 固定アクションバー ===== */}
+      <ArticleActions
+        articleId={id}
+        articleTitle={article.title ?? ""}
+        articleUrl={articleUrl}
+      />
+    </>
   );
 }

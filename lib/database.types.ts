@@ -165,6 +165,16 @@ export interface DbArticleSave {
   created_at: string;
 }
 
+export interface DbArticleComment {
+  id: string;
+  user_id: string;
+  article_id: string;
+  content: string;
+  created_at: string;
+  // JOIN 用
+  users?: { display_name: string | null };
+}
+
 export interface DbUserSubscription {
   id: string;
   user_id: string;
@@ -201,6 +211,7 @@ export type Database = {
       diagnosis_results:    { Row: DbDiagnosisResult;     Insert: Omit<DbDiagnosisResult, "id" | "created_at">;    Update: Partial<DbDiagnosisResult> };
       article_likes:        { Row: DbArticleLike;         Insert: Omit<DbArticleLike, "id" | "created_at">;        Update: Partial<DbArticleLike> };
       article_saves:        { Row: DbArticleSave;         Insert: Omit<DbArticleSave, "id" | "created_at">;        Update: Partial<DbArticleSave> };
+      article_comments:     { Row: DbArticleComment;      Insert: Omit<DbArticleComment, "id" | "created_at" | "users">; Update: Partial<DbArticleComment> };
       user_subscriptions:   { Row: DbUserSubscription;    Insert: Omit<DbUserSubscription, "id" | "created_at">;   Update: Partial<DbUserSubscription> };
     };
   };
