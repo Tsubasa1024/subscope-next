@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       const createdAt = new Date(data.session.user.created_at);
       const isNewUser = Date.now() - createdAt.getTime() < 15_000; // 15秒以内なら新規登録
 
-      const redirectTo = isNewUser ? "/welcome" : next;
+      const redirectTo = isNewUser ? "/welcome" : `${next}?toast=login_success`;
       return NextResponse.redirect(`${origin}${redirectTo}`);
     }
   }

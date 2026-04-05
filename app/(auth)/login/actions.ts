@@ -19,25 +19,28 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/?toast=login_success')
 }
 
-// signup は welcome にリダイレクト（email/password 登録）
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
-  const data = {
+  const { data, error } = await supabase.auth.signUp({
     email: formData.get('email') as string,
     password: formData.get('password') as string,
-  }
-
-  const { error } = await supabase.auth.signUp(data)
+  })
 
   if (error) {
     return { error: error.message }
   }
 
   revalidatePath('/', 'layout')
+
+  // session が null = メール確認が必要
+  if (!data.session) {
+    redirect('/auth/verify-email')
+  }
+
   redirect('/welcome')
 }
 
