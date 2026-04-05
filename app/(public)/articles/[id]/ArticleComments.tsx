@@ -223,8 +223,8 @@ export default function ArticleComments({ articleId }: Props) {
             <p className="text-sm text-gray-500 mb-3">コメントするにはログインが必要です</p>
             <a
               href="/login"
-              className="inline-flex items-center px-5 py-2 rounded-full text-sm font-semibold text-white"
-              style={{ background: "#111111", textDecoration: "none" }}
+              className="inline-flex items-center bg-black text-white px-6 py-2 rounded-full text-sm hover:bg-gray-800 transition"
+              style={{ textDecoration: "none" }}
             >
               ログインする
             </a>
