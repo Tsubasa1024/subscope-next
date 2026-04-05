@@ -19,11 +19,7 @@ export default function Toast() {
     if (key && MESSAGES[key]) {
       setMessage(MESSAGES[key]);
 
-      // URLからtoastクエリを除去
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("toast");
-      const newUrl = params.toString() ? `${pathname}?${params}` : pathname;
-      router.replace(newUrl, { scroll: false });
+      router.replace(pathname, { scroll: false });
 
       const timer = setTimeout(() => setMessage(null), 3000);
       return () => clearTimeout(timer);
