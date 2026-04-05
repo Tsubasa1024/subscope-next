@@ -114,7 +114,7 @@ export default async function TopPage() {
                 fontSize: "clamp(1.4rem, 3.5vw, 2.4rem)",
                 letterSpacing: "-0.025em",
                 textShadow: "0 2px 16px rgba(0,0,0,0.6)",
-                maxWidth: "760px",
+                maxWidth: "900px",
               }}
             >
               {featured.title}
@@ -127,9 +127,9 @@ export default async function TopPage() {
                 style={{
                   fontSize: "1rem",
                   lineHeight: 1.65,
-                  maxWidth: "560px",
+                  maxWidth: "760px",
                   display: "-webkit-box",
-                  WebkitLineClamp: 2,
+                  WebkitLineClamp: 4,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
                 }}
