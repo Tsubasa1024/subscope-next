@@ -176,3 +176,7 @@ ul {
   margin-left: -5px;
   color: #ef4444;
 }
+
+/* ===== スクロールバー非表示 ===== */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
