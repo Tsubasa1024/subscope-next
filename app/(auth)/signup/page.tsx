@@ -9,7 +9,7 @@ async function signupWithGoogle() {
   const supabase = createClient();
   await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${window.location.origin}/auth/callback` },
+    options: { redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback` },
   });
 }
 
