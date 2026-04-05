@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 const MESSAGES: Record<string, string> = {
   login_success:  "ログインしました！",
@@ -9,22 +8,18 @@ const MESSAGES: Record<string, string> = {
 };
 
 export default function Toast() {
-  const searchParams = useSearchParams();
-  const router       = useRouter();
-  const pathname     = usePathname();
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const key = searchParams.get("toast");
+    const match = document.cookie.match(/(?:^|;\s*)toast=([^;]+)/);
+    const key = match ? match[1] : null;
     if (key && MESSAGES[key]) {
       setMessage(MESSAGES[key]);
-
-      router.replace(pathname, { scroll: false });
-
+      document.cookie = "toast=; max-age=0; path=/";
       const timer = setTimeout(() => setMessage(null), 3000);
       return () => clearTimeout(timer);
     }
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!message) return null;
 

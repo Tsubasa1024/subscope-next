@@ -13,8 +13,12 @@ export async function GET(request: NextRequest) {
       const createdAt = new Date(data.session.user.created_at);
       const isNewUser = Date.now() - createdAt.getTime() < 30_000; // 30秒以内なら新規登録
 
-      const redirectTo = isNewUser ? "/welcome" : "/?toast=login_success";
-      return NextResponse.redirect(`${origin}${redirectTo}`);
+      if (isNewUser) {
+        return NextResponse.redirect(`${origin}/welcome`);
+      }
+      const response = NextResponse.redirect(`${origin}/`);
+      response.cookies.set("toast", "login_success", { maxAge: 10, path: "/" });
+      return response;
     }
   }
 

@@ -386,13 +386,21 @@ export default function Header({ articles = [] }: HeaderProps) {
                 </li>
               </ul>
             ) : (
-              <div className="px-4">
+              <div className="px-4 flex flex-col gap-3">
                 <Link
                   href="/login"
                   onClick={closeDrawer}
-                  className="block bg-black text-white rounded-full px-4 py-2 text-sm font-medium w-full text-center hover:bg-gray-800 transition-colors"
+                  className="w-full text-center py-3 rounded-full text-base font-medium transition-colors"
+                  style={{ border: "1px solid #d1d5db", background: "#fff", color: "#111" }}
                 >
-                  ログイン / 会員登録
+                  ログイン
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={closeDrawer}
+                  className="w-full text-center py-3 rounded-full text-base font-medium bg-black text-white hover:bg-gray-800 transition-colors"
+                >
+                  新規登録
                 </Link>
               </div>
             )
