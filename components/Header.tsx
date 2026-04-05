@@ -93,7 +93,7 @@ export default function Header({ articles = [] }: HeaderProps) {
         }}
       >
         <div
-          className="flex items-center relative"
+          className="flex items-center justify-between"
           style={{
             maxWidth: "var(--container-width)",
             margin: "0 auto",
@@ -101,34 +101,32 @@ export default function Header({ articles = [] }: HeaderProps) {
             height: "var(--header-h)",
           }}
         >
-          {/* ===== CENTER: ロゴ（absolute で中央固定）===== */}
-          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-            <Link
-              href="/"
-              className="pointer-events-auto"
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: 700,
-                letterSpacing: "-0.03em",
-                color: "#1d1d1f",
-              }}
-            >
-              SUBSCOPE
-            </Link>
-          </div>
+          {/* ===== LEFT: スペーサー（ハンバーガーと同幅）===== */}
+          <div className="w-10 flex-shrink-0" />
+
+          {/* ===== CENTER: ロゴ ===== */}
+          <Link
+            href="/"
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              letterSpacing: "-0.03em",
+              color: "#1d1d1f",
+            }}
+          >
+            SUBSCOPE
+          </Link>
 
           {/* ===== RIGHT: ハンバーガーボタン ===== */}
-          <div className="ml-auto">
-            <button
-              onClick={openDrawer}
-              aria-label="メニューを開く"
-              className="flex flex-col items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors gap-[5px]"
-            >
-              <span className="block w-[18px] h-[2px] rounded bg-gray-800" />
-              <span className="block w-[14px] h-[2px] rounded bg-gray-800" />
-              <span className="block w-[18px] h-[2px] rounded bg-gray-800" />
-            </button>
-          </div>
+          <button
+            onClick={openDrawer}
+            aria-label="メニューを開く"
+            className="flex flex-col items-center justify-center w-10 h-10 flex-shrink-0 rounded-full hover:bg-gray-100 transition-colors gap-[5px]"
+          >
+            <span className="block w-[18px] h-[2px] rounded bg-gray-800" />
+            <span className="block w-[14px] h-[2px] rounded bg-gray-800" />
+            <span className="block w-[18px] h-[2px] rounded bg-gray-800" />
+          </button>
         </div>
       </header>
 
