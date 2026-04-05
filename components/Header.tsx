@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { href: "/diagnosis", label: "診断" },
 ];
 
+
 const ARTICLE_CATEGORIES = [
   { label: "すべての記事", href: "/articles" },
   { label: "AI",           href: "/articles?category=AI" },
@@ -278,27 +279,14 @@ export default function Header({ articles = [] }: HeaderProps) {
           {/* ナビリンク */}
           <nav>
             <ul className="space-y-1">
-              {NAV_ITEMS.map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={closeDrawer}
-                    className="block px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
-                    style={{ color: "#1d1d1f" }}
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-
-              {/* 記事アコーディオン */}
+              {/* 記事アコーディオン（検索の直下・ランキングより上）*/}
               <li>
                 <button
                   onClick={() => setArticlesOpen((v) => !v)}
                   className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
                   style={{ color: "#1d1d1f", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
                 >
-                  <span>記事</span>
+                  <span>すべての記事</span>
                   <span className="text-xs text-gray-400">{articlesOpen ? "▲" : "▼"}</span>
                 </button>
 
@@ -316,8 +304,8 @@ export default function Header({ articles = [] }: HeaderProps) {
                         <Link
                           href={href}
                           onClick={closeDrawer}
-                          className="block pl-6 pr-4 py-2 rounded-xl text-sm hover:text-gray-900 transition-colors"
-                          style={{ color: "#666666" }}
+                          className="block pl-6 pr-4 py-2 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+                          style={{ color: "#111111" }}
                         >
                           {label}
                         </Link>
@@ -326,6 +314,19 @@ export default function Header({ articles = [] }: HeaderProps) {
                   </ul>
                 </div>
               </li>
+
+              {NAV_ITEMS.map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={closeDrawer}
+                    className="block px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
+                    style={{ color: "#1d1d1f" }}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
 
