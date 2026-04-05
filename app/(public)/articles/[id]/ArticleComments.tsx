@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface Comment {
   id: string;
@@ -26,6 +27,7 @@ export default function ArticleComments({ articleId }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState<string | null>(null);
+  const [userPlan,   setUserPlan]   = useState<string>("free");
 
   useEffect(() => {
     loadComments();
@@ -35,6 +37,14 @@ export default function ArticleComments({ articleId }: Props) {
   async function loadComments() {
     setLoading(true);
     const supabase = createClient();
+
+    // ユーザープラン取得
+    if (user) {
+      const { data: profile } = await supabase
+        .from("users").select("plan").eq("id", user.uid).maybeSingle();
+      setUserPlan(profile?.plan ?? "free");
+    }
+
     const { data } = await supabase
       .from("article_comments")
       .select("id, user_id, content, created_at, users(display_name)")
@@ -166,6 +176,26 @@ export default function ArticleComments({ articleId }: Props) {
       {/* 投稿フォーム */}
       {ready && (
         user ? (
+          userPlan === "free" ? (
+            <div
+              className="rounded-2xl p-6 text-center"
+              style={{ background: "#f5f5f5", border: "1px solid #e5e5e5" }}
+            >
+              <p className="text-sm font-semibold mb-1" style={{ color: "#111" }}>
+                コメントはStandard以上のプランで利用できます
+              </p>
+              <p className="text-xs mb-4" style={{ color: "#86868b" }}>
+                アップグレードしてコメント・全機能をお楽しみください
+              </p>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center bg-black text-white px-6 py-2 rounded-full text-sm hover:bg-gray-800 transition"
+                style={{ textDecoration: "none" }}
+              >
+                プランをアップグレード →
+              </Link>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit}>
             <div className="flex gap-3">
               <div
@@ -215,6 +245,7 @@ export default function ArticleComments({ articleId }: Props) {
               </div>
             </div>
           </form>
+          )
         ) : (
           <div
             className="rounded-2xl p-6 text-center"

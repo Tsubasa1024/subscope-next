@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface Props {
   articleId: string;
@@ -34,6 +35,13 @@ function setLocalLike(articleId: string, liked: boolean) {
   localStorage.setItem(LS_KEY, JSON.stringify(likes));
 }
 
+// プランごとの保存上限
+const SAVE_LIMITS: Record<string, number> = {
+  free: 5,
+  standard: 15,
+  pro: Infinity,
+};
+
 // パーティクルの飛び散り方向（4方向）
 const PARTICLES = [
   { tx: "-22px", ty: "-34px" },
@@ -41,6 +49,56 @@ const PARTICLES = [
   { tx: "-32px", ty:  "-8px" },
   { tx:  "32px", ty:  "-8px" },
 ];
+
+// ===== アップグレードモーダル =====
+function UpgradeModal({ plan, onClose }: { plan: string; onClose: () => void }) {
+  const limit = SAVE_LIMITS[plan] ?? 5;
+  return (
+    <div
+      className="fixed inset-0 z-[300] flex items-center justify-center px-4"
+      style={{ background: "rgba(0,0,0,0.5)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-3xl p-8 text-center"
+        style={{ background: "#fff", boxShadow: "0 24px 64px rgba(0,0,0,0.18)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="flex items-center justify-center rounded-full mx-auto mb-5"
+          style={{ width: "60px", height: "60px", background: "#f5f5f7", fontSize: "1.8rem" }}
+        >
+          🔒
+        </div>
+        <h3 className="font-bold mb-2" style={{ fontSize: "1.2rem", letterSpacing: "-0.02em" }}>
+          保存の上限に達しました
+        </h3>
+        <p className="text-sm mb-6" style={{ color: "#86868b", lineHeight: 1.7 }}>
+          現在の{plan === "free" ? "無料" : "Standard"}プランでは
+          最大 <strong>{limit}</strong> 件まで保存できます。
+          <br />アップグレードで上限を拡張できます。
+        </p>
+        <div className="flex flex-col gap-2">
+          <Link
+            href="/pricing"
+            className="flex items-center justify-center w-full py-3 rounded-full font-semibold text-sm"
+            style={{ background: "#111", color: "#fff" }}
+            onClick={onClose}
+          >
+            プランをアップグレード →
+          </Link>
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-full text-sm font-medium"
+            style={{ background: "none", border: "1.5px solid #e5e5ea", cursor: "pointer", fontFamily: "inherit", color: "#555" }}
+          >
+            キャンセル
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ArticleActions({ articleId, articleTitle, articleUrl, children }: Props) {
   const { user, ready } = useAuth();
@@ -55,6 +113,8 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
   const [saveLoading,   setSaveLoading]   = useState(false);
   const [likeAnimating, setLikeAnimating] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
+  const [userPlan,      setUserPlan]      = useState<string>("free");
+  const [showUpgrade,   setShowUpgrade]   = useState(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -75,17 +135,17 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
       setCommentCount(cc ?? 0);
 
       if (user) {
-        // ログイン済み → Supabase から取得
-        const [{ data: likeRow }, { data: saveRow }] = await Promise.all([
+        const [{ data: likeRow }, { data: saveRow }, { data: profileRow }] = await Promise.all([
           supabase.from("article_likes").select("id")
             .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
           supabase.from("article_saves").select("id")
             .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
+          supabase.from("users").select("plan").eq("id", user.uid).maybeSingle(),
         ]);
         setLiked(!!likeRow);
         setSaved(!!saveRow);
+        setUserPlan(profileRow?.plan ?? "free");
       } else {
-        // 未ログイン → localStorage から取得
         setLiked(getLocalLikes().includes(articleId));
       }
     }
@@ -105,7 +165,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
     setLikeLoading(true);
 
     if (liked) {
-      // いいね解除
       setLiked(false);
       setLikeCount((n) => Math.max(0, n - 1));
       if (user) {
@@ -116,7 +175,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
         setLocalLike(articleId, false);
       }
     } else {
-      // いいね → アニメーション発火
       triggerLikeAnimation();
       setLiked(true);
       setLikeCount((n) => n + 1);
@@ -137,11 +195,25 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
     if (saveLoading) return;
     setSaveLoading(true);
     const supabase = createClient();
+
     if (saved) {
       setSaved(false);
       await supabase.from("article_saves").delete()
         .eq("article_id", articleId).eq("user_id", user.uid);
     } else {
+      // 件数チェック
+      const limit = SAVE_LIMITS[userPlan] ?? 5;
+      if (limit !== Infinity) {
+        const { count } = await supabase
+          .from("article_saves")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.uid);
+        if ((count ?? 0) >= limit) {
+          setShowUpgrade(true);
+          setSaveLoading(false);
+          return;
+        }
+      }
       setSaved(true);
       await supabase.from("article_saves")
         .insert({ user_id: user.uid, article_id: articleId, title: articleTitle });
@@ -183,7 +255,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
         {saved ? "保存済" : "保存"}
       </span>
     </button>
-  ), [saved, saveLoading]);
+  ), [saved, saveLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const TwitterButton = ({ size }: { size: "sm" | "base" }) => (
     <button
@@ -236,7 +308,12 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
 
   return (
     <>
-      {/* ===== 上部アクションバー（タイトルと本文の間）===== */}
+      {/* アップグレードモーダル */}
+      {showUpgrade && (
+        <UpgradeModal plan={userPlan} onClose={() => setShowUpgrade(false)} />
+      )}
+
+      {/* ===== 上部アクションバー ===== */}
       <div
         className="flex items-center gap-4 border-b pb-4 mb-6"
         style={{ borderColor: "#e5e5e5" }}
@@ -246,15 +323,15 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
         <CopyButton size="sm" />
       </div>
 
-      {/* ===== 記事コンテンツ（サムネイル・本文・タグ）===== */}
+      {/* ===== 記事コンテンツ ===== */}
       {children}
 
-      {/* ===== 下部アクションバー（コメントの上）===== */}
+      {/* ===== 下部アクションバー ===== */}
       <div
         className="flex items-center gap-6 border-t pt-8 mb-8"
         style={{ borderColor: "#e5e5e5" }}
       >
-        {/* いいね（アニメーション付き） */}
+        {/* いいね */}
         <button
           onClick={handleLike}
           className="flex items-center gap-2 transition-colors"
@@ -266,7 +343,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
           }}
           aria-label={liked ? "いいねを取り消す" : "いいねする"}
         >
-          {/* パーティクル */}
           {showParticles && PARTICLES.map((p, i) => (
             <span
               key={i}
@@ -276,8 +352,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
               ❤️
             </span>
           ))}
-
-          {/* ハートアイコン */}
           <span
             className={likeAnimating ? "heart-pop" : ""}
             style={{ display: "flex", alignItems: "center" }}
@@ -291,8 +365,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </span>
-
-          {/* カウント */}
           <span
             className="text-base font-medium"
             style={{
@@ -323,7 +395,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
         </a>
 
         <div className="flex-1" />
-
         <TwitterButton size="base" />
         <CopyButton size="base" />
       </div>
