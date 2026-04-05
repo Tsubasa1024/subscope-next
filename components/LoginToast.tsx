@@ -3,29 +3,37 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
+const TOAST_CONFIG = {
+  login_success:  { message: "ログインしました！",   icon: "#4ade80" },
+  logout_success: { message: "ログアウトしました",   icon: "#94a3b8" },
+} as const;
+
+type ToastKey = keyof typeof TOAST_CONFIG;
+
 export default function LoginToast() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [visible, setVisible] = useState(false);
+  const [toast, setToast] = useState<ToastKey | null>(null);
 
   useEffect(() => {
-    if (searchParams.get("toast") === "login_success") {
-      setVisible(true);
+    const key = searchParams.get("toast") as ToastKey | null;
+    if (key && key in TOAST_CONFIG) {
+      setToast(key);
 
-      // URLからクエリパラメータを除去
       const params = new URLSearchParams(searchParams.toString());
       params.delete("toast");
       const newUrl = params.toString() ? `${pathname}?${params}` : pathname;
       router.replace(newUrl, { scroll: false });
 
-      // 3秒後に非表示
-      const timer = setTimeout(() => setVisible(false), 3000);
+      const timer = setTimeout(() => setToast(null), 3000);
       return () => clearTimeout(timer);
     }
   }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!visible) return null;
+  if (!toast) return null;
+
+  const config = TOAST_CONFIG[toast];
 
   return (
     <div
@@ -37,10 +45,10 @@ export default function LoginToast() {
       }}
     >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <circle cx="8" cy="8" r="8" fill="#4ade80" />
+        <circle cx="8" cy="8" r="8" fill={config.icon} />
         <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      ログインしました！
+      {config.message}
     </div>
   );
 }
