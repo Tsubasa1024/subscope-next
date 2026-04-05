@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getArticle, getAllArticleIds, getImageUrl, normalizeCategory } from "@/lib/microcms";
 import ArticleActions from "./ArticleActions";
 import ArticleComments from "./ArticleComments";
+import ArticleViewTracker from "./ArticleViewTracker";
 
 // ISR: 60秒ごとに再検証
 export const revalidate = 60;
@@ -69,6 +70,7 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <main style={{ paddingTop: "var(--header-h)", paddingBottom: "60px" }}>
+      <ArticleViewTracker articleId={id} />
       <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px 0" }}>
 
         {/* メタ情報 */}

@@ -7,21 +7,27 @@ import type { Article } from "@/lib/utils";
 import { getImageUrl } from "@/lib/utils";
 
 const PERIODS = [
-  { key: "all", label: "すべて" },
-  { key: "weekly", label: "週間" },
+  { key: "all",     label: "すべて" },
+  { key: "weekly",  label: "週間" },
   { key: "monthly", label: "月間" },
-];
+] as const;
+
+type Period = typeof PERIODS[number]["key"];
+
+type ViewCounts = Record<string, number>;
 
 interface RankingClientProps {
   articles: Article[];
+  viewCounts: { all: ViewCounts; weekly: ViewCounts; monthly: ViewCounts };
 }
 
-export default function RankingClient({ articles }: RankingClientProps) {
-  const [period, setPeriod] = useState("all");
+export default function RankingClient({ articles, viewCounts }: RankingClientProps) {
+  const [period, setPeriod] = useState<Period>("all");
 
-  // 実際のランキングAPIがある場合はperiodで切り替え
-  // 現在は同じ記事一覧を表示（publishedAt順）
-  const ranked = articles;
+  const counts = viewCounts[period];
+  const ranked = [...articles].sort(
+    (a, b) => (counts[b.id] ?? 0) - (counts[a.id] ?? 0)
+  );
   const top3 = ranked.slice(0, 3);
   const rest = ranked.slice(3);
 
@@ -75,11 +81,12 @@ export default function RankingClient({ articles }: RankingClientProps) {
               const rank = i + 1;
               const badgeColor =
                 rank === 1 ? "#111111" : rank === 2 ? "#666666" : "#999999";
+              const views = counts[article.id] ?? 0;
 
               return (
                 <Link
                   key={article.id}
-                  href={`/article/${article.id}`}
+                  href={`/articles/${article.id}`}
                   style={{
                     display: "flex",
                     gap: "20px",
@@ -160,10 +167,13 @@ export default function RankingClient({ articles }: RankingClientProps) {
                     {article.description && (
                       <p style={{ fontSize: "1rem", color: "#555" }}>{article.description}</p>
                     )}
-                    <div style={{ marginTop: "8px", display: "flex", gap: "16px", fontSize: "0.9rem", color: "#86868b" }}>
+                    <div style={{ marginTop: "8px", display: "flex", gap: "16px", fontSize: "0.9rem", color: "#86868b", alignItems: "center" }}>
                       {article.publishedAt && (
                         <span>{article.publishedAt.slice(0, 10)}</span>
                       )}
+                      <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        👁 {views.toLocaleString()} views
+                      </span>
                     </div>
                   </div>
                 </Link>
@@ -177,10 +187,11 @@ export default function RankingClient({ articles }: RankingClientProps) {
               {rest.map((article, i) => {
                 const imgUrl = getImageUrl(article);
                 const rank = i + 4;
+                const views = counts[article.id] ?? 0;
                 return (
                   <Link
                     key={article.id}
-                    href={`/article/${article.id}`}
+                    href={`/articles/${article.id}`}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -237,8 +248,9 @@ export default function RankingClient({ articles }: RankingClientProps) {
                       >
                         {article.title}
                       </p>
-                      <p style={{ marginTop: "2px", fontSize: "0.78rem", color: "#86868b" }}>
-                        {article.publishedAt?.slice(0, 10)}
+                      <p style={{ marginTop: "2px", fontSize: "0.78rem", color: "#86868b", display: "flex", gap: "10px" }}>
+                        <span>{article.publishedAt?.slice(0, 10)}</span>
+                        <span>👁 {views.toLocaleString()} views</span>
                       </p>
                     </div>
                   </Link>
@@ -249,7 +261,7 @@ export default function RankingClient({ articles }: RankingClientProps) {
 
           <div style={{ marginTop: "32px", textAlign: "center" }}>
             <Link
-              href="/all"
+              href="/articles"
               style={{
                 display: "inline-block",
                 padding: "12px 28px",
