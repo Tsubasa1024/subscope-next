@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
+import LoginPromptModal from "@/components/LoginPromptModal";
 
 interface Comment {
   id: string;
@@ -20,7 +19,6 @@ interface Props {
 
 export default function ArticleComments({ articleId }: Props) {
   const { user, ready } = useAuth();
-  const router = useRouter();
 
   const [comments,   setComments]   = useState<Comment[]>([]);
   const [input,      setInput]      = useState("");
@@ -28,6 +26,8 @@ export default function ArticleComments({ articleId }: Props) {
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState<string | null>(null);
   const [userPlan,   setUserPlan]   = useState<string>("free");
+  const [modalMsg,   setModalMsg]   = useState("");
+  const [modalMode,  setModalMode]  = useState<"login" | "upgrade">("login");
 
   useEffect(() => {
     loadComments();
@@ -67,7 +67,8 @@ export default function ArticleComments({ articleId }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) {
-      router.push("/login");
+      setModalMode("login");
+      setModalMsg("コメントするにはログインが必要です");
       return;
     }
     const content = input.trim();
@@ -173,93 +174,84 @@ export default function ArticleComments({ articleId }: Props) {
         </div>
       )}
 
+      {/* ログイン / アップグレードモーダル */}
+      <LoginPromptModal
+        isOpen={!!modalMsg}
+        onClose={() => setModalMsg("")}
+        message={modalMsg}
+        mode={modalMode}
+      />
+
       {/* 投稿フォーム */}
       {ready && (
         user ? (
           userPlan === "free" ? (
-            <div
-              className="rounded-2xl p-6 text-center"
-              style={{ background: "#f5f5f5", border: "1px solid #e5e5e5" }}
+            <button
+              onClick={() => { setModalMode("upgrade"); setModalMsg("コメント機能はStandard以上のプランで利用できます"); }}
+              className="w-full rounded-2xl p-5 text-left"
+              style={{ background: "#f5f5f5", border: "1px solid #e5e5e5", cursor: "pointer", fontFamily: "inherit" }}
             >
-              <p className="text-sm font-semibold mb-1" style={{ color: "#111" }}>
-                コメントはStandard以上のプランで利用できます
-              </p>
-              <p className="text-xs mb-4" style={{ color: "#86868b" }}>
-                アップグレードしてコメント・全機能をお楽しみください
-              </p>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center bg-black text-white px-6 py-2 rounded-full text-sm hover:bg-gray-800 transition"
-                style={{ textDecoration: "none" }}
-              >
-                プランをアップグレード →
-              </Link>
-            </div>
+              <p className="text-sm" style={{ color: "#aaa" }}>コメントを書く...</p>
+            </button>
           ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="flex gap-3">
-              <div
-                className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: avatarBg(user.uid) }}
-              >
-                {user.name[0]?.toUpperCase()}
-              </div>
-              <div className="flex-1">
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="コメントを書く..."
-                  rows={3}
-                  className="w-full text-sm outline-none resize-none"
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: "12px",
-                    border: "1.5px solid rgba(0,0,0,0.1)",
-                    background: "#fafafa",
-                    fontFamily: "inherit",
-                    lineHeight: 1.6,
-                    boxSizing: "border-box",
-                  }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#111111")}
-                  onBlur={(e)  => (e.currentTarget.style.borderColor = "rgba(0,0,0,0.1)")}
-                />
-                {error && (
-                  <p className="text-xs text-gray-500 mt-1">{error}</p>
-                )}
-                <div className="flex justify-end mt-2">
-                  <button
-                    type="submit"
-                    disabled={!input.trim() || submitting}
-                    className="px-5 py-2 rounded-full text-sm font-semibold text-white transition-opacity"
+            <form onSubmit={handleSubmit}>
+              <div className="flex gap-3">
+                <div
+                  className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                  style={{ background: avatarBg(user.uid) }}
+                >
+                  {user.name[0]?.toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="コメントを書く..."
+                    rows={3}
+                    className="w-full text-sm outline-none resize-none"
                     style={{
-                      background: "#111111",
+                      padding: "10px 14px",
+                      borderRadius: "12px",
+                      border: "1.5px solid rgba(0,0,0,0.1)",
+                      background: "#fafafa",
                       fontFamily: "inherit",
-                      border: "none",
-                      cursor: !input.trim() || submitting ? "not-allowed" : "pointer",
-                      opacity: !input.trim() || submitting ? 0.4 : 1,
+                      lineHeight: 1.6,
+                      boxSizing: "border-box",
                     }}
-                  >
-                    {submitting ? "投稿中..." : "投稿する"}
-                  </button>
+                    onFocus={(e) => (e.currentTarget.style.borderColor = "#111111")}
+                    onBlur={(e)  => (e.currentTarget.style.borderColor = "rgba(0,0,0,0.1)")}
+                  />
+                  {error && (
+                    <p className="text-xs text-gray-500 mt-1">{error}</p>
+                  )}
+                  <div className="flex justify-end mt-2">
+                    <button
+                      type="submit"
+                      disabled={!input.trim() || submitting}
+                      className="px-5 py-2 rounded-full text-sm font-semibold text-white transition-opacity"
+                      style={{
+                        background: "#111111",
+                        fontFamily: "inherit",
+                        border: "none",
+                        cursor: !input.trim() || submitting ? "not-allowed" : "pointer",
+                        opacity: !input.trim() || submitting ? 0.4 : 1,
+                      }}
+                    >
+                      {submitting ? "投稿中..." : "投稿する"}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </form>
+            </form>
           )
         ) : (
-          <div
-            className="rounded-2xl p-6 text-center"
-            style={{ background: "#f5f5f5", border: "1px solid #e5e5e5" }}
+          <button
+            onClick={() => { setModalMode("login"); setModalMsg("コメントするにはログインが必要です"); }}
+            className="w-full rounded-2xl p-5 text-left"
+            style={{ background: "#f5f5f5", border: "1px solid #e5e5e5", cursor: "pointer", fontFamily: "inherit" }}
           >
-            <p className="text-sm text-gray-500 mb-3">コメントするにはログインが必要です</p>
-            <a
-              href="/login"
-              className="inline-flex items-center bg-black text-white px-6 py-2 rounded-full text-sm hover:bg-gray-800 transition"
-              style={{ textDecoration: "none" }}
-            >
-              ログインする
-            </a>
-          </div>
+            <p className="text-sm" style={{ color: "#aaa" }}>コメントを書く...</p>
+          </button>
         )
       )}
     </section>

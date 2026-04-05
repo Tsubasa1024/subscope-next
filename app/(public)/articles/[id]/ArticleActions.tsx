@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
+import LoginPromptModal from "@/components/LoginPromptModal";
 
 interface Props {
   articleId: string;
@@ -50,59 +49,9 @@ const PARTICLES = [
   { tx:  "32px", ty:  "-8px" },
 ];
 
-// ===== アップグレードモーダル =====
-function UpgradeModal({ plan, onClose }: { plan: string; onClose: () => void }) {
-  const limit = SAVE_LIMITS[plan] ?? 5;
-  return (
-    <div
-      className="fixed inset-0 z-[300] flex items-center justify-center px-4"
-      style={{ background: "rgba(0,0,0,0.5)" }}
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-sm rounded-3xl p-8 text-center"
-        style={{ background: "#fff", boxShadow: "0 24px 64px rgba(0,0,0,0.18)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className="flex items-center justify-center rounded-full mx-auto mb-5"
-          style={{ width: "60px", height: "60px", background: "#f5f5f7", fontSize: "1.8rem" }}
-        >
-          🔒
-        </div>
-        <h3 className="font-bold mb-2" style={{ fontSize: "1.2rem", letterSpacing: "-0.02em" }}>
-          保存の上限に達しました
-        </h3>
-        <p className="text-sm mb-6" style={{ color: "#86868b", lineHeight: 1.7 }}>
-          現在の{plan === "free" ? "無料" : "Standard"}プランでは
-          最大 <strong>{limit}</strong> 件まで保存できます。
-          <br />アップグレードで上限を拡張できます。
-        </p>
-        <div className="flex flex-col gap-2">
-          <Link
-            href="/pricing"
-            className="flex items-center justify-center w-full py-3 rounded-full font-semibold text-sm"
-            style={{ background: "#111", color: "#fff" }}
-            onClick={onClose}
-          >
-            プランをアップグレード →
-          </Link>
-          <button
-            onClick={onClose}
-            className="w-full py-3 rounded-full text-sm font-medium"
-            style={{ background: "none", border: "1.5px solid #e5e5ea", cursor: "pointer", fontFamily: "inherit", color: "#555" }}
-          >
-            キャンセル
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ArticleActions({ articleId, articleTitle, articleUrl, children }: Props) {
   const { user, ready } = useAuth();
-  const router = useRouter();
 
   const [likeCount,     setLikeCount]     = useState(0);
   const [liked,         setLiked]         = useState(false);
@@ -114,7 +63,8 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
   const [likeAnimating, setLikeAnimating] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
   const [userPlan,      setUserPlan]      = useState<string>("free");
-  const [showUpgrade,   setShowUpgrade]   = useState(false);
+  const [modalMessage,  setModalMessage]  = useState("");
+  const [modalMode,     setModalMode]     = useState<"login" | "upgrade">("login");
 
   useEffect(() => {
     if (!ready) return;
@@ -190,8 +140,16 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
     setLikeLoading(false);
   }
 
+  function openModal(message: string, mode: "login" | "upgrade") {
+    setModalMessage(message);
+    setModalMode(mode);
+  }
+
   async function handleSave() {
-    if (!user) { router.push("/login"); return; }
+    if (!user) {
+      openModal("記事を保存するにはログインが必要です", "login");
+      return;
+    }
     if (saveLoading) return;
     setSaveLoading(true);
     const supabase = createClient();
@@ -209,7 +167,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
           .select("*", { count: "exact", head: true })
           .eq("user_id", user.uid);
         if ((count ?? 0) >= limit) {
-          setShowUpgrade(true);
+          openModal("保存の上限に達しました", "upgrade");
           setSaveLoading(false);
           return;
         }
@@ -308,10 +266,13 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
 
   return (
     <>
-      {/* アップグレードモーダル */}
-      {showUpgrade && (
-        <UpgradeModal plan={userPlan} onClose={() => setShowUpgrade(false)} />
-      )}
+      {/* ログイン / アップグレードモーダル */}
+      <LoginPromptModal
+        isOpen={!!modalMessage}
+        onClose={() => setModalMessage("")}
+        message={modalMessage}
+        mode={modalMode}
+      />
 
       {/* ===== 上部アクションバー ===== */}
       <div

@@ -51,8 +51,15 @@ const PLANS = [
 // Page
 // ============================================================
 export default function LoginPage() {
-  const [error,   setError]   = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [error,        setError]        = useState<string | null>(null);
+  const [loading,      setLoading]      = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"Free" | "Standard" | "Pro">("Free");
+
+  const planCta = {
+    Free:     { label: "無料で始める →",         href: "/signup" },
+    Standard: { label: "Standardプランで始める →", href: "/signup?plan=standard" },
+    Pro:      { label: "Proプランで始める →",      href: "/signup?plan=pro" },
+  };
 
   async function handleLogin(formData: FormData) {
     setLoading(true);
@@ -98,56 +105,75 @@ export default function LoginPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              {PLANS.map((plan) => (
-                <div
-                  key={plan.name}
-                  className="rounded-2xl p-4"
-                  style={{ background: plan.bg, border: `1.5px solid ${plan.border}` }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm" style={{ color: plan.color }}>
-                        {plan.name}
-                      </span>
-                      {"badge" in plan && plan.badge && (
-                        <span
-                          className="text-xs font-bold px-2 py-0.5 rounded-full text-white"
-                          style={{ background: plan.color }}
-                        >
-                          {plan.badge}
-                        </span>
-                      )}
-                    </div>
-                    <span className="font-bold" style={{ color: plan.color }}>
-                      {plan.price}
-                      <span className="text-xs font-normal" style={{ color: "#6b7280" }}>
-                        {plan.period}
-                      </span>
-                    </span>
-                  </div>
-                  <ul className="space-y-1">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-center gap-1.5 text-xs" style={{ color: "#374151" }}>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <path d="M2 6l3 3 5-5" stroke={plan.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              {PLANS.map((plan) => {
+                const isSelected = selectedPlan === plan.name;
+                return (
+                  <button
+                    key={plan.name}
+                    type="button"
+                    onClick={() => setSelectedPlan(plan.name as "Free" | "Standard" | "Pro")}
+                    className="rounded-2xl p-4 text-left w-full relative transition-all"
+                    style={{
+                      background: plan.bg,
+                      border: isSelected ? "2px solid #111" : `1.5px solid ${plan.border}`,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      boxShadow: isSelected ? "0 4px 16px rgba(0,0,0,0.08)" : "none",
+                    }}
+                  >
+                    {/* 選択チェックマーク */}
+                    {isSelected && (
+                      <div
+                        className="absolute top-3 right-3 flex items-center justify-center rounded-full"
+                        style={{ width: "20px", height: "20px", background: "#111" }}
+                      >
+                        <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between mb-2 pr-6">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm" style={{ color: plan.color }}>
+                          {plan.name}
+                        </span>
+                        {"badge" in plan && plan.badge && (
+                          <span
+                            className="text-xs font-bold px-2 py-0.5 rounded-full text-white"
+                            style={{ background: plan.color }}
+                          >
+                            {plan.badge}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-bold" style={{ color: plan.color }}>
+                        {plan.price}
+                        <span className="text-xs font-normal" style={{ color: "#6b7280" }}>
+                          {plan.period}
+                        </span>
+                      </span>
+                    </div>
+                    <ul className="space-y-1">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-center gap-1.5 text-xs" style={{ color: "#374151" }}>
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 6l3 3 5-5" stroke={plan.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </button>
+                );
+              })}
             </div>
 
             <Link
-              href="/signup"
+              href={planCta[selectedPlan].href}
               className="mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-semibold text-sm transition-all hover:opacity-90"
-              style={{
-                background: "#111111",
-                color: "#fff",
-              }}
+              style={{ background: "#111111", color: "#fff" }}
             >
-              まずは無料で始める →
+              {planCta[selectedPlan].label}
             </Link>
           </div>
 
