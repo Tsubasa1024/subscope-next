@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Noto_Sans_JP } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
+import Toast from "@/components/Toast";
 import "./globals.css";
 
 const inter = Inter({
@@ -52,7 +54,12 @@ export default function RootLayout({
   return (
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <body style={{ fontFamily: "var(--font-inter), var(--font-noto), -apple-system, BlinkMacSystemFont, sans-serif" }}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <Suspense>
+            <Toast />
+          </Suspense>
+        </AuthProvider>
       </body>
     </html>
   );
