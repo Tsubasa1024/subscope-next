@@ -7,6 +7,7 @@ import type { Article } from "@/lib/utils";
 import { normalizeCategory, getImageUrl } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import Image from "next/image";
+import { ChevronRight, X } from "lucide-react";
 
 interface HeaderProps {
   articles?: Article[];
@@ -156,7 +157,7 @@ export default function Header({ articles = [] }: HeaderProps) {
       <div
         className="fixed top-0 right-0 h-full z-[170] bg-white flex flex-col"
         style={{
-          width: "320px",
+          width: "600px",
           transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s ease",
           boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
@@ -170,9 +171,9 @@ export default function Header({ articles = [] }: HeaderProps) {
           <button
             onClick={closeDrawer}
             aria-label="メニューを閉じる"
-            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors text-gray-600 text-xl font-medium"
+            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors text-gray-600"
           >
-            ×
+            <X size={20} />
           </button>
         </div>
 
@@ -283,9 +284,7 @@ export default function Header({ articles = [] }: HeaderProps) {
               style={{ color: "#1d1d1f" }}
             >
               すべての記事
-              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                <path d="M2.5 6h7M6 2.5l3.5 3.5-3.5 3.5" />
-              </svg>
+              <ChevronRight size={16} className="text-gray-400" />
             </Link>
 
             {/* 2列グリッド（8項目 = 4行×2列） */}
@@ -296,17 +295,15 @@ export default function Header({ articles = [] }: HeaderProps) {
                     key={href}
                     href={href}
                     onClick={closeDrawer}
-                    className="flex items-center justify-between p-3 bg-white hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-5 bg-white hover:bg-gray-50 transition-colors"
                     style={{
                       color: "#111111",
                       borderRight: i % 2 === 0 ? "1px solid #e5e7eb" : "none",
                       borderBottom: i < ARTICLE_CATEGORIES.length - 2 ? "1px solid #e5e7eb" : "none",
                     }}
                   >
-                    <span className="text-sm font-medium">{label}</span>
-                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 ml-1 opacity-30">
-                      <path d="M2.5 6h7M6 2.5l3.5 3.5-3.5 3.5" />
-                    </svg>
+                    <span className="text-base font-medium">{label}</span>
+                    <ChevronRight size={16} className="text-gray-400" />
                   </Link>
                 ))}
               </div>
@@ -325,9 +322,7 @@ export default function Header({ articles = [] }: HeaderProps) {
                     style={{ color: "#1d1d1f" }}
                   >
                     {label}
-                    <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                      <path d="M2.5 6h7M6 2.5l3.5 3.5-3.5 3.5" />
-                    </svg>
+                    <ChevronRight size={16} className="text-gray-400" />
                   </Link>
                 </li>
               ))}
