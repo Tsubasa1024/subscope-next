@@ -68,43 +68,47 @@ export default async function ArticlePage({ params }: Props) {
   const articleUrl = `https://www.subscope.jp/articles/${id}`;
 
   return (
-    <>
-      {/* ===== 記事本文 ===== */}
-      <main style={{ paddingTop: "var(--header-h)", paddingBottom: "80px" }}>
-        <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px 0" }}>
+    <main style={{ paddingTop: "var(--header-h)", paddingBottom: "60px" }}>
+      <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px 0" }}>
 
-          {/* メタ情報 */}
-          <div className="flex items-center gap-2 flex-wrap mb-5">
-            {category && (
-              <span
-                className="rounded-full text-xs font-medium px-3 py-1"
-                style={{ background: "#f0f0f0", color: "#555555" }}
-              >
-                {category}
-              </span>
-            )}
-            {article.service && (
-              <span className="text-sm" style={{ color: "#888888" }}>{article.service}</span>
-            )}
-            {date && (
-              <span className="text-sm" style={{ color: "#aaaaaa" }}>{date}</span>
-            )}
-          </div>
+        {/* メタ情報 */}
+        <div className="flex items-center gap-2 flex-wrap mb-5">
+          {category && (
+            <span
+              className="rounded-full text-xs font-medium px-3 py-1"
+              style={{ background: "#f0f0f0", color: "#555555" }}
+            >
+              {category}
+            </span>
+          )}
+          {article.service && (
+            <span className="text-sm" style={{ color: "#888888" }}>{article.service}</span>
+          )}
+          {date && (
+            <span className="text-sm" style={{ color: "#aaaaaa" }}>{date}</span>
+          )}
+        </div>
 
-          {/* タイトル */}
-          <h1
-            style={{
-              fontSize: "28px",
-              fontWeight: 700,
-              lineHeight: 1.5,
-              letterSpacing: "-0.02em",
-              marginBottom: "28px",
-              color: "#111111",
-            }}
-          >
-            {article.title}
-          </h1>
+        {/* タイトル */}
+        <h1
+          style={{
+            fontSize: "28px",
+            fontWeight: 700,
+            lineHeight: 1.5,
+            letterSpacing: "-0.02em",
+            marginBottom: "24px",
+            color: "#111111",
+          }}
+        >
+          {article.title}
+        </h1>
 
+        {/* ===== アクション（上部バー + コンテンツ + 下部バー を内包）===== */}
+        <ArticleActions
+          articleId={id}
+          articleTitle={article.title ?? ""}
+          articleUrl={articleUrl}
+        >
           {/* サムネイル */}
           {imgUrl && (
             <div
@@ -151,33 +155,26 @@ export default async function ArticlePage({ params }: Props) {
               })}
             </div>
           )}
+        </ArticleActions>
 
-          {/* コメントセクション */}
-          <ArticleComments articleId={id} />
+        {/* コメントセクション */}
+        <ArticleComments articleId={id} />
 
-          {/* 戻るリンク */}
-          <div className="mt-10 mb-4">
-            <Link
-              href="/articles"
-              className="inline-flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
-              style={{ color: "#666666" }}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11.5 7h-9M5 2.5L.5 7 5 11.5" />
-              </svg>
-              記事一覧へ戻る
-            </Link>
-          </div>
-
+        {/* 戻るリンク */}
+        <div className="mt-10 mb-4">
+          <Link
+            href="/articles"
+            className="inline-flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+            style={{ color: "#666666" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11.5 7h-9M5 2.5L.5 7 5 11.5" />
+            </svg>
+            記事一覧へ戻る
+          </Link>
         </div>
-      </main>
 
-      {/* ===== 固定アクションバー ===== */}
-      <ArticleActions
-        articleId={id}
-        articleTitle={article.title ?? ""}
-        articleUrl={articleUrl}
-      />
-    </>
+      </div>
+    </main>
   );
 }

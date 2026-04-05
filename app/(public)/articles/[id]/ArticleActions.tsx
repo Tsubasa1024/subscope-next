@@ -9,55 +9,44 @@ interface Props {
   articleId: string;
   articleTitle: string;
   articleUrl: string;
+  children: React.ReactNode; // 上部アクションと下部アクションの間に挟まるコンテンツ
 }
 
-export default function ArticleActions({ articleId, articleTitle, articleUrl }: Props) {
+export default function ArticleActions({ articleId, articleTitle, articleUrl, children }: Props) {
   const { user, ready } = useAuth();
   const router = useRouter();
 
-  const [likeCount,     setLikeCount]     = useState(0);
-  const [liked,         setLiked]         = useState(false);
-  const [saved,         setSaved]         = useState(false);
-  const [commentCount,  setCommentCount]  = useState(0);
-  const [copied,        setCopied]        = useState(false);
-  const [likeLoading,   setLikeLoading]   = useState(false);
-  const [saveLoading,   setSaveLoading]   = useState(false);
+  const [likeCount,    setLikeCount]    = useState(0);
+  const [liked,        setLiked]        = useState(false);
+  const [saved,        setSaved]        = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  const [copied,       setCopied]       = useState(false);
+  const [likeLoading,  setLikeLoading]  = useState(false);
+  const [saveLoading,  setSaveLoading]  = useState(false);
 
   useEffect(() => {
     if (!ready) return;
-
     const supabase = createClient();
 
     async function load() {
-      // いいね数（RLS: 全員読める）
       const { count: lc } = await supabase
         .from("article_likes")
         .select("*", { count: "exact", head: true })
         .eq("article_id", articleId);
       setLikeCount(lc ?? 0);
 
-      // コメント数（RLS: 全員読める）
       const { count: cc } = await supabase
         .from("article_comments")
         .select("*", { count: "exact", head: true })
         .eq("article_id", articleId);
       setCommentCount(cc ?? 0);
 
-      // ログイン済みの場合のみユーザー固有データを取得
       if (user) {
         const [{ data: likeRow }, { data: saveRow }] = await Promise.all([
-          supabase
-            .from("article_likes")
-            .select("id")
-            .eq("article_id", articleId)
-            .eq("user_id", user.uid)
-            .maybeSingle(),
-          supabase
-            .from("article_saves")
-            .select("id")
-            .eq("article_id", articleId)
-            .eq("user_id", user.uid)
-            .maybeSingle(),
+          supabase.from("article_likes").select("id")
+            .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
+          supabase.from("article_saves").select("id")
+            .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
         ]);
         setLiked(!!likeRow);
         setSaved(!!saveRow);
@@ -68,55 +57,36 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl }: 
   }, [ready, user, articleId]);
 
   async function handleLike() {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
+    if (!user) { router.push("/login"); return; }
     if (likeLoading) return;
     setLikeLoading(true);
-
     const supabase = createClient();
-
     if (liked) {
-      // 楽観的更新
       setLiked(false);
       setLikeCount((n) => Math.max(0, n - 1));
-      await supabase
-        .from("article_likes")
-        .delete()
-        .eq("article_id", articleId)
-        .eq("user_id", user.uid);
+      await supabase.from("article_likes").delete()
+        .eq("article_id", articleId).eq("user_id", user.uid);
     } else {
       setLiked(true);
       setLikeCount((n) => n + 1);
-      await supabase
-        .from("article_likes")
+      await supabase.from("article_likes")
         .insert({ user_id: user.uid, article_id: articleId });
     }
     setLikeLoading(false);
   }
 
   async function handleSave() {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
+    if (!user) { router.push("/login"); return; }
     if (saveLoading) return;
     setSaveLoading(true);
-
     const supabase = createClient();
-
     if (saved) {
       setSaved(false);
-      await supabase
-        .from("article_saves")
-        .delete()
-        .eq("article_id", articleId)
-        .eq("user_id", user.uid);
+      await supabase.from("article_saves").delete()
+        .eq("article_id", articleId).eq("user_id", user.uid);
     } else {
       setSaved(true);
-      await supabase
-        .from("article_saves")
+      await supabase.from("article_saves")
         .insert({ user_id: user.uid, article_id: articleId, title: articleTitle });
     }
     setSaveLoading(false);
@@ -133,130 +103,142 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl }: 
       await navigator.clipboard.writeText(articleUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // フォールバック
-    }
+    } catch { /* noop */ }
   }
 
-  return (
-    <div
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200"
-      style={{ paddingTop: "12px", paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+  // ===== 共通ボタンパーツ =====
+
+  const SaveButton = ({ size }: { size: "sm" | "base" }) => (
+    <button
+      onClick={handleSave}
+      className="flex items-center gap-1.5 transition-all hover:opacity-70"
+      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+               color: saved ? "#111111" : "#9ca3af", padding: 0 }}
+      aria-label={saved ? "保存を解除する" : "保存する"}
     >
-      <div style={{ maxWidth: "680px", margin: "0 auto", padding: "0 24px" }}>
-        <div className="flex items-center gap-5">
+      <svg width={size === "sm" ? 16 : 20} height={size === "sm" ? 16 : 20}
+        viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"}
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      >
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+      </svg>
+      <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 500 }}>
+        {saved ? "保存済" : "保存"}
+      </span>
+    </button>
+  );
 
-          {/* いいね */}
-          <button
-            onClick={handleLike}
-            className="flex items-center gap-1.5 transition-all hover:scale-105"
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              color: liked ? "#e0355e" : "#9ca3af",
-              padding: 0,
-            }}
-            aria-label={liked ? "いいねを取り消す" : "いいねする"}
+  const TwitterButton = ({ size }: { size: "sm" | "base" }) => (
+    <button
+      onClick={handleTwitterShare}
+      className="flex items-center gap-1.5 text-gray-400 hover:text-gray-700 transition-colors"
+      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
+      aria-label="Xでシェア"
+    >
+      <svg width={size === "sm" ? 14 : 18} height={size === "sm" ? 14 : 18}
+        viewBox="0 0 24 24" fill="currentColor"
+      >
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.633 5.905-5.633Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      </svg>
+      <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 500 }}>シェア</span>
+    </button>
+  );
+
+  const CopyButton = ({ size }: { size: "sm" | "base" }) => (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1.5 transition-colors"
+      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0,
+               color: copied ? "#111111" : "#9ca3af" }}
+      aria-label="URLをコピー"
+    >
+      {copied ? (
+        <>
+          <svg width={size === "sm" ? 14 : 18} height={size === "sm" ? 14 : 18}
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+            strokeLinecap="round" strokeLinejoin="round"
           >
-            <svg
-              width="22" height="22" viewBox="0 0 24 24"
-              fill={liked ? "currentColor" : "none"}
-              stroke="currentColor" strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            <span className="text-sm font-medium">{likeCount}</span>
-          </button>
-
-          {/* 保存 */}
-          <button
-            onClick={handleSave}
-            className="flex items-center gap-1.5 transition-all hover:scale-105"
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              color: saved ? "#111111" : "#9ca3af",
-              padding: 0,
-            }}
-            aria-label={saved ? "保存を解除する" : "保存する"}
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 500 }}>コピー済</span>
+        </>
+      ) : (
+        <>
+          <svg width={size === "sm" ? 14 : 18} height={size === "sm" ? 14 : 18}
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round"
           >
-            <svg
-              width="20" height="20" viewBox="0 0 24 24"
-              fill={saved ? "currentColor" : "none"}
-              stroke="currentColor" strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round"
-            >
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-            </svg>
-            <span className="text-sm font-medium">{saved ? "保存済" : "保存"}</span>
-          </button>
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+          <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 500 }}>コピー</span>
+        </>
+      )}
+    </button>
+  );
 
-          {/* コメント（アンカーリンク） */}
-          <a
-            href="#comments"
-            className="flex items-center gap-1.5 text-gray-400 hover:text-gray-700 transition-colors"
-            style={{ textDecoration: "none" }}
-          >
-            <svg
-              width="20" height="20" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round"
-            >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            <span className="text-sm font-medium">{commentCount}</span>
-          </a>
-
-          <div className="flex-1" />
-
-          {/* X（Twitter）シェア */}
-          <button
-            onClick={handleTwitterShare}
-            className="flex items-center gap-1.5 text-gray-400 hover:text-gray-700 transition-colors"
-            style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
-            aria-label="Xでシェア"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.633 5.905-5.633Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-            </svg>
-            <span className="text-xs font-medium">シェア</span>
-          </button>
-
-          {/* URLコピー */}
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 transition-colors"
-            style={{
-              background: "none", border: "none", cursor: "pointer",
-              fontFamily: "inherit", padding: 0,
-              color: copied ? "#111111" : "#9ca3af",
-            }}
-            aria-label="URLをコピー"
-          >
-            {copied ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                <span className="text-xs font-medium">コピー済</span>
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                </svg>
-                <span className="text-xs font-medium">コピー</span>
-              </>
-            )}
-          </button>
-        </div>
+  return (
+    <>
+      {/* ===== 上部アクションバー（タイトルと本文の間）===== */}
+      <div
+        className="flex items-center gap-4 border-b pb-4 mb-6"
+        style={{ borderColor: "#e5e5e5" }}
+      >
+        <SaveButton size="sm" />
+        <TwitterButton size="sm" />
+        <CopyButton size="sm" />
       </div>
-    </div>
+
+      {/* ===== 記事コンテンツ（サムネイル・本文・タグ）===== */}
+      {children}
+
+      {/* ===== 下部アクションバー（コメントの上）===== */}
+      <div
+        className="flex items-center gap-6 border-t pt-8 mb-8"
+        style={{ borderColor: "#e5e5e5" }}
+      >
+        {/* いいね */}
+        <button
+          onClick={handleLike}
+          className="flex items-center gap-2 transition-all hover:scale-105"
+          style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+                   color: liked ? "#e0355e" : "#9ca3af", padding: 0 }}
+          aria-label={liked ? "いいねを取り消す" : "いいねする"}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24"
+            fill={liked ? "currentColor" : "none"}
+            stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <span className="text-base font-medium">{likeCount}</span>
+        </button>
+
+        {/* 保存 */}
+        <SaveButton size="base" />
+
+        {/* コメント数 */}
+        <a
+          href="#comments"
+          className="flex items-center gap-2 text-gray-400 hover:text-gray-700 transition-colors"
+          style={{ textDecoration: "none" }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span className="text-base font-medium">{commentCount}</span>
+        </a>
+
+        <div className="flex-1" />
+
+        {/* シェア・コピー */}
+        <TwitterButton size="base" />
+        <CopyButton size="base" />
+      </div>
+    </>
   );
 }
