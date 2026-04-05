@@ -279,10 +279,11 @@ export default function Header({ articles = [] }: HeaderProps) {
             <Link
               href="/articles"
               onClick={closeDrawer}
-              className="flex items-center gap-1 text-sm font-bold text-gray-900 mb-2 hover:underline"
+              className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors mb-1"
+              style={{ color: "#1d1d1f" }}
             >
               すべての記事
-              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
                 <path d="M2.5 6h7M6 2.5l3.5 3.5-3.5 3.5" />
               </svg>
             </Link>
@@ -320,10 +321,13 @@ export default function Header({ articles = [] }: HeaderProps) {
                   <Link
                     href={href}
                     onClick={closeDrawer}
-                    className="block px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
+                    className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
                     style={{ color: "#1d1d1f" }}
                   >
                     {label}
+                    <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                      <path d="M2.5 6h7M6 2.5l3.5 3.5-3.5 3.5" />
+                    </svg>
                   </Link>
                 </li>
               ))}
@@ -387,28 +391,15 @@ export default function Header({ articles = [] }: HeaderProps) {
                 </li>
               </ul>
             ) : (
-              <ul className="space-y-1">
-                <li>
-                  <Link
-                    href="/login"
-                    onClick={closeDrawer}
-                    className="block px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
-                    style={{ color: "#1d1d1f" }}
-                  >
-                    ログイン
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/signup"
-                    onClick={closeDrawer}
-                    className="block px-4 py-3 rounded-xl text-base font-semibold hover:bg-gray-50 transition-colors"
-                    style={{ color: "#111111" }}
-                  >
-                    無料で始める →
-                  </Link>
-                </li>
-              </ul>
+              <div className="px-4">
+                <Link
+                  href="/login"
+                  onClick={closeDrawer}
+                  className="block bg-black text-white rounded-full px-4 py-2 text-sm font-medium w-full text-center hover:bg-gray-800 transition-colors"
+                >
+                  ログイン / 会員登録
+                </Link>
+              </div>
             )
           )}
         </div>
