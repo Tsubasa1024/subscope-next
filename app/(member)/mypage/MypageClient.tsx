@@ -18,7 +18,7 @@ export default function MypageClient({ userId, email, name: initialName }: Props
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // アバターカラー（uid ベース）
-  const palette = ["#5B8DEF","#E8685A","#4CAF82","#9B72CF","#E8A23A","#4CB8C4","#E86891","#7CB56C"];
+  const palette = ["#111111","#333333","#555555","#777777","#444444","#666666","#888888","#999999"];
   let h = 0;
   for (let i = 0; i < userId.length; i++) {
     h = (Math.imul(31, h) + userId.charCodeAt(i)) | 0;
@@ -104,8 +104,8 @@ export default function MypageClient({ userId, email, name: initialName }: Props
             {message && (
               <div style={{
                 padding: "12px 20px", fontSize: "0.875rem",
-                color: message.type === "error" ? "#c0392b" : "#0f6e56",
-                background: message.type === "error" ? "#fff0f0" : "#f0faf5",
+                color: "#111111",
+                background: "#f5f5f5",
               }}>
                 {message.text}
               </div>
@@ -149,7 +149,7 @@ export default function MypageClient({ userId, email, name: initialName }: Props
                 href="/pricing"
                 style={{
                   display: "block", textAlign: "center", padding: "13px",
-                  borderRadius: "12px", background: "linear-gradient(135deg, #667eea, #764ba2)",
+                  borderRadius: "12px", background: "#111111",
                   color: "#fff", fontWeight: 600, fontSize: "0.9rem",
                 }}
               >
@@ -163,8 +163,8 @@ export default function MypageClient({ userId, email, name: initialName }: Props
             onClick={handleLogout}
             style={{
               width: "100%", padding: "15px", borderRadius: "14px",
-              background: "transparent", color: "#c0392b",
-              border: "1.5px solid rgba(192,57,43,0.25)", fontSize: "0.95rem",
+              background: "transparent", color: "#111111",
+              border: "1.5px solid rgba(0,0,0,0.2)", fontSize: "0.95rem",
               fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
             }}
           >

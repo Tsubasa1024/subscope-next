@@ -12,18 +12,18 @@ const PLANS = [
     name: "Free",
     price: "¥0",
     period: "",
-    color: "#6b7280",
-    bg: "#f9fafb",
-    border: "#e5e7eb",
+    color: "#666666",
+    bg: "#f5f5f5",
+    border: "#e5e5e5",
     features: ["お気に入り 3件", "記事 冒頭のみ", "比較 2件まで"],
   },
   {
     name: "Standard",
     price: "¥580",
     period: "/月",
-    color: "#2563eb",
-    bg: "#eff6ff",
-    border: "#bfdbfe",
+    color: "#111111",
+    bg: "#f5f5f5",
+    border: "#333333",
     badge: "人気",
     features: ["お気に入り 20件", "全記事 読み放題", "比較 3件・広告非表示"],
   },
@@ -31,9 +31,9 @@ const PLANS = [
     name: "Pro",
     price: "¥1,480",
     period: "/月",
-    color: "#7c3aed",
-    bg: "#f5f3ff",
-    border: "#ddd6fe",
+    color: "#111111",
+    bg: "#f5f5f5",
+    border: "#e5e5e5",
     features: ["全機能 無制限", "比較 5件・API利用", "データエクスポート"],
   },
 ];
@@ -193,7 +193,7 @@ export default function SignupPage() {
                     background: "#fafafa",
                     boxSizing: "border-box",
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#111111")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(0,0,0,0.1)")}
                 />
               </div>
@@ -214,7 +214,7 @@ export default function SignupPage() {
                     background: "#fafafa",
                     boxSizing: "border-box",
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#111111")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(0,0,0,0.1)")}
                 />
               </div>
@@ -236,7 +236,7 @@ export default function SignupPage() {
                     background: "#fafafa",
                     boxSizing: "border-box",
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#111111")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(0,0,0,0.1)")}
                 />
               </div>
@@ -260,12 +260,9 @@ export default function SignupPage() {
                 disabled={loading}
                 className="w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all"
                 style={{
-                  background: loading
-                    ? "#9ca3af"
-                    : "linear-gradient(135deg,#2563eb,#4f46e5)",
+                  background: loading ? "#999999" : "#111111",
                   cursor: loading ? "not-allowed" : "pointer",
                   fontFamily: "inherit",
-                  boxShadow: loading ? "none" : "0 4px 16px rgba(37,99,235,0.3)",
                 }}
               >
                 {loading ? "登録中..." : "無料で会員登録"}
@@ -275,12 +272,12 @@ export default function SignupPage() {
             {/* まずは無料で始めるCTA */}
             <div
               className="mt-6 p-4 rounded-2xl text-center"
-              style={{ background: "#f0f7ff", border: "1px solid #bfdbfe" }}
+              style={{ background: "#f5f5f5", border: "1px solid #e5e5e5" }}
             >
-              <p className="text-xs font-semibold mb-1" style={{ color: "#2563eb" }}>
-                🎉 まずは無料で始められます
+              <p className="text-xs font-semibold mb-1" style={{ color: "#111111" }}>
+                まずは無料で始められます
               </p>
-              <p className="text-xs" style={{ color: "#3b82f6" }}>
+              <p className="text-xs" style={{ color: "#666666" }}>
                 クレジットカード不要・いつでもキャンセル可能
               </p>
             </div>

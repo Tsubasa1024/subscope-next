@@ -74,11 +74,7 @@ export default function RankingClient({ articles }: RankingClientProps) {
               const imgUrl = getImageUrl(article);
               const rank = i + 1;
               const badgeColor =
-                rank === 1
-                  ? "linear-gradient(135deg,#ffd700,#ffb700)"
-                  : rank === 2
-                  ? "linear-gradient(135deg,#d9d9d9,#b3b3b3)"
-                  : "linear-gradient(135deg,#cd7f32,#b26724)";
+                rank === 1 ? "#111111" : rank === 2 ? "#666666" : "#999999";
 
               return (
                 <Link

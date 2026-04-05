@@ -28,11 +28,11 @@ const CATEGORY_NAV = [
 
 // ランキングダミーデータ（DBと連携するまで）
 const RANKINGS = [
-  { rank: 1, name: "Netflix",          category: "動画",      rating: 4.8, price: "¥1,490〜/月", color: "#E50914" },
-  { rank: 2, name: "Spotify",          category: "音楽",      rating: 4.7, price: "¥980/月",     color: "#1DB954" },
-  { rank: 3, name: "Amazon Prime",     category: "動画・買物", rating: 4.6, price: "¥600/月",     color: "#FF9900" },
-  { rank: 4, name: "Kindle Unlimited", category: "読書",      rating: 4.5, price: "¥980/月",     color: "#FF9900" },
-  { rank: 5, name: "Adobe CC",         category: "ビジネス",  rating: 4.3, price: "¥6,480/月",   color: "#FF0000" },
+  { rank: 1, name: "Netflix",          category: "動画",      rating: 4.8, price: "¥1,490〜/月", color: "#111111" },
+  { rank: 2, name: "Spotify",          category: "音楽",      rating: 4.7, price: "¥980/月",     color: "#333333" },
+  { rank: 3, name: "Amazon Prime",     category: "動画・買物", rating: 4.6, price: "¥600/月",     color: "#555555" },
+  { rank: 4, name: "Kindle Unlimited", category: "読書",      rating: 4.5, price: "¥980/月",     color: "#777777" },
+  { rank: 5, name: "Adobe CC",         category: "ビジネス",  rating: 4.3, price: "¥6,480/月",   color: "#999999" },
 ];
 
 // ============================================================
@@ -190,7 +190,7 @@ export default async function TopPage() {
           <Link
             href="/articles"
             className="text-sm font-semibold flex items-center gap-1 hover:opacity-70 transition-opacity"
-            style={{ color: "#2563eb" }}
+            style={{ color: "#111111" }}
           >
             すべて見る
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -255,7 +255,7 @@ export default async function TopPage() {
             <Link
               href="/ranking"
               className="text-sm font-semibold hidden sm:inline-flex items-center gap-1 hover:opacity-70 transition-opacity"
-              style={{ color: "#2563eb" }}
+              style={{ color: "#111111" }}
             >
               ランキング全体
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -279,9 +279,9 @@ export default async function TopPage() {
                   className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs"
                   style={{
                     background: rank <= 3
-                      ? `linear-gradient(135deg,${rank===1?"#f59e0b,#ef4444":rank===2?"#9ca3af,#6b7280":"#cd7c2f,#a16207"})`
-                      : "#f3f4f6",
-                    color: rank <= 3 ? "#fff" : "#6b7280",
+                      ? (rank === 1 ? "#111111" : rank === 2 ? "#666666" : "#999999")
+                      : "#f0f0f0",
+                    color: rank <= 3 ? "#fff" : "#666666",
                   }}
                 >
                   {rank}
@@ -297,11 +297,11 @@ export default async function TopPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm" style={{ color: "#1d1d1f" }}>{name}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#f3f4f6", color: "#6b7280" }}>{category}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#f0f0f0", color: "#666666" }}>{category}</span>
                   </div>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <span style={{ color: "#f59e0b", fontSize: "11px" }}>{"★".repeat(Math.floor(rating))}</span>
-                    <span className="text-xs font-semibold" style={{ color: "#f59e0b" }}>{rating}</span>
+                    <span style={{ color: "#111111", fontSize: "11px" }}>{"★".repeat(Math.floor(rating))}</span>
+                    <span className="text-xs font-semibold" style={{ color: "#666666" }}>{rating}</span>
                   </div>
                 </div>
                 {/* 料金 */}
@@ -328,7 +328,7 @@ export default async function TopPage() {
         <div className="container">
           <div
             className="relative overflow-hidden rounded-3xl px-8 py-14 text-center text-white"
-            style={{ background: "linear-gradient(135deg,#1e3a8a 0%,#4f46e5 50%,#7c3aed 100%)" }}
+            style={{ background: "#111111" }}
           >
             <div aria-hidden className="absolute -top-20 -left-20 w-64 h-64 rounded-full" style={{ background: "rgba(255,255,255,0.05)" }} />
             <div aria-hidden className="absolute -bottom-16 -right-16 w-80 h-80 rounded-full" style={{ background: "rgba(255,255,255,0.04)" }} />
@@ -351,7 +351,7 @@ export default async function TopPage() {
               <Link
                 href="/diagnosis"
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-200 hover:scale-105"
-                style={{ background: "#fff", color: "#4f46e5", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}
+                style={{ background: "#fff", color: "#111111", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}
               >
                 診断スタート
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -435,7 +435,7 @@ function ArticleCard({
           <p
             className="text-xs mt-2 leading-relaxed"
             style={{
-              color: "#6b7280",
+              color: "#666666",
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
@@ -452,7 +452,7 @@ function ArticleCard({
           <span className="text-xs" style={{ color: "#86868b" }}>{date}</span>
           <span
             className="text-xs font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
-            style={{ color: "#2563eb" }}
+            style={{ color: "#111111" }}
           >
             続きを読む
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

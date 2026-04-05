@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
-import { Noto_Sans_JP } from "next/font/google";
+import { Inter, Noto_Sans_JP } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 // next/font で Noto Sans JP を自己ホスティング（Render Blocking 解消）
 const notoSansJP = Noto_Sans_JP({
@@ -43,8 +50,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={notoSansJP.variable}>
-      <body style={{ fontFamily: "var(--font-noto), -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
+      <body style={{ fontFamily: "var(--font-inter), var(--font-noto), -apple-system, BlinkMacSystemFont, sans-serif" }}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

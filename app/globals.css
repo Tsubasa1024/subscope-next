@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #fff;
-  --color-bg-secondary: #f5f5f7;
-  --color-text-main: #1d1d1f;
-  --color-text-gray: #86868b;
-  --color-border: #d2d2d7;
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f5f5f5;
+  --color-text-main: #111111;
+  --color-text-gray: #666666;
+  --color-border: #e5e5e5;
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
   --transition-fade: 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
   --container-width: 1080px;
@@ -75,7 +75,7 @@ ul {
 .article-body h2 { font-size: 1.3rem; }
 .article-body h3 { font-size: 1.1rem; }
 .article-body p  { margin: 0.8em 0; }
-.article-body a  { color: #0066cc; text-decoration: underline; text-underline-offset: 2px; }
+.article-body a  { color: #111111; text-decoration: underline; text-underline-offset: 2px; }
 .article-body ul,
 .article-body ol { padding-left: 1.6em; margin: 0.8em 0; }
 .article-body li { margin: 0.3em 0; }
@@ -125,12 +125,9 @@ ul {
   box-shadow: 0 8px 24px rgba(0,0,0,0.10);
 }
 
-/* ===== グラデーションテキスト ===== */
+/* ===== グラデーションテキスト（モノトーン） ===== */
 .gradient-text {
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #111111;
 }
 
 /* ===== ランキング行 hover ===== */
@@ -138,7 +135,7 @@ ul {
   transition: background 0.15s ease;
 }
 .ranking-row:hover {
-  background: #f9f9fb !important;
+  background: #f5f5f5 !important;
 }
 
 @media (max-width: 767px) {

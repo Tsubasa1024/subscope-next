@@ -12,18 +12,18 @@ const PLANS = [
     name: "Free",
     price: "¥0",
     period: "",
-    color: "#6b7280",
-    bg: "#f9fafb",
-    border: "#e5e7eb",
+    color: "#666666",
+    bg: "#f5f5f5",
+    border: "#e5e5e5",
     features: ["お気に入り 3件", "記事 冒頭のみ", "比較 2件まで"],
   },
   {
     name: "Standard",
     price: "¥580",
     period: "/月",
-    color: "#2563eb",
-    bg: "#eff6ff",
-    border: "#bfdbfe",
+    color: "#111111",
+    bg: "#f5f5f5",
+    border: "#333333",
     badge: "人気",
     features: ["お気に入り 20件", "全記事 読み放題", "比較 3件・広告非表示"],
   },
@@ -31,9 +31,9 @@ const PLANS = [
     name: "Pro",
     price: "¥1,480",
     period: "/月",
-    color: "#7c3aed",
-    bg: "#f5f3ff",
-    border: "#ddd6fe",
+    color: "#111111",
+    bg: "#f5f5f5",
+    border: "#e5e5e5",
     features: ["全機能 無制限", "比較 5件・API利用", "データエクスポート"],
   },
 ];
@@ -134,9 +134,8 @@ export default function LoginPage() {
               href="/signup"
               className="mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-semibold text-sm transition-all hover:opacity-90"
               style={{
-                background: "linear-gradient(135deg,#2563eb,#7c3aed)",
+                background: "#111111",
                 color: "#fff",
-                boxShadow: "0 4px 16px rgba(37,99,235,0.25)",
               }}
             >
               まずは無料で始める →
@@ -189,7 +188,7 @@ export default function LoginPage() {
                     background: "#fafafa",
                     boxSizing: "border-box",
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#111111")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(0,0,0,0.1)")}
                 />
               </div>
@@ -200,7 +199,7 @@ export default function LoginPage() {
                   <Link
                     href="/forgot-password"
                     className="text-xs hover:opacity-70 transition-opacity"
-                    style={{ color: "#2563eb" }}
+                    style={{ color: "#111111" }}
                   >
                     パスワードを忘れた方
                   </Link>
@@ -219,7 +218,7 @@ export default function LoginPage() {
                     background: "#fafafa",
                     boxSizing: "border-box",
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#111111")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(0,0,0,0.1)")}
                 />
               </div>

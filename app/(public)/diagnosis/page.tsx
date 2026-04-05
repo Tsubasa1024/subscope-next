@@ -117,14 +117,14 @@ export default function DiagnosisPage() {
         {/* 開発中ノート */}
         <div
           style={{
-            background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+            background: "#f5f5f5",
             borderRadius: "20px",
             padding: "28px 32px",
-            border: "1px solid #bae6fd",
+            border: "1px solid #e5e5e5",
           }}
         >
-          <h3 style={{ fontWeight: 700, marginBottom: "8px", color: "#0369a1" }}>🔨 開発中</h3>
-          <p style={{ fontSize: "0.875rem", color: "#0369a1", lineHeight: 1.7 }}>
+          <h3 style={{ fontWeight: 700, marginBottom: "8px", color: "#111111" }}>🔨 開発中</h3>
+          <p style={{ fontSize: "0.875rem", color: "#666666", lineHeight: 1.7 }}>
             診断ロジックはSupabaseの <code>diagnosis_questions</code> / <code>diagnosis_options</code> /
             <code>diagnosis_results</code> テーブルと連携予定です。<br />
             近日公開予定。お楽しみに！

@@ -195,8 +195,8 @@ export default function Header({ articles = [] }: HeaderProps) {
                   paddingTop: "10px",
                   paddingBottom: "10px",
                   borderRadius: "999px",
-                  border: "1.5px solid rgba(37,99,235,0.3)",
-                  background: "#f8faff",
+                  border: "1.5px solid rgba(0,0,0,0.15)",
+                  background: "#f5f5f5",
                 }}
               />
               {query && (
@@ -248,7 +248,7 @@ export default function Header({ articles = [] }: HeaderProps) {
                     type="submit"
                     className="flex w-full items-center gap-2.5 px-4 py-3 hover:bg-blue-50 transition-colors"
                     style={{
-                      color: "#2563eb",
+                      color: "#111111",
                       borderTop: suggestions.length > 0 ? "1px solid rgba(0,0,0,0.05)" : "none",
                     }}
                   >
@@ -330,8 +330,8 @@ export default function Header({ articles = [] }: HeaderProps) {
                 <li>
                   <button
                     onClick={async () => { closeDrawer(); await logout(); }}
-                    className="block w-full text-left px-4 py-3 rounded-xl text-base font-medium hover:bg-red-50 transition-colors"
-                    style={{ color: "#c0392b", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
+                    className="block w-full text-left px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
+                    style={{ color: "#111111", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
                   >
                     ログアウト
                   </button>
@@ -353,8 +353,8 @@ export default function Header({ articles = [] }: HeaderProps) {
                   <Link
                     href="/signup"
                     onClick={closeDrawer}
-                    className="block px-4 py-3 rounded-xl text-base font-semibold hover:bg-blue-50 transition-colors"
-                    style={{ color: "#2563eb" }}
+                    className="block px-4 py-3 rounded-xl text-base font-semibold hover:bg-gray-50 transition-colors"
+                    style={{ color: "#111111" }}
                   >
                     無料で始める →
                   </Link>
