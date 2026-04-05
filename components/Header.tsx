@@ -398,7 +398,7 @@ export default function Header({ articles = [] }: HeaderProps) {
                 <Link
                   href="/signup"
                   onClick={closeDrawer}
-                  className="w-full text-center py-3 rounded-full text-base font-medium bg-black text-white hover:bg-gray-800 transition-colors"
+                  className="bg-black text-white rounded-full py-3 w-full text-center font-medium hover:bg-gray-800 transition-colors"
                 >
                   新規登録
                 </Link>
