@@ -9,9 +9,9 @@ import { getImageUrl, normalizeCategory } from "@/lib/utils";
 // ─── 定数 ────────────────────────────────────────────────────
 
 const PERIODS = [
-  { key: "all",     label: "すべて" },
   { key: "weekly",  label: "週間" },
   { key: "monthly", label: "月間" },
+  { key: "all",     label: "全期間" },
 ] as const;
 
 const CATEGORIES = [
@@ -26,20 +26,13 @@ const CATEGORIES = [
   "その他",
 ];
 
-const SORT_OPTIONS = [
-  { key: "views", label: "閲覧数" },
-  { key: "likes", label: "いいね" },
-  { key: "newest", label: "新着" },
-] as const;
-
-type Period  = typeof PERIODS[number]["key"];
-type SortKey = typeof SORT_OPTIONS[number]["key"];
-type Counts  = Record<string, number>;
+type Period = typeof PERIODS[number]["key"];
+type Counts = Record<string, number>;
 
 interface RankingClientProps {
   articles:   Article[];
   viewCounts: { all: Counts; weekly: Counts; monthly: Counts };
-  likeCounts: Counts;
+  likeCounts?: Counts;
 }
 
 // ─── ヘルパー ─────────────────────────────────────────────────
@@ -76,10 +69,9 @@ function TabButton({
 
 // ─── メインコンポーネント ─────────────────────────────────────
 
-export default function RankingClient({ articles, viewCounts, likeCounts }: RankingClientProps) {
-  const [period,   setPeriod]   = useState<Period>("all");
+export default function RankingClient({ articles, viewCounts }: RankingClientProps) {
+  const [period,   setPeriod]   = useState<Period>("weekly");
   const [category, setCategory] = useState("すべて");
-  const [sortBy,   setSortBy]   = useState<SortKey>("views");
 
   const viewCnt = viewCounts[period];
 
@@ -89,22 +81,16 @@ export default function RankingClient({ articles, viewCounts, likeCounts }: Rank
       ? articles
       : articles.filter((a) => normalizeCategory(a.category) === category);
 
-  // 2. 並び替え
-  const ranked = [...filtered].sort((a, b) => {
-    if (sortBy === "views")  return (viewCnt[b.id] ?? 0) - (viewCnt[a.id] ?? 0);
-    if (sortBy === "likes")  return (likeCounts[b.id] ?? 0) - (likeCounts[a.id] ?? 0);
-    // newest: publishedAt 降順
-    return (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "");
-  });
+  // 2. 閲覧数降順
+  const ranked = [...filtered].sort(
+    (a, b) => (viewCnt[b.id] ?? 0) - (viewCnt[a.id] ?? 0)
+  );
 
   const top3 = ranked.slice(0, 3);
   const rest = ranked.slice(3);
 
-  // カードのメタ情報（ソートキーに応じて表示するメトリクスを切り替え）
   function metricLabel(article: Article) {
-    if (sortBy === "views")  return `👁 ${(viewCnt[article.id] ?? 0).toLocaleString()} views`;
-    if (sortBy === "likes")  return `♥ ${(likeCounts[article.id] ?? 0).toLocaleString()} likes`;
-    return "";
+    return `👁 ${(viewCnt[article.id] ?? 0).toLocaleString()} views`;
   }
 
   return (
@@ -148,41 +134,6 @@ export default function RankingClient({ articles, viewCounts, likeCounts }: Rank
             ))}
           </div>
 
-          {/* 並び替え */}
-          <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "0.8rem", color: "#86868b", flexShrink: 0 }}>並び替え</span>
-            <div
-              style={{
-                display: "inline-flex",
-                background: "#f0f0f0",
-                borderRadius: "999px",
-                padding: "3px",
-                gap: "2px",
-              }}
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.key}
-                  onClick={() => setSortBy(opt.key)}
-                  style={{
-                    padding: "5px 14px",
-                    borderRadius: "999px",
-                    border: "none",
-                    fontSize: "0.82rem",
-                    background: sortBy === opt.key ? "#fff" : "transparent",
-                    color: sortBy === opt.key ? "#111" : "#777",
-                    cursor: "pointer",
-                    fontWeight: sortBy === opt.key ? 600 : 400,
-                    boxShadow: sortBy === opt.key ? "0 1px 4px rgba(0,0,0,0.12)" : "none",
-                    transition: "background 0.15s, box-shadow 0.15s",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
         </section>
 
         {/* ランキング本体 */}
