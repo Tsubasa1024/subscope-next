@@ -8,9 +8,14 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error && data.session) {
+      const createdAt = new Date(data.session.user.created_at);
+      const isNewUser = Date.now() - createdAt.getTime() < 15_000; // 15秒以内なら新規登録
+
+      const redirectTo = isNewUser ? "/welcome" : next;
+      return NextResponse.redirect(`${origin}${redirectTo}`);
     }
   }
 

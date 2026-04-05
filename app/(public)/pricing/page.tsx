@@ -16,16 +16,13 @@ const PLANS = [
     description: "まずは無料で試してみる",
     highlight: false,
     features: [
-      { text: "記事の閲覧（全カテゴリ）", ok: true },
-      { text: "保存 最大5件", ok: true },
-      { text: "いいね・シェア", ok: true },
-      { text: "コメント投稿", ok: false },
-      { text: "ランキング閲覧", ok: false },
-      { text: "広告非表示", ok: false },
+      "記事 読み放題",
+      "いいね 無制限",
+      "保存 5件まで",
+      "ランキング閲覧",
     ],
     cta: "無料で始める",
     href: "/signup",
-    external: false,
   },
   {
     key: "standard",
@@ -34,18 +31,19 @@ const PLANS = [
     period: "/月",
     description: "よく使う方に最適なプラン",
     badge: "人気",
-    highlight: false,
+    highlight: true,
     features: [
-      { text: "記事の閲覧（全カテゴリ）", ok: true },
-      { text: "保存 最大15件", ok: true },
-      { text: "いいね・シェア", ok: true },
-      { text: "コメント投稿", ok: true },
-      { text: "ランキング閲覧", ok: true },
-      { text: "広告非表示", ok: false },
+      "保存 15件まで",
+      "コメント機能",
+      "広告非表示",
+      "プレミアム記事",
+      "比較機能",
+      "AI診断",
+      "サブスク家計簿",
+      "Free の全機能",
     ],
     cta: "Standardを始める",
-    href: "#",
-    external: true,
+    href: "/signup",
   },
   {
     key: "pro",
@@ -53,37 +51,16 @@ const PLANS = [
     price: "¥1,480",
     period: "/月",
     description: "すべての機能を制限なく",
-    highlight: true,
+    highlight: false,
     features: [
-      { text: "記事の閲覧（全カテゴリ）", ok: true },
-      { text: "保存 無制限", ok: true },
-      { text: "いいね・シェア", ok: true },
-      { text: "コメント投稿", ok: true },
-      { text: "ランキング閲覧", ok: true },
-      { text: "広告非表示", ok: true },
+      "保存 無制限",
+      "パーソナル通知",
+      "Standard の全機能",
     ],
     cta: "Proを始める",
-    href: "#",
-    external: true,
+    href: "/signup",
   },
 ] as const;
-
-function Check({ ok }: { ok: boolean }) {
-  if (ok) {
-    return (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-        <circle cx="8" cy="8" r="8" fill="#111" />
-        <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-      <circle cx="8" cy="8" r="7.5" stroke="#d1d5db" />
-      <path d="M5.5 8h5" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 export default function PricingPage() {
   return (
@@ -95,7 +72,7 @@ export default function PricingPage() {
             Pricing
           </p>
           <h1 style={{ fontSize: "2.4rem", fontWeight: 700, letterSpacing: "-0.03em", marginTop: "10px" }}>
-            料金プラン
+            あなたに合ったプランを選ぼう
           </h1>
           <p className="mt-3 text-base" style={{ color: "#86868b" }}>
             無料で始めて、必要に応じてアップグレード。いつでもキャンセル可能。
@@ -116,7 +93,7 @@ export default function PricingPage() {
               }}
             >
               {/* バッジ */}
-              {"badge" in plan && plan.badge && (
+              {"badge" in plan && (
                 <div
                   className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white"
                   style={{ background: "#111" }}
@@ -125,7 +102,7 @@ export default function PricingPage() {
                 </div>
               )}
 
-              {/* プラン名 */}
+              {/* プラン名・価格 */}
               <div className="mb-6">
                 <p className="text-xs font-bold tracking-widest uppercase mb-2" style={{ color: "#86868b" }}>
                   {plan.name}
@@ -142,14 +119,12 @@ export default function PricingPage() {
               {/* 機能リスト */}
               <ul className="flex flex-col gap-3 mb-8 flex-1">
                 {plan.features.map((f) => (
-                  <li key={f.text} className="flex items-center gap-2.5">
-                    <Check ok={f.ok} />
-                    <span
-                      className="text-sm"
-                      style={{ color: f.ok ? "#111" : "#aaa" }}
-                    >
-                      {f.text}
-                    </span>
+                  <li key={f} className="flex items-center gap-2.5">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
+                      <circle cx="8" cy="8" r="8" fill="#111" />
+                      <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-sm" style={{ color: "#111" }}>{f}</span>
                   </li>
                 ))}
               </ul>
@@ -157,20 +132,18 @@ export default function PricingPage() {
               {/* CTA */}
               <Link
                 href={plan.href}
-                className="flex items-center justify-center w-full py-3.5 rounded-full font-semibold text-sm transition-all"
+                className="flex items-center justify-center w-full py-3.5 rounded-full font-semibold text-sm transition-all hover:opacity-90"
                 style={
                   plan.highlight
-                    ? { background: "#111", color: "#fff" }
-                    : plan.key === "free"
                     ? { background: "#111", color: "#fff" }
                     : { background: "#fff", color: "#111", border: "1.5px solid #111" }
                 }
               >
                 {plan.cta}
               </Link>
-              {plan.external && (
+              {plan.key !== "free" && (
                 <p className="text-center text-xs mt-2" style={{ color: "#bbb" }}>
-                  ※ Stripe決済（準備中）
+                  ※ 登録後にStripe決済（準備中）
                 </p>
               )}
             </div>
@@ -186,7 +159,7 @@ export default function PricingPage() {
             {[
               {
                 q: "無料プランはずっと無料ですか？",
-                a: "はい、無料プランはクレジットカード不要で永続的にご利用いただけます。",
+                a: "はい、クレジットカード不要で永続的にご利用いただけます。",
               },
               {
                 q: "プランはいつでも変更できますか？",

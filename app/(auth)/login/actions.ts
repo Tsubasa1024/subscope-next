@@ -22,6 +22,7 @@ export async function login(formData: FormData) {
   redirect('/')
 }
 
+// signup は welcome にリダイレクト（email/password 登録）
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
@@ -37,7 +38,7 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/welcome')
 }
 
 export async function logout() {
