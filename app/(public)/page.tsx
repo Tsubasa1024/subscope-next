@@ -129,7 +129,7 @@ export default async function TopPage() {
                   lineHeight: 1.65,
                   maxWidth: "760px",
                   display: "-webkit-box",
-                  WebkitLineClamp: 4,
+                  WebkitLineClamp: 2,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
                 }}
