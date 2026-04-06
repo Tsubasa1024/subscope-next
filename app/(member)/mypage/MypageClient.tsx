@@ -9,15 +9,22 @@ interface Props {
   userId: string;
   email: string;
   name: string;
+  currentPlan: "free" | "standard" | "pro";
 }
 
-export default function MypageClient({ userId, email, name: initialName }: Props) {
-  const router = useRouter();
-  const [name, setName]       = useState(initialName);
-  const [saving, setSaving]   = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+const PLAN_LABELS: Record<string, { name: string; price: string }> = {
+  free:     { name: "Free",     price: "¥0" },
+  standard: { name: "Standard", price: "¥580" },
+  pro:      { name: "Pro",      price: "¥1,480" },
+};
 
-  // アバターカラー（uid ベース）
+export default function MypageClient({ userId, email, name: initialName, currentPlan }: Props) {
+  const router = useRouter();
+  const [name, setName]             = useState(initialName);
+  const [saving, setSaving]         = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [message, setMessage]       = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   const palette = ["#111111","#333333","#555555","#777777","#444444","#666666","#888888","#999999"];
   let h = 0;
   for (let i = 0; i < userId.length; i++) {
@@ -25,6 +32,7 @@ export default function MypageClient({ userId, email, name: initialName }: Props
   }
   const avatarColor = palette[Math.abs(h) % palette.length];
   const displayName = name || email.split("@")[0] || "ユーザー";
+  const planInfo = PLAN_LABELS[currentPlan];
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -50,6 +58,30 @@ export default function MypageClient({ userId, email, name: initialName }: Props
     await supabase.auth.signOut();
     router.replace("/");
     router.refresh();
+  }
+
+  async function handleCheckout(planType: "standard" | "pro") {
+    setLoadingPlan(planType);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planType }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.url) {
+        setMessage({ type: "error", text: data.error ?? "エラーが発生しました" });
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch {
+      setMessage({ type: "error", text: "ネットワークエラーが発生しました" });
+    } finally {
+      setLoadingPlan(null);
+    }
   }
 
   return (
@@ -104,7 +136,7 @@ export default function MypageClient({ userId, email, name: initialName }: Props
             {message && (
               <div style={{
                 padding: "12px 20px", fontSize: "0.875rem",
-                color: "#111111",
+                color: message.type === "error" ? "#c00" : "#111111",
                 background: "#f5f5f5",
               }}>
                 {message.text}
@@ -134,8 +166,8 @@ export default function MypageClient({ userId, email, name: initialName }: Props
           <div style={{ background: "#fff", borderRadius: "20px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", overflow: "hidden" }}>
             <div style={{ padding: "20px", borderBottom: "1px solid rgba(0,0,0,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <p style={{ fontWeight: 700, fontSize: "1rem" }}>Free プラン</p>
-                <p style={{ fontSize: "0.8rem", color: "#86868b", marginTop: "2px" }}>¥0 / 月</p>
+                <p style={{ fontWeight: 700, fontSize: "1rem" }}>{planInfo.name} プラン</p>
+                <p style={{ fontSize: "0.8rem", color: "#86868b", marginTop: "2px" }}>{planInfo.price} / 月</p>
               </div>
               <span style={{
                 padding: "4px 12px", borderRadius: "99px",
@@ -144,18 +176,59 @@ export default function MypageClient({ userId, email, name: initialName }: Props
                 現在のプラン
               </span>
             </div>
-            <div style={{ padding: "16px 20px" }}>
-              <Link
-                href="/pricing"
-                style={{
-                  display: "block", textAlign: "center", padding: "13px",
-                  borderRadius: "12px", background: "#111111",
-                  color: "#fff", fontWeight: 600, fontSize: "0.9rem",
-                }}
-              >
-                プランをアップグレード
-              </Link>
-            </div>
+
+            {/* アップグレードボタン */}
+            {currentPlan === "free" && (
+              <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                <button
+                  onClick={() => handleCheckout("standard")}
+                  disabled={loadingPlan !== null}
+                  style={{
+                    width: "100%", padding: "13px", borderRadius: "12px",
+                    background: "#111111", color: "#fff", border: "none",
+                    fontWeight: 600, fontSize: "0.9rem", cursor: loadingPlan !== null ? "not-allowed" : "pointer",
+                    opacity: loadingPlan !== null ? 0.6 : 1, fontFamily: "inherit",
+                  }}
+                >
+                  {loadingPlan === "standard" ? "処理中…" : "Standardを始める — ¥580/月"}
+                </button>
+                <button
+                  onClick={() => handleCheckout("pro")}
+                  disabled={loadingPlan !== null}
+                  style={{
+                    width: "100%", padding: "13px", borderRadius: "12px",
+                    background: "#fff", color: "#111", border: "1.5px solid #111",
+                    fontWeight: 600, fontSize: "0.9rem", cursor: loadingPlan !== null ? "not-allowed" : "pointer",
+                    opacity: loadingPlan !== null ? 0.6 : 1, fontFamily: "inherit",
+                  }}
+                >
+                  {loadingPlan === "pro" ? "処理中…" : "Proを始める — ¥1,480/月"}
+                </button>
+              </div>
+            )}
+            {currentPlan === "standard" && (
+              <div style={{ padding: "16px 20px" }}>
+                <button
+                  onClick={() => handleCheckout("pro")}
+                  disabled={loadingPlan !== null}
+                  style={{
+                    width: "100%", padding: "13px", borderRadius: "12px",
+                    background: "#111111", color: "#fff", border: "none",
+                    fontWeight: 600, fontSize: "0.9rem", cursor: loadingPlan !== null ? "not-allowed" : "pointer",
+                    opacity: loadingPlan !== null ? 0.6 : 1, fontFamily: "inherit",
+                  }}
+                >
+                  {loadingPlan === "pro" ? "処理中…" : "Proにアップグレード — ¥1,480/月"}
+                </button>
+              </div>
+            )}
+            {currentPlan === "pro" && (
+              <div style={{ padding: "14px 20px" }}>
+                <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#86868b" }}>
+                  最上位プランをご利用中です
+                </p>
+              </div>
+            )}
           </div>
 
           {/* ログアウト */}
