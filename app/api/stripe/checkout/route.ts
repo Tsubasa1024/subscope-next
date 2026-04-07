@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
   try {
     session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/pricing?success=true`,
       cancel_url: `${baseUrl}/pricing`,
@@ -46,8 +47,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
+  console.log("Stripe session created:", session.id, "url:", session.url);
+
   if (!session.url) {
-    return NextResponse.json({ error: "checkout URL not available" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create checkout session URL" }, { status: 500 });
   }
 
   return NextResponse.json({ url: session.url });
