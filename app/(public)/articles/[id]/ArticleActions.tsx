@@ -80,9 +80,9 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
 
       if (user) {
         const [{ data: likeRow }, { data: saveRow }, { data: profileRow }] = await Promise.all([
-          supabase.from("article_likes").select("id")
+          supabase.from("article_likes").select("user_id")
             .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
-          supabase.from("article_saves").select("id")
+          supabase.from("article_saves").select("user_id")
             .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
           supabase.from("users").select("plan").eq("id", user.uid).maybeSingle(),
         ]);
