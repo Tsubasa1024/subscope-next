@@ -2,20 +2,30 @@
 
 import Link from "next/link";
 
+const PLAN_LABELS: Record<string, string> = {
+  free: "Free",
+  standard: "Standard",
+  pro: "Pro",
+};
+
+const NEXT_PLAN_SAVES: Record<string, { name: string; saves: string }> = {
+  free:     { name: "Standard", saves: "15件" },
+  standard: { name: "Pro",      saves: "無制限" },
+  pro:      { name: "Pro",      saves: "無制限" },
+};
+
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  feature: string; // 例: 「コメント機能」
+  currentPlan: string;
+  limit: number;
 }
 
-const STANDARD_HIGHLIGHTS = [
-  "保存 15件まで",
-  "コメント機能",
-  "広告非表示・プレミアム記事",
-];
-
-export default function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalProps) {
+export default function UpgradeModal({ isOpen, onClose, currentPlan, limit }: UpgradeModalProps) {
   if (!isOpen) return null;
+
+  const planLabel = PLAN_LABELS[currentPlan] ?? currentPlan;
+  const next = NEXT_PLAN_SAVES[currentPlan] ?? { name: "上位プラン", saves: "より多く" };
 
   return (
     <div
@@ -43,29 +53,20 @@ export default function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalP
           className="flex items-center justify-center rounded-full mx-auto mb-5"
           style={{ width: "56px", height: "56px", background: "#f5f5f7", fontSize: "1.6rem" }}
         >
-          🔒
+          🔖
         </div>
 
         {/* タイトル */}
         <p className="font-bold mb-1" style={{ fontSize: "1.05rem", color: "#111", letterSpacing: "-0.01em" }}>
-          {feature}はStandard以上で使えます
+          保存上限に達しました
+        </p>
+        <p className="text-sm mb-2" style={{ color: "#86868b" }}>
+          現在のプラン: <strong style={{ color: "#111" }}>{planLabel}</strong>（最大 {limit} 件）
         </p>
         <p className="text-sm mb-6" style={{ color: "#86868b" }}>
-          ¥580/月でアップグレード
+          {next.name} プランにアップグレードすると<br />
+          <strong style={{ color: "#111" }}>{next.saves}</strong>保存できます
         </p>
-
-        {/* Standardの主要機能 */}
-        <ul className="text-left mb-7 space-y-2">
-          {STANDARD_HIGHLIGHTS.map((f) => (
-            <li key={f} className="flex items-center gap-2.5 text-sm" style={{ color: "#374151" }}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-                <circle cx="8" cy="8" r="8" fill="#111" />
-                <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {f}
-            </li>
-          ))}
-        </ul>
 
         {/* ボタン */}
         <div className="flex flex-col gap-2">
@@ -73,9 +74,9 @@ export default function UpgradeModal({ isOpen, onClose, feature }: UpgradeModalP
             href="/pricing"
             onClick={onClose}
             className="flex items-center justify-center w-full py-3 rounded-full font-semibold text-sm"
-            style={{ background: "#111", color: "#fff" }}
+            style={{ background: "#111", color: "#fff", textDecoration: "none" }}
           >
-            アップグレードする →
+            プランを見る →
           </Link>
           <button
             onClick={onClose}

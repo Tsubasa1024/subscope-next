@@ -5,11 +5,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+interface SavedArticle {
+  user_id: string;
+  article_id: string;
+  title: string;
+  image_url: string | null;
+  created_at: string;
+}
+
 interface Props {
   userId: string;
   email: string;
   name: string;
   currentPlan: "free" | "standard" | "pro";
+  savedArticles: SavedArticle[];
 }
 
 const PLAN_LABELS: Record<string, { name: string; price: string }> = {
@@ -18,11 +27,20 @@ const PLAN_LABELS: Record<string, { name: string; price: string }> = {
   pro:      { name: "Pro",      price: "¥1,480" },
 };
 
-export default function MypageClient({ userId, email, name: initialName, currentPlan }: Props) {
+const SAVE_LIMITS: Record<string, number | null> = {
+  free: 5,
+  standard: 15,
+  pro: null,
+};
+
+type Tab = "profile" | "saves";
+
+export default function MypageClient({ userId, email, name: initialName, currentPlan, savedArticles }: Props) {
   const router = useRouter();
-  const [name, setName]             = useState(initialName);
-  const [saving, setSaving]         = useState(false);
-  const [message, setMessage]       = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [activeTab, setActiveTab]        = useState<Tab>("profile");
+  const [name, setName]                  = useState(initialName);
+  const [saving, setSaving]              = useState(false);
+  const [message, setMessage]            = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const palette = ["#111111","#333333","#555555","#777777","#444444","#666666","#888888","#999999"];
   let h = 0;
@@ -32,6 +50,9 @@ export default function MypageClient({ userId, email, name: initialName, current
   const avatarColor = palette[Math.abs(h) % palette.length];
   const displayName = name || email.split("@")[0] || "ユーザー";
   const planInfo = PLAN_LABELS[currentPlan];
+  const saveLimit = SAVE_LIMITS[currentPlan];
+  const saveCount = savedArticles.length;
+  const remaining = saveLimit !== null ? saveLimit - saveCount : null;
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -59,15 +80,26 @@ export default function MypageClient({ userId, email, name: initialName, current
     router.refresh();
   }
 
+  const tabStyle = (tab: Tab) => ({
+    flex: 1,
+    padding: "10px 0",
+    background: "none",
+    border: "none",
+    borderBottom: activeTab === tab ? "2px solid #111111" : "2px solid transparent",
+    fontFamily: "inherit",
+    fontSize: "0.9rem",
+    fontWeight: activeTab === tab ? 700 : 500,
+    color: activeTab === tab ? "#111111" : "#86868b",
+    cursor: "pointer",
+    transition: "color 0.15s, border-color 0.15s",
+  } as React.CSSProperties);
+
   return (
     <div style={{ minHeight: "100vh", background: "#f5f5f7" }}>
       <main style={{ display: "flex", justifyContent: "center", padding: "40px 16px 60px" }}>
         <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
           {/* アバターカード */}
-          <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "#86868b", letterSpacing: "0.06em", textTransform: "uppercase", padding: "0 4px" }}>
-            プロフィール
-          </p>
           <div style={{
             background: "#fff", borderRadius: "20px", padding: "32px 24px",
             boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
@@ -85,223 +117,343 @@ export default function MypageClient({ userId, email, name: initialName, current
             <p style={{ fontSize: "0.85rem", color: "#86868b" }}>{email}</p>
           </div>
 
-          {/* アカウント情報フォーム */}
-          <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "#86868b", letterSpacing: "0.06em", textTransform: "uppercase", padding: "0 4px" }}>
-            アカウント情報
-          </p>
-          <form
-            onSubmit={handleSave}
-            style={{ background: "#fff", borderRadius: "20px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", overflow: "hidden" }}
-          >
-            <div style={{ display: "flex", alignItems: "center", padding: "16px 20px", gap: "12px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-              <span style={{ fontSize: "0.85rem", fontWeight: 600, minWidth: "90px" }}>ニックネーム</span>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={30}
-                autoComplete="nickname"
-                style={{ flex: 1, fontSize: "0.9rem", border: "none", outline: "none", background: "transparent" }}
-              />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", padding: "16px 20px", gap: "12px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-              <span style={{ fontSize: "0.85rem", fontWeight: 600, minWidth: "90px" }}>メール</span>
-              <span style={{ flex: 1, fontSize: "0.9rem", color: "#86868b" }}>{email}</span>
-            </div>
+          {/* タブ */}
+          <div style={{
+            display: "flex", background: "#fff", borderRadius: "20px",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.06)", overflow: "hidden",
+          }}>
+            <button style={tabStyle("profile")} onClick={() => setActiveTab("profile")}>
+              プロフィール
+            </button>
+            <button style={tabStyle("saves")} onClick={() => setActiveTab("saves")}>
+              保存した記事
+            </button>
+          </div>
 
-            {message && (
+          {/* プロフィールタブ */}
+          {activeTab === "profile" && (
+            <>
+              {/* アカウント情報フォーム */}
+              <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "#86868b", letterSpacing: "0.06em", textTransform: "uppercase", padding: "0 4px" }}>
+                アカウント情報
+              </p>
+              <form
+                onSubmit={handleSave}
+                style={{ background: "#fff", borderRadius: "20px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", overflow: "hidden" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", padding: "16px 20px", gap: "12px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 600, minWidth: "90px" }}>ニックネーム</span>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    maxLength={30}
+                    autoComplete="nickname"
+                    style={{ flex: 1, fontSize: "0.9rem", border: "none", outline: "none", background: "transparent" }}
+                  />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", padding: "16px 20px", gap: "12px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 600, minWidth: "90px" }}>メール</span>
+                  <span style={{ flex: 1, fontSize: "0.9rem", color: "#86868b" }}>{email}</span>
+                </div>
+
+                {message && (
+                  <div style={{
+                    padding: "12px 20px", fontSize: "0.875rem",
+                    color: message.type === "error" ? "#c00" : "#111111",
+                    background: "#f5f5f5",
+                  }}>
+                    {message.text}
+                  </div>
+                )}
+
+                <div style={{ padding: "16px 20px" }}>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    style={{
+                      width: "100%", padding: "15px", borderRadius: "14px", background: "#1d1d1f",
+                      color: "#fff", border: "none", fontSize: "0.95rem", fontWeight: 600,
+                      cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.45 : 1,
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    {saving ? "保存中..." : "変更を保存"}
+                  </button>
+                </div>
+              </form>
+
+              {/* プランセクション */}
+              <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "#86868b", letterSpacing: "0.06em", textTransform: "uppercase", padding: "0 4px" }}>
+                ご利用プラン
+              </p>
+
+              {/* 現在のプラン表示バッジ */}
               <div style={{
-                padding: "12px 20px", fontSize: "0.875rem",
-                color: message.type === "error" ? "#c00" : "#111111",
-                background: "#f5f5f5",
+                display: "flex", alignItems: "center", gap: "10px",
+                padding: "12px 16px", background: "#fff", borderRadius: "12px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
               }}>
-                {message.text}
+                <span style={{ fontWeight: 700, fontSize: "0.95rem" }}>{planInfo.name} プラン</span>
+                <span style={{ fontSize: "0.8rem", color: "#86868b" }}>{planInfo.price} / 月</span>
+                <span style={{
+                  marginLeft: "auto", padding: "3px 10px", borderRadius: "99px",
+                  background: "#111111", fontSize: "0.7rem", fontWeight: 600, color: "#fff",
+                }}>
+                  現在のプラン
+                </span>
               </div>
-            )}
 
-            <div style={{ padding: "16px 20px" }}>
+              {/* プランカード */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+
+                {/* Free カード */}
+                <div style={{
+                  background: "#fff", borderRadius: "16px",
+                  border: currentPlan === "free" ? "2px solid #111111" : "1px solid #e5e5e5",
+                  padding: "20px",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+                    <div>
+                      <p style={{ fontWeight: 700, fontSize: "1rem" }}>Free</p>
+                      <p style={{ fontSize: "1.1rem", fontWeight: 700, marginTop: "2px" }}>¥0<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "#86868b" }}> / 月</span></p>
+                    </div>
+                    {currentPlan === "free" && (
+                      <span style={{
+                        padding: "3px 10px", borderRadius: "99px",
+                        background: "#111111", fontSize: "0.7rem", fontWeight: 600, color: "#fff",
+                      }}>
+                        現在のプラン
+                      </span>
+                    )}
+                  </div>
+                  <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {["記事 読み放題", "いいね 無制限", "保存 5件まで", "ランキング閲覧"].map((f) => (
+                      <li key={f} style={{ fontSize: "0.85rem", color: "#333", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ color: "#111", fontWeight: 600 }}>✓</span> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  {currentPlan !== "free" && (
+                    <Link
+                      href="/pricing"
+                      style={{
+                        display: "block", textAlign: "center", padding: "10px",
+                        borderRadius: "10px", border: "1.5px solid #111",
+                        fontSize: "0.85rem", fontWeight: 600, color: "#111", textDecoration: "none",
+                      }}
+                    >
+                      このプランに変更
+                    </Link>
+                  )}
+                </div>
+
+                {/* Standard カード */}
+                <div style={{
+                  background: "#fff", borderRadius: "16px",
+                  border: currentPlan === "standard" ? "2px solid #111111" : "1px solid #e5e5e5",
+                  padding: "20px",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+                    <div>
+                      <p style={{ fontWeight: 700, fontSize: "1rem" }}>Standard</p>
+                      <p style={{ fontSize: "1.1rem", fontWeight: 700, marginTop: "2px" }}>¥580<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "#86868b" }}> / 月</span></p>
+                    </div>
+                    {currentPlan === "standard" && (
+                      <span style={{
+                        padding: "3px 10px", borderRadius: "99px",
+                        background: "#111111", fontSize: "0.7rem", fontWeight: 600, color: "#fff",
+                      }}>
+                        現在のプラン
+                      </span>
+                    )}
+                  </div>
+                  <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {[
+                      "保存 15件まで",
+                      "コメント機能",
+                      "広告非表示",
+                      "プレミアム記事",
+                      "比較機能・AI診断・サブスク家計簿",
+                      "Free の全機能",
+                    ].map((f) => (
+                      <li key={f} style={{ fontSize: "0.85rem", color: "#333", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ color: "#111", fontWeight: 600 }}>✓</span> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  {currentPlan !== "standard" && (
+                    <Link
+                      href="/pricing"
+                      style={{
+                        display: "block", textAlign: "center", padding: "10px",
+                        borderRadius: "10px", border: "1.5px solid #111",
+                        fontSize: "0.85rem", fontWeight: 600, color: "#111", textDecoration: "none",
+                      }}
+                    >
+                      このプランに変更
+                    </Link>
+                  )}
+                </div>
+
+                {/* Pro カード */}
+                <div style={{
+                  background: "#fff", borderRadius: "16px",
+                  border: currentPlan === "pro" ? "2px solid #111111" : "1px solid #e5e5e5",
+                  padding: "20px",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+                    <div>
+                      <p style={{ fontWeight: 700, fontSize: "1rem" }}>Pro</p>
+                      <p style={{ fontSize: "1.1rem", fontWeight: 700, marginTop: "2px" }}>¥1,480<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "#86868b" }}> / 月</span></p>
+                    </div>
+                    {currentPlan === "pro" && (
+                      <span style={{
+                        padding: "3px 10px", borderRadius: "99px",
+                        background: "#111111", fontSize: "0.7rem", fontWeight: 600, color: "#fff",
+                      }}>
+                        現在のプラン
+                      </span>
+                    )}
+                  </div>
+                  <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {["保存 無制限", "パーソナル通知", "Standard の全機能"].map((f) => (
+                      <li key={f} style={{ fontSize: "0.85rem", color: "#333", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ color: "#111", fontWeight: 600 }}>✓</span> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  {currentPlan !== "pro" && (
+                    <Link
+                      href="/pricing"
+                      style={{
+                        display: "block", textAlign: "center", padding: "10px",
+                        borderRadius: "10px", border: "1.5px solid #111",
+                        fontSize: "0.85rem", fontWeight: 600, color: "#111", textDecoration: "none",
+                      }}
+                    >
+                      このプランに変更
+                    </Link>
+                  )}
+                </div>
+
+              </div>
+
+              {/* ログアウト */}
               <button
-                type="submit"
-                disabled={saving}
+                onClick={handleLogout}
                 style={{
-                  width: "100%", padding: "15px", borderRadius: "14px", background: "#1d1d1f",
-                  color: "#fff", border: "none", fontSize: "0.95rem", fontWeight: 600,
-                  cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.45 : 1,
-                  fontFamily: "inherit",
+                  width: "100%", padding: "15px", borderRadius: "14px",
+                  background: "transparent", color: "#111111",
+                  border: "1.5px solid rgba(0,0,0,0.2)", fontSize: "0.95rem",
+                  fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
                 }}
               >
-                {saving ? "保存中..." : "変更を保存"}
+                ログアウト
               </button>
-            </div>
-          </form>
+            </>
+          )}
 
-          {/* プランセクション */}
-          <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "#86868b", letterSpacing: "0.06em", textTransform: "uppercase", padding: "0 4px" }}>
-            ご利用プラン
-          </p>
-
-          {/* 現在のプラン表示バッジ */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: "10px",
-            padding: "12px 16px", background: "#fff", borderRadius: "12px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-          }}>
-            <span style={{ fontWeight: 700, fontSize: "0.95rem" }}>{planInfo.name} プラン</span>
-            <span style={{ fontSize: "0.8rem", color: "#86868b" }}>{planInfo.price} / 月</span>
-            <span style={{
-              marginLeft: "auto", padding: "3px 10px", borderRadius: "99px",
-              background: "#111111", fontSize: "0.7rem", fontWeight: 600, color: "#fff",
-            }}>
-              現在のプラン
-            </span>
-          </div>
-
-          {/* プランカード */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-
-            {/* Free カード */}
-            <div style={{
-              background: "#fff", borderRadius: "16px",
-              border: currentPlan === "free" ? "2px solid #111111" : "1px solid #e5e5e5",
-              padding: "20px",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
-                <div>
-                  <p style={{ fontWeight: 700, fontSize: "1rem" }}>Free</p>
-                  <p style={{ fontSize: "1.1rem", fontWeight: 700, marginTop: "2px" }}>¥0<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "#86868b" }}> / 月</span></p>
-                </div>
-                {currentPlan === "free" && (
-                  <span style={{
-                    padding: "3px 10px", borderRadius: "99px",
-                    background: "#111111", fontSize: "0.7rem", fontWeight: 600, color: "#fff",
-                  }}>
-                    現在のプラン
+          {/* 保存した記事タブ */}
+          {activeTab === "saves" && (
+            <>
+              {/* 保存数ヘッダー */}
+              <div style={{
+                background: "#fff", borderRadius: "20px", padding: "20px 24px",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ fontWeight: 700, fontSize: "0.95rem" }}>
+                    保存済み記事
                   </span>
+                  <span style={{ fontSize: "0.9rem", color: "#86868b" }}>
+                    {saveCount}{saveLimit !== null ? `/${saveLimit}` : ""} 件
+                  </span>
+                </div>
+
+                {/* 上限警告 */}
+                {saveLimit !== null && remaining !== null && remaining <= 1 && remaining > 0 && (
+                  <p style={{ fontSize: "0.82rem", color: "#ff9500", fontWeight: 600, marginTop: "4px" }}>
+                    あと {remaining} 件保存できます
+                  </p>
+                )}
+                {saveLimit !== null && remaining !== null && remaining <= 0 && (
+                  <div style={{ marginTop: "8px" }}>
+                    <p style={{ fontSize: "0.82rem", color: "#ff3b30", fontWeight: 600, marginBottom: "10px" }}>
+                      保存上限に達しています
+                    </p>
+                    <Link
+                      href="/pricing"
+                      style={{
+                        display: "inline-block", padding: "8px 18px", borderRadius: "99px",
+                        background: "#111111", color: "#fff",
+                        fontSize: "0.82rem", fontWeight: 600, textDecoration: "none",
+                      }}
+                    >
+                      プランをアップグレード →
+                    </Link>
+                  </div>
                 )}
               </div>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                {["記事 読み放題", "いいね 無制限", "保存 5件まで", "ランキング閲覧"].map((f) => (
-                  <li key={f} style={{ fontSize: "0.85rem", color: "#333", display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ color: "#111", fontWeight: 600 }}>✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              {currentPlan !== "free" && (
-                <Link
-                  href="/pricing"
-                  style={{
-                    display: "block", textAlign: "center", padding: "10px",
-                    borderRadius: "10px", border: "1.5px solid #111",
-                    fontSize: "0.85rem", fontWeight: 600, color: "#111", textDecoration: "none",
-                  }}
-                >
-                  このプランに変更
-                </Link>
-              )}
-            </div>
 
-            {/* Standard カード */}
-            <div style={{
-              background: "#fff", borderRadius: "16px",
-              border: currentPlan === "standard" ? "2px solid #111111" : "1px solid #e5e5e5",
-              padding: "20px",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
-                <div>
-                  <p style={{ fontWeight: 700, fontSize: "1rem" }}>Standard</p>
-                  <p style={{ fontSize: "1.1rem", fontWeight: 700, marginTop: "2px" }}>¥580<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "#86868b" }}> / 月</span></p>
+              {/* 記事一覧 */}
+              {savedArticles.length === 0 ? (
+                <div style={{
+                  background: "#fff", borderRadius: "20px", padding: "40px 24px",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.06)", textAlign: "center",
+                  color: "#86868b", fontSize: "0.9rem",
+                }}>
+                  まだ保存した記事はありません
                 </div>
-                {currentPlan === "standard" && (
-                  <span style={{
-                    padding: "3px 10px", borderRadius: "99px",
-                    background: "#111111", fontSize: "0.7rem", fontWeight: 600, color: "#fff",
-                  }}>
-                    現在のプラン
-                  </span>
-                )}
-              </div>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                {[
-                  "保存 15件まで",
-                  "コメント機能",
-                  "広告非表示",
-                  "プレミアム記事",
-                  "比較機能・AI診断・サブスク家計簿",
-                  "Free の全機能",
-                ].map((f) => (
-                  <li key={f} style={{ fontSize: "0.85rem", color: "#333", display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ color: "#111", fontWeight: 600 }}>✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              {currentPlan !== "standard" && (
-                <Link
-                  href="/pricing"
-                  style={{
-                    display: "block", textAlign: "center", padding: "10px",
-                    borderRadius: "10px", border: "1.5px solid #111",
-                    fontSize: "0.85rem", fontWeight: 600, color: "#111", textDecoration: "none",
-                  }}
-                >
-                  このプランに変更
-                </Link>
-              )}
-            </div>
-
-            {/* Pro カード */}
-            <div style={{
-              background: "#fff", borderRadius: "16px",
-              border: currentPlan === "pro" ? "2px solid #111111" : "1px solid #e5e5e5",
-              padding: "20px",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
-                <div>
-                  <p style={{ fontWeight: 700, fontSize: "1rem" }}>Pro</p>
-                  <p style={{ fontSize: "1.1rem", fontWeight: 700, marginTop: "2px" }}>¥1,480<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "#86868b" }}> / 月</span></p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {savedArticles.map((article) => (
+                    <Link
+                      key={article.article_id}
+                      href={`/articles/${article.article_id}`}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <div style={{
+                        background: "#fff", borderRadius: "16px",
+                        boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+                        padding: "16px 20px",
+                        display: "flex", alignItems: "center", gap: "14px",
+                        transition: "opacity 0.15s",
+                      }}
+                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.75")}
+                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                      >
+                        {article.image_url && (
+                          <img
+                            src={article.image_url}
+                            alt=""
+                            style={{ width: "56px", height: "56px", borderRadius: "10px", objectFit: "cover", flexShrink: 0 }}
+                          />
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{
+                            fontWeight: 600, fontSize: "0.9rem", color: "#111111",
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                          }}>
+                            {article.title}
+                          </p>
+                          <p style={{ fontSize: "0.75rem", color: "#86868b", marginTop: "4px" }}>
+                            {new Date(article.created_at).toLocaleDateString("ja-JP")}
+                          </p>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                          stroke="#86868b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                          style={{ flexShrink: 0 }}
+                        >
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-                {currentPlan === "pro" && (
-                  <span style={{
-                    padding: "3px 10px", borderRadius: "99px",
-                    background: "#111111", fontSize: "0.7rem", fontWeight: 600, color: "#fff",
-                  }}>
-                    現在のプラン
-                  </span>
-                )}
-              </div>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                {["保存 無制限", "パーソナル通知", "Standard の全機能"].map((f) => (
-                  <li key={f} style={{ fontSize: "0.85rem", color: "#333", display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ color: "#111", fontWeight: 600 }}>✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              {currentPlan !== "pro" && (
-                <Link
-                  href="/pricing"
-                  style={{
-                    display: "block", textAlign: "center", padding: "10px",
-                    borderRadius: "10px", border: "1.5px solid #111",
-                    fontSize: "0.85rem", fontWeight: 600, color: "#111", textDecoration: "none",
-                  }}
-                >
-                  このプランに変更
-                </Link>
               )}
-            </div>
+            </>
+          )}
 
-          </div>
-
-          {/* ログアウト */}
-          <button
-            onClick={handleLogout}
-            style={{
-              width: "100%", padding: "15px", borderRadius: "14px",
-              background: "transparent", color: "#111111",
-              border: "1.5px solid rgba(0,0,0,0.2)", fontSize: "0.95rem",
-              fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            ログアウト
-          </button>
         </div>
       </main>
 

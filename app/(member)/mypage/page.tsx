@@ -10,11 +10,14 @@ export default async function MypagePage() {
   // layout の認証ガードで user は必ず存在するが型安全のため確認
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("plan")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, { data: savedArticles }] = await Promise.all([
+    supabase.from("users").select("plan").eq("id", user.id).single(),
+    supabase
+      .from("article_saves")
+      .select("user_id, article_id, title, image_url, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   return (
     <MypageClient
@@ -22,6 +25,7 @@ export default async function MypagePage() {
       email={user.email ?? ""}
       name={user.user_metadata?.full_name ?? ""}
       currentPlan={(profile?.plan ?? "free") as "free" | "standard" | "pro"}
+      savedArticles={savedArticles ?? []}
     />
   );
 }

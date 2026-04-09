@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import LoginPromptModal from "@/components/LoginPromptModal";
+import UpgradeModal from "@/components/UpgradeModal";
 
 interface Props {
   articleId: string;
@@ -34,13 +35,6 @@ function setLocalLike(articleId: string, liked: boolean) {
   localStorage.setItem(LS_KEY, JSON.stringify(likes));
 }
 
-// プランごとの保存上限
-const SAVE_LIMITS: Record<string, number> = {
-  free: 5,
-  standard: 15,
-  pro: Infinity,
-};
-
 // パーティクルの飛び散り方向（4方向）
 const PARTICLES = [
   { tx: "-22px", ty: "-34px" },
@@ -63,8 +57,8 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
   const [likeAnimating, setLikeAnimating] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
   const [userPlan,      setUserPlan]      = useState<string>("free");
-  const [modalMessage,  setModalMessage]  = useState("");
-  const [modalMode,     setModalMode]     = useState<"login" | "upgrade">("login");
+  const [loginModal,    setLoginModal]    = useState(false);
+  const [upgradeModal,  setUpgradeModal]  = useState<{ plan: string; limit: number } | null>(null);
 
   useEffect(() => {
     if (!ready) return;
@@ -140,14 +134,9 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
     setLikeLoading(false);
   }
 
-  function openModal(message: string, mode: "login" | "upgrade") {
-    setModalMessage(message);
-    setModalMode(mode);
-  }
-
   async function handleSave() {
     if (!user) {
-      openModal("記事を保存するにはログインが必要です", "login");
+      setLoginModal(true);
       return;
     }
     if (saveLoading) return;
@@ -159,19 +148,21 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
       await supabase.from("article_saves").delete()
         .eq("article_id", articleId).eq("user_id", user.uid);
     } else {
-      // 件数チェック
-      const limit = SAVE_LIMITS[userPlan] ?? 5;
-      if (limit !== Infinity) {
-        const { count } = await supabase
-          .from("article_saves")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", user.uid);
-        if ((count ?? 0) >= limit) {
-          openModal("保存の上限に達しました", "upgrade");
+      // サーバーサイドで上限チェック
+      const res = await fetch("/api/saves/check");
+      if (res.ok) {
+        const { canSave, limit, count } = await res.json() as {
+          canSave: boolean;
+          limit: number | null;
+          count: number;
+        };
+        if (!canSave) {
+          setUpgradeModal({ plan: userPlan, limit: limit ?? count });
           setSaveLoading(false);
           return;
         }
       }
+
       setSaved(true);
       await supabase.from("article_saves")
         .insert({ user_id: user.uid, article_id: articleId, title: articleTitle });
@@ -266,12 +257,20 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
 
   return (
     <>
-      {/* ログイン / アップグレードモーダル */}
+      {/* ログインモーダル */}
       <LoginPromptModal
-        isOpen={!!modalMessage}
-        onClose={() => setModalMessage("")}
-        message={modalMessage}
-        mode={modalMode}
+        isOpen={loginModal}
+        onClose={() => setLoginModal(false)}
+        message="記事を保存するにはログインが必要です"
+        mode="login"
+      />
+
+      {/* アップグレードモーダル */}
+      <UpgradeModal
+        isOpen={!!upgradeModal}
+        onClose={() => setUpgradeModal(null)}
+        currentPlan={upgradeModal?.plan ?? userPlan}
+        limit={upgradeModal?.limit ?? 5}
       />
 
       {/* ===== 上部アクションバー ===== */}
