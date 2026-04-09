@@ -81,10 +81,10 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
       if (user) {
         const [{ data: likeRow }, { data: saveRow }, { data: profileRow }] = await Promise.all([
           supabase.from("article_likes").select("id")
-            .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
+            .eq("article_id", articleId).eq("user_id", user.id).maybeSingle(),
           supabase.from("article_saves").select("id")
-            .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
-          supabase.from("users").select("plan").eq("id", user.uid).maybeSingle(),
+            .eq("article_id", articleId).eq("user_id", user.id).maybeSingle(),
+          supabase.from("users").select("plan").eq("id", user.id).maybeSingle(),
         ]);
         setLiked(!!likeRow);
         setSaved(!!saveRow);
@@ -114,7 +114,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
       if (user) {
         const supabase = createClient();
         await supabase.from("article_likes").delete()
-          .eq("article_id", articleId).eq("user_id", user.uid);
+          .eq("article_id", articleId).eq("user_id", user.id);
       } else {
         setLocalLike(articleId, false);
       }
@@ -125,7 +125,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
       if (user) {
         const supabase = createClient();
         await supabase.from("article_likes")
-          .insert({ user_id: user.uid, article_id: articleId });
+          .insert({ user_id: user.id, article_id: articleId });
       } else {
         setLocalLike(articleId, true);
       }
@@ -146,7 +146,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
     if (saved) {
       setSaved(false);
       await supabase.from("article_saves").delete()
-        .eq("article_id", articleId).eq("user_id", user.uid);
+        .eq("article_id", articleId).eq("user_id", user.id);
     } else {
       // サーバーサイドで上限チェック
       const res = await fetch("/api/saves/check");
@@ -165,7 +165,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
 
       setSaved(true);
       await supabase.from("article_saves")
-        .insert({ user_id: user.uid, article_id: articleId, title: articleTitle });
+        .insert({ user_id: user.id, article_id: articleId, title: articleTitle });
     }
     setSaveLoading(false);
   }
