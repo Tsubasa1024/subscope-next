@@ -1,7 +1,8 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useTransition, useState, useRef } from "react";
 import { createService, updateService } from "../actions";
+import { createClient } from "@/lib/supabase/client";
 
 type Category = { id: number; name: string; slug: string };
 
@@ -63,6 +64,33 @@ export function ServiceForm({ categories, service }: Props) {
   const [slug, setSlug] = useState(service?.slug ?? "");
   const [websiteUrl, setWebsiteUrl] = useState(service?.website_url ?? "");
   const [logoUrl, setLogoUrl] = useState(service?.logo_url ?? "");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random()}.${ext}`;
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from("service-logos")
+        .upload(fileName, file);
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage
+        .from("service-logos")
+        .getPublicUrl(fileName);
+      setLogoUrl(data.publicUrl);
+    } catch (err) {
+      console.error(err);
+      alert("画像のアップロードに失敗しました");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   function handleClearbit() {
     try {
@@ -232,15 +260,32 @@ export function ServiceForm({ categories, service }: Props) {
       {/* ロゴURL */}
       <div style={fieldStyle}>
         <label style={labelStyle}>ロゴURL</label>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
           <input
-            name="logo_url"
-            type="url"
-            value={logoUrl}
-            onChange={(e) => setLogoUrl(e.target.value)}
-            style={{ ...inputStyle, flex: 1 }}
-            placeholder="https://example.com/logo.png"
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleFileUpload}
           />
+          <button
+            type="button"
+            disabled={isUploading}
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              padding: "10px 14px",
+              borderRadius: "10px",
+              border: "1px solid #d1d1d6",
+              background: "#f5f5f7",
+              fontSize: "0.8rem",
+              fontWeight: 500,
+              cursor: isUploading ? "wait" : "pointer",
+              whiteSpace: "nowrap",
+              color: "#1d1d1f",
+            }}
+          >
+            {isUploading ? "アップロード中..." : "画像をアップロード"}
+          </button>
           <button
             type="button"
             onClick={handleClearbit}
@@ -259,18 +304,25 @@ export function ServiceForm({ categories, service }: Props) {
             Clearbitから取得
           </button>
         </div>
+        <input
+          name="logo_url"
+          type="url"
+          value={logoUrl}
+          onChange={(e) => setLogoUrl(e.target.value)}
+          style={inputStyle}
+          placeholder="https://example.com/logo.png"
+        />
         {logoUrl && (
           <div style={{ marginTop: "8px" }}>
             <img
               src={logoUrl}
               alt="ロゴプレビュー"
               style={{
-                width: "48px",
-                height: "48px",
+                width: "64px",
+                height: "64px",
                 objectFit: "contain",
-                borderRadius: "8px",
-                border: "1px solid #d1d1d6",
-                background: "#f5f5f7",
+                borderRadius: "12px",
+                border: "1px solid #e0e0e0",
               }}
             />
           </div>
