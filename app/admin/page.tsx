@@ -1,10 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const adminSupabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SECRET_KEY!
+  );
+
+  const { count: serviceCount } = await adminSupabase
+    .from("services")
+    .select("*", { count: "exact", head: true });
 
   return (
     <div>
@@ -27,10 +39,10 @@ export default async function AdminDashboard() {
         }}
       >
         {[
-          { label: "総ユーザー数",     value: "—",  color: "#5B8DEF" },
-          { label: "登録サービス数",   value: "—",  color: "#4CAF82" },
-          { label: "総レビュー数",     value: "—",  color: "#E8A23A" },
-          { label: "今月の新規登録",   value: "—",  color: "#9B72CF" },
+          { label: "総ユーザー数",     value: "—",                          color: "#5B8DEF" },
+          { label: "登録サービス数",   value: String(serviceCount ?? "—"),  color: "#4CAF82" },
+          { label: "総レビュー数",     value: "—",                          color: "#E8A23A" },
+          { label: "今月の新規登録",   value: "—",                          color: "#9B72CF" },
         ].map(({ label, value, color }) => (
           <div
             key={label}
