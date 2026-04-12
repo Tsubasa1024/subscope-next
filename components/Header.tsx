@@ -82,7 +82,7 @@ export default function Header({ articles = [] }: HeaderProps) {
     e?.preventDefault();
     const q = query.trim();
     if (!q) return;
-    router.push(`/services?q=${encodeURIComponent(q)}`);
+    router.push(`/articles?q=${encodeURIComponent(q)}`);
     closeDrawer();
   }
 
@@ -267,7 +267,7 @@ export default function Header({ articles = [] }: HeaderProps) {
                       stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
-                    <span className="text-sm font-semibold">「{query}」でサービスを検索</span>
+                    <span className="text-sm font-semibold">「{query}」で記事を検索</span>
                   </button>
                 )}
               </div>
