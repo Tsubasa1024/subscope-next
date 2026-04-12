@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import ServiceReviewModal from "@/components/ServiceReviewModal";
 
 export interface ServiceWithStats {
@@ -169,7 +170,13 @@ export default function ServiceRankingClient({ rankedServices, unreviewedService
                   {/* 情報 */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm" style={{ color: "#1d1d1f" }}>{svc.name}</span>
+                      <Link
+                        href={`/service-ranking/${svc.slug}`}
+                        className="font-semibold text-sm hover:underline"
+                        style={{ color: "#1d1d1f", textDecoration: "none" }}
+                      >
+                        {svc.name}
+                      </Link>
                       {svc.category && (
                         <span
                           className="text-xs px-2 py-0.5 rounded-full"
@@ -228,7 +235,13 @@ export default function ServiceRankingClient({ rankedServices, unreviewedService
                 {/* 情報 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm" style={{ color: "#1d1d1f" }}>{svc.name}</span>
+                    <Link
+                      href={`/service-ranking/${svc.slug}`}
+                      className="font-semibold text-sm hover:underline"
+                      style={{ color: "#1d1d1f", textDecoration: "none" }}
+                    >
+                      {svc.name}
+                    </Link>
                     {svc.category && (
                       <span
                         className="text-xs px-2 py-0.5 rounded-full"

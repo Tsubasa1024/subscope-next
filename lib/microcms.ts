@@ -45,3 +45,16 @@ export async function getAllArticleIds() {
     customRequestInit: ISR,
   });
 }
+
+/** サービス名で関連記事を取得（最大6件） */
+export async function getArticlesByService(serviceName: string, limit = 6) {
+  return client.getList<Article>({
+    endpoint: "articles",
+    queries: {
+      filters: `service[equals]${serviceName}`,
+      limit,
+      orders: "-publishedAt",
+    },
+    customRequestInit: ISR,
+  });
+}
