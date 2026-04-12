@@ -81,20 +81,6 @@ export default async function ServiceRankingPage() {
     <main style={{ paddingTop: "96px" }}>
       <div className="container" style={{ paddingBottom: "var(--spacing-section)" }}>
 
-        {/* ページヘッダー */}
-        <section style={{ paddingBottom: "40px" }}>
-          <p style={{ fontSize: "0.85rem", color: "#86868b", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-            Service Ranking
-          </p>
-          <h1 style={{ fontSize: "2.4rem", fontWeight: 700, letterSpacing: "-0.03em", marginTop: "10px" }}>
-            サブスクランキング
-          </h1>
-          <p style={{ color: "#86868b", marginTop: "12px", lineHeight: 1.7 }}>
-            ユーザーが実際に使って評価したスコアをもとにしたランキングです。<br />
-            あなたのレビューがランキングに反映されます。
-          </p>
-        </section>
-
         {/* 未ログイン時バナー */}
         {!user && (
           <div
