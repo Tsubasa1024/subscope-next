@@ -56,10 +56,47 @@ export default function ServiceRankingClient({ rankedServices, unreviewedService
     router.refresh();
   }
 
-  const stars = (avg: number) => {
-    const full = Math.floor(avg / 2);
-    const half = avg / 2 - full >= 0.5;
-    return { full, half, empty: 5 - full - (half ? 1 : 0) };
+  const STAR_PATH =
+    "M 8,1 L 9.646,5.735 L 14.658,5.837 L 10.663,8.865 L 12.115,13.663 L 8,10.8 L 3.885,13.663 L 5.337,8.865 L 1.342,5.837 L 6.354,5.735 Z";
+
+  const StarDisplay = ({ score, uid }: { score: number; uid: string }) => {
+    const starValue = score / 2;
+    const types = Array.from({ length: 5 }, (_, i) => {
+      const filled = starValue - i;
+      if (filled >= 1) return "full";
+      if (filled >= 0.5) return "half";
+      return "empty";
+    });
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+        {types.map((type, i) => (
+          <svg key={i} width="16" height="16" viewBox="0 0 16 16">
+            {type === "half" && (
+              <defs>
+                <linearGradient id={`hg-${uid}-${i}`} x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="50%" stopColor="#111111" />
+                  <stop offset="50%" stopColor="#e0e0e0" />
+                </linearGradient>
+              </defs>
+            )}
+            <path
+              d={STAR_PATH}
+              fill={
+                type === "full"
+                  ? "#111111"
+                  : type === "half"
+                  ? `url(#hg-${uid}-${i})`
+                  : "#e0e0e0"
+              }
+            />
+          </svg>
+        ))}
+        <span style={{ fontSize: "12px", color: "#666666", marginLeft: "4px" }}>
+          {score.toFixed(1)}
+          <span style={{ color: "#86868b" }}>/10</span>
+        </span>
+      </div>
+    );
   };
 
   const LogoCell = ({ name, logo_url }: { name: string; logo_url: string | null }) => (
@@ -110,7 +147,6 @@ export default function ServiceRankingClient({ rankedServices, unreviewedService
             </div>
           ) : (
             rankedServices.map((svc, i) => {
-              const { full, half, empty } = stars(svc.avgScore);
               return (
                 <div
                   key={svc.id}
@@ -144,15 +180,7 @@ export default function ServiceRankingClient({ rankedServices, unreviewedService
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span style={{ fontSize: "12px", color: "#111111", letterSpacing: "0.05em" }}>
-                        {"★".repeat(full)}
-                        {half ? "½" : ""}
-                        {"☆".repeat(empty)}
-                      </span>
-                      <span className="text-xs font-semibold tabular-nums" style={{ color: "#666666" }}>
-                        {svc.avgScore.toFixed(1)}
-                        <span className="font-normal text-xs" style={{ color: "#86868b" }}>/10</span>
-                      </span>
+                      <StarDisplay score={svc.avgScore} uid={svc.id} />
                       <span className="text-xs" style={{ color: "#86868b" }}>
                         ({svc.reviewCount}件)
                       </span>

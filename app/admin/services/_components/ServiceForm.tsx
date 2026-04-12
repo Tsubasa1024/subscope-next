@@ -61,6 +61,20 @@ export function ServiceForm({ categories, service }: Props) {
   const [error, setError] = useState("");
   const [name, setName] = useState(service?.name ?? "");
   const [slug, setSlug] = useState(service?.slug ?? "");
+  const [websiteUrl, setWebsiteUrl] = useState(service?.website_url ?? "");
+  const [logoUrl, setLogoUrl] = useState(service?.logo_url ?? "");
+
+  function handleClearbit() {
+    try {
+      const raw = websiteUrl.trim();
+      if (!raw) return;
+      const withProtocol = raw.startsWith("http") ? raw : `https://${raw}`;
+      const { hostname } = new URL(withProtocol);
+      setLogoUrl(`https://logo.clearbit.com/${hostname}`);
+    } catch {
+      // invalid URL
+    }
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -197,7 +211,8 @@ export function ServiceForm({ categories, service }: Props) {
           <input
             name="website_url"
             type="url"
-            defaultValue={service?.website_url ?? ""}
+            value={websiteUrl}
+            onChange={(e) => setWebsiteUrl(e.target.value)}
             style={inputStyle}
             placeholder="https://example.com"
           />
@@ -217,13 +232,49 @@ export function ServiceForm({ categories, service }: Props) {
       {/* ロゴURL */}
       <div style={fieldStyle}>
         <label style={labelStyle}>ロゴURL</label>
-        <input
-          name="logo_url"
-          type="url"
-          defaultValue={service?.logo_url ?? ""}
-          style={inputStyle}
-          placeholder="https://example.com/logo.png"
-        />
+        <div style={{ display: "flex", gap: "8px" }}>
+          <input
+            name="logo_url"
+            type="url"
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            style={{ ...inputStyle, flex: 1 }}
+            placeholder="https://example.com/logo.png"
+          />
+          <button
+            type="button"
+            onClick={handleClearbit}
+            style={{
+              padding: "10px 14px",
+              borderRadius: "10px",
+              border: "1px solid #d1d1d6",
+              background: "#f5f5f7",
+              fontSize: "0.8rem",
+              fontWeight: 500,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              color: "#1d1d1f",
+            }}
+          >
+            Clearbitから取得
+          </button>
+        </div>
+        {logoUrl && (
+          <div style={{ marginTop: "8px" }}>
+            <img
+              src={logoUrl}
+              alt="ロゴプレビュー"
+              style={{
+                width: "48px",
+                height: "48px",
+                objectFit: "contain",
+                borderRadius: "8px",
+                border: "1px solid #d1d1d6",
+                background: "#f5f5f7",
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* チェックボックス */}
