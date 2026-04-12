@@ -68,7 +68,7 @@ async function fetchTop5Rankings(): Promise<RankingItem[]> {
     categories: { name: string } | null;
   };
 
-  return ((serviceRows ?? []) as ServiceRow[])
+  return ((serviceRows ?? []) as unknown as ServiceRow[])
     .filter((s) => statsMap[s.id])
     .map((s) => {
       const stats = statsMap[s.id];

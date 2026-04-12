@@ -48,7 +48,7 @@ export default async function ServiceRankingPage() {
     categories: { name: string } | null;
   };
 
-  const services: ServiceWithStats[] = ((serviceRows ?? []) as ServiceRow[])
+  const services: ServiceWithStats[] = ((serviceRows ?? []) as unknown as ServiceRow[])
     .filter((s) => statsMap[s.id]) // レビューのあるサービスのみ
     .map((s) => {
       const stats = statsMap[s.id] ?? { total: 0, count: 0 };
