@@ -14,9 +14,9 @@ interface HeaderProps {
 }
 
 const NAV_ITEMS = [
-  { href: "/ranking",   label: "ランキング" },
-  { href: "/compare",   label: "比較" },
-  { href: "/diagnosis", label: "診断" },
+  { href: "/ranking",          label: "記事ランキング" },
+  { href: "/service-ranking",  label: "サブスクランキング" },
+  { href: "/diagnosis",        label: "診断" },
 ];
 
 

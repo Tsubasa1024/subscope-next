@@ -1,9 +1,10 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { getArticles, getImageUrl, normalizeCategory } from "@/lib/microcms";
-
-export const revalidate = 60;
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "SUBSCOPE｜サブスクリプションメディア",
@@ -27,20 +28,68 @@ const CATEGORY_NAV = [
   { label: "その他",       href: "/articles?category=その他" },
 ];
 
-// ランキングダミーデータ（DBと連携するまで）
-const RANKINGS = [
-  { rank: 1, name: "Netflix",          category: "動画",      rating: 4.8, price: "¥1,490〜/月", color: "#111111" },
-  { rank: 2, name: "Spotify",          category: "音楽",      rating: 4.7, price: "¥980/月",     color: "#333333" },
-  { rank: 3, name: "Amazon Prime",     category: "動画・買物", rating: 4.6, price: "¥600/月",     color: "#555555" },
-  { rank: 4, name: "Kindle Unlimited", category: "読書",      rating: 4.5, price: "¥980/月",     color: "#777777" },
-  { rank: 5, name: "Adobe CC",         category: "ビジネス",  rating: 4.3, price: "¥6,480/月",   color: "#999999" },
-];
 
 // ============================================================
 // Page
 // ============================================================
+type RankingItem = {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  category: string | null;
+  avgScore: number;
+  reviewCount: number;
+};
+
+async function fetchTop5Rankings(): Promise<RankingItem[]> {
+  const supabase = await createClient();
+
+  const [{ data: reviewRows }, { data: serviceRows }] = await Promise.all([
+    supabase.from("service_reviews").select("service_id, score"),
+    supabase
+      .from("services")
+      .select("id, name, logo_url, category_id, categories(name)")
+      .eq("is_active", true),
+  ]);
+
+  type ReviewRow = { service_id: string; score: number };
+  const statsMap: Record<string, { total: number; count: number }> = {};
+  for (const row of (reviewRows ?? []) as ReviewRow[]) {
+    if (!statsMap[row.service_id]) statsMap[row.service_id] = { total: 0, count: 0 };
+    statsMap[row.service_id].total += row.score;
+    statsMap[row.service_id].count += 1;
+  }
+
+  type ServiceRow = {
+    id: string;
+    name: string;
+    logo_url: string | null;
+    category_id: number | null;
+    categories: { name: string } | null;
+  };
+
+  return ((serviceRows ?? []) as ServiceRow[])
+    .filter((s) => statsMap[s.id])
+    .map((s) => {
+      const stats = statsMap[s.id];
+      return {
+        id: s.id,
+        name: s.name,
+        logo_url: s.logo_url,
+        category: s.categories?.name ?? null,
+        avgScore: stats.total / stats.count,
+        reviewCount: stats.count,
+      };
+    })
+    .sort((a, b) => b.avgScore - a.avgScore || b.reviewCount - a.reviewCount)
+    .slice(0, 5);
+}
+
 export default async function TopPage() {
-  const articles = await getArticles(13).catch(() => []);
+  const [articles, top5] = await Promise.all([
+    getArticles(13).catch(() => []),
+    fetchTop5Rankings().catch(() => []),
+  ]);
   const featured = articles[0] ?? null;
   const grid     = articles.slice(1, 13); // 最大12件
 
@@ -242,85 +291,91 @@ export default async function TopPage() {
       </section>
 
       {/* =====================================================
-          4. ランキング TOP5
+          4. ランキング TOP5（実データ。データなしは非表示）
       ===================================================== */}
-      <section className="py-14" style={{ background: "#f5f5f7" }}>
-        <div className="container">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#86868b" }}>Ranking</p>
-              <h2 className="mt-1 font-bold" style={{ fontSize: "1.4rem", letterSpacing: "-0.02em" }}>
-                人気サービス TOP 5
-              </h2>
-            </div>
-            <Link
-              href="/ranking"
-              className="text-sm font-semibold hidden sm:inline-flex items-center gap-1 hover:opacity-70 transition-opacity"
-              style={{ color: "#111111" }}
-            >
-              ランキング全体
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2.5 7h9M7 2.5l4.5 4.5-4.5 4.5" />
-              </svg>
-            </Link>
-          </div>
-
-          <div
-            className="rounded-3xl overflow-hidden bg-white"
-            style={{ border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}
-          >
-            {RANKINGS.map(({ rank, name, category, rating, price, color }, i) => (
-              <div
-                key={name}
-                className="ranking-row flex items-center gap-4 px-5 py-4 bg-white cursor-pointer"
-                style={{ borderBottom: i < RANKINGS.length - 1 ? "1px solid rgba(0,0,0,0.05)" : "none" }}
-              >
-                {/* ランク番号 */}
-                <div
-                  className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs"
-                  style={{
-                    background: rank <= 3
-                      ? (rank === 1 ? "#111111" : rank === 2 ? "#666666" : "#999999")
-                      : "#f0f0f0",
-                    color: rank <= 3 ? "#fff" : "#666666",
-                  }}
-                >
-                  {rank}
-                </div>
-                {/* カラーアイコン */}
-                <div
-                  className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-                  style={{ background: color }}
-                >
-                  {name[0]}
-                </div>
-                {/* 情報 */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm" style={{ color: "#1d1d1f" }}>{name}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#f0f0f0", color: "#666666" }}>{category}</span>
-                  </div>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <span style={{ color: "#111111", fontSize: "11px" }}>{"★".repeat(Math.floor(rating))}</span>
-                    <span className="text-xs font-semibold" style={{ color: "#666666" }}>{rating}</span>
-                  </div>
-                </div>
-                {/* 料金 */}
-                <div className="flex-shrink-0 text-right">
-                  <p className="text-sm font-bold" style={{ color: "#1d1d1f" }}>{price}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "#86868b" }}>月額</p>
-                </div>
-                <svg className="flex-shrink-0" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 3l5 5-5 5" />
-                </svg>
+      {top5.length > 0 && (
+        <section className="py-14" style={{ background: "#f5f5f7" }}>
+          <div className="container">
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#86868b" }}>Ranking</p>
+                <h2 className="mt-1 font-bold" style={{ fontSize: "1.4rem", letterSpacing: "-0.02em" }}>
+                  人気サービス TOP 5
+                </h2>
               </div>
-            ))}
+              <Link
+                href="/service-ranking"
+                className="text-sm font-semibold hidden sm:inline-flex items-center gap-1 hover:opacity-70 transition-opacity"
+                style={{ color: "#111111" }}
+              >
+                ランキング全体
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2.5 7h9M7 2.5l4.5 4.5-4.5 4.5" />
+                </svg>
+              </Link>
+            </div>
+
+            <div
+              className="rounded-3xl overflow-hidden bg-white"
+              style={{ border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}
+            >
+              {top5.map((svc, i) => (
+                <Link
+                  key={svc.id}
+                  href="/service-ranking"
+                  className="ranking-row flex items-center gap-4 px-5 py-4 bg-white"
+                  style={{ borderBottom: i < top5.length - 1 ? "1px solid rgba(0,0,0,0.05)" : "none" }}
+                >
+                  {/* ランク番号 */}
+                  <div
+                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs"
+                    style={{
+                      background: i === 0 ? "#111111" : i === 1 ? "#666666" : i === 2 ? "#999999" : "#f0f0f0",
+                      color: i < 3 ? "#fff" : "#666666",
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                  {/* ロゴ or イニシャル */}
+                  <div
+                    className="flex-shrink-0 w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center text-white font-bold text-sm"
+                    style={{ background: svc.logo_url ? "transparent" : "#333333" }}
+                  >
+                    {svc.logo_url ? (
+                      <Image src={svc.logo_url} alt={svc.name} width={36} height={36} style={{ objectFit: "contain" }} />
+                    ) : (
+                      svc.name[0]
+                    )}
+                  </div>
+                  {/* 情報 */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm" style={{ color: "#1d1d1f" }}>{svc.name}</span>
+                      {svc.category && (
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#f0f0f0", color: "#666666" }}>
+                          {svc.category}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span style={{ color: "#111111", fontSize: "11px" }}>
+                        {"★".repeat(Math.floor(svc.avgScore / 2))}
+                      </span>
+                      <span className="text-xs font-semibold tabular-nums" style={{ color: "#666666" }}>
+                        {svc.avgScore.toFixed(1)}
+                        <span className="font-normal text-xs" style={{ color: "#86868b" }}>/10</span>
+                      </span>
+                    </div>
+                  </div>
+                  <svg className="flex-shrink-0" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 3l5 5-5 5" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
           </div>
-          <p className="text-center text-xs mt-3" style={{ color: "#86868b" }}>
-            ※ 現在はダミーデータです。
-          </p>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* =====================================================
           5. 診断CTAバナー
