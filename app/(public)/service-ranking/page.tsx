@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import ServiceRankingClient, { type ServiceWithStats } from "./ServiceRankingClient";
+import ServiceRankingClient, { type ServiceWithStats, type ServiceNoReview } from "./ServiceRankingClient";
 
 export const metadata: Metadata = {
   title: "サブスクランキング",
@@ -38,7 +38,6 @@ export default async function ServiceRankingPage() {
     statsMap[row.service_id].count += 1;
   }
 
-  // services にスコアをマージ、スコア降順ソート
   type ServiceRow = {
     id: string;
     name: string;
@@ -48,21 +47,35 @@ export default async function ServiceRankingPage() {
     categories: { name: string } | null;
   };
 
-  const services: ServiceWithStats[] = ((serviceRows ?? []) as unknown as ServiceRow[])
-    .filter((s) => statsMap[s.id]) // レビューのあるサービスのみ
+  const allServices = (serviceRows ?? []) as unknown as ServiceRow[];
+
+  // レビューあり → スコア降順
+  const rankedServices: ServiceWithStats[] = allServices
+    .filter((s) => statsMap[s.id])
     .map((s) => {
-      const stats = statsMap[s.id] ?? { total: 0, count: 0 };
+      const stats = statsMap[s.id];
       return {
         id: s.id,
         name: s.name,
         slug: s.slug,
         logo_url: s.logo_url,
         category: s.categories?.name ?? null,
-        avgScore: stats.count > 0 ? stats.total / stats.count : 0,
+        avgScore: stats.total / stats.count,
         reviewCount: stats.count,
       };
     })
     .sort((a, b) => b.avgScore - a.avgScore || b.reviewCount - a.reviewCount);
+
+  // レビューなし
+  const unreviewedServices: ServiceNoReview[] = allServices
+    .filter((s) => !statsMap[s.id])
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      slug: s.slug,
+      logo_url: s.logo_url,
+      category: s.categories?.name ?? null,
+    }));
 
   return (
     <main style={{ paddingTop: "96px" }}>
@@ -107,7 +120,8 @@ export default async function ServiceRankingPage() {
         )}
 
         <ServiceRankingClient
-          services={services}
+          rankedServices={rankedServices}
+          unreviewedServices={unreviewedServices}
           userId={user?.id ?? null}
         />
       </div>
