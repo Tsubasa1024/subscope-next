@@ -9,16 +9,34 @@ export default async function MypagePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // layout の認証ガードで user は必ず存在するが型安全のため確認
   if (!user) return null;
 
-  const [{ data: profile }, { data: savedArticles }] = await Promise.all([
-    supabase.from("users").select("plan").eq("id", user.id).single(),
+  const [
+    { data: profile },
+    { data: savedArticles },
+    { data: userSubs },
+    { data: allServices },
+  ] = await Promise.all([
+    supabase
+      .from("users")
+      .select("plan, username, username_changed_at, bio")
+      .eq("id", user.id)
+      .single(),
     supabase
       .from("article_saves")
       .select("user_id, article_id, title, image_url, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("user_subscriptions")
+      .select("id, service_id, services(id, name, slug, logo_url)")
+      .eq("user_id", user.id)
+      .eq("is_active", true),
+    supabase
+      .from("services")
+      .select("id, name, slug, logo_url")
+      .eq("is_active", true)
+      .order("name"),
   ]);
 
   return (
@@ -28,6 +46,24 @@ export default async function MypagePage() {
       name={user.user_metadata?.full_name ?? ""}
       currentPlan={(profile?.plan ?? "free") as "free" | "standard" | "pro"}
       savedArticles={savedArticles ?? []}
+      username={profile?.username ?? null}
+      usernameChangedAt={profile?.username_changed_at ?? null}
+      userSubscriptions={(userSubs ?? []) as unknown as UserSubscriptionRow[]}
+      allServices={(allServices ?? []) as unknown as ServiceRow[]}
     />
   );
 }
+
+// shared types exported for MypageClient
+export type ServiceRow = {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+};
+
+export type UserSubscriptionRow = {
+  id: string;
+  service_id: string;
+  services: ServiceRow | null;
+};
