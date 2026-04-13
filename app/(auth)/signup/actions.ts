@@ -1,35 +1,18 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export async function signup(formData: FormData) {
+export async function signupWithEmail(email: string): Promise<{ success?: true; error?: string }> {
+  if (!email) return { error: "メールアドレスを入力してください" };
+
   const supabase = await createClient();
+  const redirectTo = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback?next=/onboarding`;
 
-  const email    = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const name     = (formData.get("name") as string)?.trim();
-
-  if (!email || !password || !name) {
-    return { error: "すべての項目を入力してください" };
-  }
-  if (password.length < 8) {
-    return { error: "パスワードは8文字以上で設定してください" };
-  }
-
-  const { error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signInWithOtp({
     email,
-    password,
-    options: {
-      data: { full_name: name },
-    },
+    options: { emailRedirectTo: redirectTo },
   });
 
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath("/", "layout");
-  redirect("/");
+  if (error) return { error: error.message };
+  return { success: true };
 }

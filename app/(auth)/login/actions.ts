@@ -8,12 +8,10 @@ import { createClient } from '@/lib/supabase/server'
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
-  const data = {
+  const { error } = await supabase.auth.signInWithPassword({
     email: formData.get('email') as string,
     password: formData.get('password') as string,
-  }
-
-  const { error } = await supabase.auth.signInWithPassword(data)
+  })
 
   if (error) {
     return { error: error.message }
@@ -23,28 +21,6 @@ export async function login(formData: FormData) {
   cookieStore.set('toast', 'login_success', { maxAge: 10, path: '/' })
   revalidatePath('/', 'layout')
   redirect('/')
-}
-
-export async function signup(formData: FormData) {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.auth.signUp({
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  })
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath('/', 'layout')
-
-  // session が null = メール確認が必要
-  if (!data.session) {
-    redirect('/auth/verify-email')
-  }
-
-  redirect('/welcome')
 }
 
 export async function logout() {

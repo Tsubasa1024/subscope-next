@@ -73,7 +73,9 @@ export default function MypageClient({
   const [message, setMessage]            = useState<Msg>(null);
   const [usernameMsg, setUsernameMsg]    = useState<Msg>(null);
   const [subs, setSubs]                  = useState<UserSubscriptionRow[]>(initialSubs);
-  const [showModal, setShowModal]        = useState(false);
+  const [showModal,       setShowModal]       = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting,        setDeleting]        = useState(false);
 
   const { ok: canEditUsername, nextDate: usernameNextDate } = canChangeUsername(usernameChangedAt);
 
@@ -173,6 +175,21 @@ export default function MypageClient({
     await supabase.auth.signOut();
     router.replace("/");
     router.refresh();
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    const res = await fetch("/api/delete-account", { method: "DELETE" });
+    if (res.ok) {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.replace("/");
+    } else {
+      const json = await res.json();
+      alert(json.error ?? "削除に失敗しました");
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
   }
 
   const tabStyle = (tab: Tab) => ({
@@ -524,6 +541,18 @@ export default function MypageClient({
               >
                 ログアウト
               </button>
+
+              {/* アカウント削除 */}
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "#ff3b30", fontSize: "0.8rem", fontFamily: "inherit",
+                  textAlign: "center", padding: "4px",
+                }}
+              >
+                アカウントを削除
+              </button>
             </>
           )}
 
@@ -596,6 +625,49 @@ export default function MypageClient({
         {" · "}
         <Link href="/terms">利用規約</Link>
       </footer>
+
+      {/* アカウント削除確認モーダル */}
+      {showDeleteModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => !deleting && setShowDeleteModal(false)}
+        >
+          <div
+            style={{ background: "#fff", borderRadius: "20px", width: "100%", maxWidth: "360px", padding: "28px 24px", boxShadow: "0 8px 40px rgba(0,0,0,0.15)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "10px" }}>アカウントを削除しますか？</p>
+            <p style={{ fontSize: "0.85rem", color: "#86868b", marginBottom: "24px", lineHeight: 1.6 }}>
+              本当にアカウントを削除しますか？この操作は取り消せません。
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                style={{
+                  width: "100%", padding: "13px", borderRadius: "10px",
+                  background: deleting ? "#999" : "#ff3b30", color: "#fff",
+                  border: "none", fontSize: "0.9rem", fontWeight: 600,
+                  cursor: deleting ? "not-allowed" : "pointer", fontFamily: "inherit",
+                }}
+              >
+                {deleting ? "削除中..." : "削除する"}
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                style={{
+                  width: "100%", padding: "13px", borderRadius: "10px",
+                  background: "#f5f5f7", color: "#111", border: "none",
+                  fontSize: "0.9rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* サブスク追加モーダル */}
       {showModal && (
