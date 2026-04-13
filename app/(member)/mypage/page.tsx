@@ -5,9 +5,7 @@ import MypageClient from "./MypageClient";
 
 export default async function MypagePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return null;
 
@@ -19,7 +17,7 @@ export default async function MypagePage() {
   ] = await Promise.all([
     supabase
       .from("users")
-      .select("plan, username, username_changed_at, bio")
+      .select("plan, username, username_changed_at, bio, avatar_url, notification_new_article, notification_review_reply")
       .eq("id", user.id)
       .single(),
     supabase
@@ -48,13 +46,16 @@ export default async function MypagePage() {
       savedArticles={savedArticles ?? []}
       username={profile?.username ?? null}
       usernameChangedAt={profile?.username_changed_at ?? null}
+      bio={profile?.bio ?? null}
+      avatarUrl={profile?.avatar_url ?? null}
+      notificationNewArticle={profile?.notification_new_article ?? true}
+      notificationReviewReply={profile?.notification_review_reply ?? true}
       userSubscriptions={(userSubs ?? []) as unknown as UserSubscriptionRow[]}
       allServices={(allServices ?? []) as unknown as ServiceRow[]}
     />
   );
 }
 
-// shared types exported for MypageClient
 export type ServiceRow = {
   id: string;
   name: string;
