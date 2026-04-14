@@ -296,7 +296,7 @@ export default function MypageClient({
   async function handleAddSub(service: ServiceRow) {
     const supabase = createClient();
     const { data, error } = await supabase.from("user_subscriptions")
-      .insert({ user_id: userId, service_id: service.id, is_active: true })
+      .insert({ user_id: userId, service_id: service.id })
       .select("id, service_id, services(id, name, slug, logo_url)").single();
     if (!error && data) {
       setSubs((prev) => [...prev, data as unknown as UserSubscriptionRow]);
