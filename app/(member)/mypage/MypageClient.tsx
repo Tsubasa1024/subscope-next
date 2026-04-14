@@ -65,7 +65,7 @@ function Toast({ msg, onDone }: { msg: Msg; onDone: () => void }) {
       fontSize: "0.875rem", fontWeight: 600, zIndex: 9999,
       boxShadow: "0 4px 20px rgba(0,0,0,0.25)", whiteSpace: "nowrap",
     }}>
-      {msg.type === "success" ? "✓ " : "✕ "}{msg.text}
+      {msg.text}
     </div>
   );
 }
@@ -113,7 +113,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 }
 
 /* ─── Collapsible Section ─── */
-function CollapsibleSection({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+function CollapsibleSection({ title, children, defaultOpen = false }: { title: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Card>
@@ -127,7 +127,13 @@ function CollapsibleSection({ title, children, defaultOpen = false }: { title: s
         }}
       >
         {title}
-        <span style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", color: "#86868b", fontSize: "0.75rem" }}>▼</span>
+        <svg
+          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#86868b" strokeWidth="2"
+          strokeLinecap="round" strokeLinejoin="round"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </button>
       <div style={{
         maxHeight: open ? "1000px" : "0",
@@ -411,12 +417,29 @@ export default function MypageClient({
         }}>
           <div style={{ display: "flex", maxWidth: 480, margin: "0 auto", gap: 4 }}>
             {(["profile", "saves", "settings"] as Tab[]).map((tab) => {
-              const labels: Record<Tab, string> = {
-                profile: "👤 プロフィール",
-                saves: "🔖 保存した記事",
-                settings: "⚙️ 設定",
-              };
               const active = activeTab === tab;
+              const tabIcons: Record<Tab, React.ReactNode> = {
+                profile: (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                  </svg>
+                ),
+                saves: (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 3h14a1 1 0 0 1 1 1v17l-7-3-7 3V4a1 1 0 0 1 1-1z"/>
+                  </svg>
+                ),
+                settings: (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                  </svg>
+                ),
+              };
+              const tabLabels: Record<Tab, string> = {
+                profile: "プロフィール",
+                saves: "保存した記事",
+                settings: "設定",
+              };
               return (
                 <button
                   key={tab}
@@ -427,10 +450,12 @@ export default function MypageClient({
                     color: active ? "#fff" : "#86868b",
                     fontSize: "0.72rem", fontWeight: 600, cursor: "pointer",
                     fontFamily: "inherit", transition: "background 0.2s, color 0.2s",
-                    minHeight: 44,
+                    minHeight: 44, display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center", gap: 4,
                   }}
                 >
-                  {labels[tab]}
+                  {tabIcons[tab]}
+                  {tabLabels[tab]}
                 </button>
               );
             })}
@@ -466,7 +491,11 @@ export default function MypageClient({
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "background 0.2s",
                 }}>
-                  {uploadingAvatar ? <Spinner /> : avatarHover ? <span style={{ fontSize: "1.6rem" }}>📷</span> : null}
+                  {uploadingAvatar ? <Spinner /> : avatarHover ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  ) : null}
                 </div>
               </div>
               <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={handleAvatarChange} />
@@ -498,16 +527,26 @@ export default function MypageClient({
                           style={inlineInput}
                         />
                         <button onClick={handleSaveName} disabled={savingName} style={iconBtn("#34c759")}>
-                          {savingName ? <Spinner /> : "✓"}
+                          {savingName ? <Spinner /> : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          )}
                         </button>
-                        <button onClick={() => { setEditingName(false); setEditName(name); }} style={iconBtn("#86868b")}>
-                          ✗
+                        <button onClick={() => { setEditingName(false); setEditName(name); }} style={iconBtn()}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
                         </button>
                       </>
                     ) : (
                       <>
                         <span style={{ flex: 1, fontSize: "0.9rem" }}>{name || "未設定"}</span>
-                        <button onClick={() => { setEditingName(true); setEditName(name); }} style={iconBtn()}>✏️</button>
+                        <button onClick={() => { setEditingName(true); setEditName(name); }} style={iconBtn()}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
                       </>
                     )}
                   </div>
@@ -527,10 +566,16 @@ export default function MypageClient({
                           style={{ ...inlineInput, color: canEditUsername ? "#111" : "#86868b" }}
                         />
                         <button onClick={handleSaveUsername} disabled={savingUsername || !canEditUsername} style={iconBtn("#34c759")}>
-                          {savingUsername ? <Spinner /> : "✓"}
+                          {savingUsername ? <Spinner /> : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          )}
                         </button>
                         <button onClick={() => { setEditingUsername(false); setEditUsername(username); }} style={iconBtn()}>
-                          ✗
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
                         </button>
                       </>
                     ) : (
@@ -538,7 +583,11 @@ export default function MypageClient({
                         <span style={{ flex: 1, fontSize: "0.9rem", color: username ? "#111" : "#86868b" }}>
                           {username ? `@${username}` : "未設定"}
                         </span>
-                        <button onClick={() => { setEditingUsername(true); setEditUsername(username); }} style={iconBtn()}>✏️</button>
+                        <button onClick={() => { setEditingUsername(true); setEditUsername(username); }} style={iconBtn()}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
                       </>
                     )}
                   </div>
@@ -592,9 +641,13 @@ export default function MypageClient({
                           {sub.services?.name ?? "Unknown"}
                           <button
                             onClick={() => handleRemoveSub(sub.id, sub.services?.name ?? "")}
-                            style={{ background: "none", border: "none", cursor: "pointer", padding: "0 0 0 2px", fontSize: "0.85rem", color: "#86868b", lineHeight: 1 }}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: "0 0 0 2px", color: "#86868b", lineHeight: 1, display: "flex", alignItems: "center" }}
                             aria-label="削除"
-                          >✕</button>
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
                         </span>
                       ))}
                     </div>
@@ -644,7 +697,10 @@ export default function MypageClient({
                           color: "#111", fontFamily: "inherit", minHeight: 44,
                         }}
                       >
-                        + サブスクを追加
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        サブスクを追加
                       </button>
                     ) : subs.length === 0 ? (
                       <p style={{ fontSize: "0.85rem", color: "#86868b" }}>登録できるサブスクがありません</p>
@@ -735,7 +791,14 @@ export default function MypageClient({
             {activeTab === "settings" && (
               <>
                 {/* メールアドレス */}
-                <CollapsibleSection title="📧 メールアドレス変更">
+                <CollapsibleSection title={
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    メールアドレス変更
+                  </span>
+                }>
                   <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(0,0,0,0.06)", fontSize: "0.85rem", color: "#86868b" }}>
                     現在: {email}
                   </div>
@@ -764,7 +827,14 @@ export default function MypageClient({
                 </CollapsibleSection>
 
                 {/* パスワード */}
-                <CollapsibleSection title="🔑 パスワード変更">
+                <CollapsibleSection title={
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    パスワード変更
+                  </span>
+                }>
                   <form onSubmit={handlePasswordChange}>
                     <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "16px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
                       <input
@@ -791,7 +861,14 @@ export default function MypageClient({
                 </CollapsibleSection>
 
                 {/* 通知設定 */}
-                <CollapsibleSection title="🔔 通知設定" defaultOpen>
+                <CollapsibleSection title={
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    通知設定
+                  </span>
+                } defaultOpen>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid rgba(0,0,0,0.06)", minHeight: 44 }}>
                     <div>
                       <p style={{ fontSize: "0.9rem", fontWeight: 600 }}>新着記事の通知</p>
@@ -809,7 +886,14 @@ export default function MypageClient({
                 </CollapsibleSection>
 
                 {/* プラン */}
-                <CollapsibleSection title="💳 ご利用プラン">
+                <CollapsibleSection title={
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                    ご利用プラン
+                  </span>
+                }>
                   <div style={{ padding: "20px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
                       <PlanBadge plan={currentPlan} />
@@ -821,7 +905,7 @@ export default function MypageClient({
                         background: "#f0f7ff", borderRadius: 12, padding: "12px 14px",
                         marginBottom: "14px", fontSize: "0.85rem", color: "#1d6fa4", lineHeight: 1.6,
                       }}>
-                        📦 Standardにアップグレードすると保存上限15件・レビュー投稿が使えます
+                        Standardにアップグレードすると保存上限15件・レビュー投稿が使えます
                       </div>
                     )}
                     <Link href="/pricing" style={{
@@ -835,7 +919,14 @@ export default function MypageClient({
                 </CollapsibleSection>
 
                 {/* 危険ゾーン */}
-                <CollapsibleSection title="⚠️ アカウント操作">
+                <CollapsibleSection title={
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    アカウント操作
+                  </span>
+                }>
                   <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
                     <button
                       onClick={handleLogout}
@@ -845,8 +936,12 @@ export default function MypageClient({
                         border: "1.5px solid rgba(0,0,0,0.15)",
                         fontSize: "0.9rem", fontWeight: 600, cursor: "pointer",
                         fontFamily: "inherit", minHeight: 44,
+                        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                       }}
                     >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                      </svg>
                       ログアウト
                     </button>
                     <button
@@ -855,8 +950,12 @@ export default function MypageClient({
                         background: "none", border: "none", cursor: "pointer",
                         color: "#ff3b30", fontSize: "0.82rem",
                         fontFamily: "inherit", padding: "4px", textAlign: "center",
+                        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
                       }}
                     >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
                       アカウントを削除する
                     </button>
                   </div>
