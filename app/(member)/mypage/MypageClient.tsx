@@ -400,11 +400,11 @@ export default function MypageClient({
 
       <Toast msg={toast} onDone={() => setToast(null)} />
 
-      <div style={{ minHeight: "100vh", background: "#f5f5f7" }}>
+      <div style={{ minHeight: "100vh", background: "#f5f5f7", paddingTop: "var(--header-h)" }}>
 
         {/* ── Sticky tab bar ── */}
         <div style={{
-          position: "sticky", top: 0, zIndex: 100,
+          position: "sticky", top: "var(--header-h)", zIndex: 100,
           background: "rgba(245,245,247,0.92)", backdropFilter: "blur(12px)",
           padding: "8px 16px 8px",
           boxShadow: "0 1px 0 rgba(0,0,0,0.07)",
