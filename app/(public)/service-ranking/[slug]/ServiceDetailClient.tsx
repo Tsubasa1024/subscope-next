@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Article } from "@/lib/utils";
+import ArticleCard from "@/components/ArticleCard";
 
 interface Review {
   user_id: string;
@@ -594,65 +594,15 @@ export default function ServiceDetailClient({
             関連記事
           </h2>
           <div
-            className="grid gap-4"
             style={{
+              display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: "20px",
             }}
           >
-            {relatedArticles.map((article) => {
-              const imgUrl =
-                article.eyecatch?.url ||
-                article.thumbnail?.url ||
-                article.image?.url ||
-                article.heroImage?.url ||
-                "";
-              return (
-                <Link
-                  key={article.id}
-                  href={`/articles/${article.id}`}
-                  className="block overflow-hidden bg-white transition-shadow hover:shadow-md"
-                  style={{
-                    border: "1px solid rgba(0,0,0,0.06)",
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-                    borderRadius: "16px",
-                    textDecoration: "none",
-                  }}
-                >
-                  {imgUrl && (
-                    <div
-                      style={{
-                        position: "relative",
-                        aspectRatio: "16/9",
-                        background: "#f0f0f0",
-                      }}
-                    >
-                      <Image
-                        src={imgUrl}
-                        alt={article.title}
-                        fill
-                        sizes="(max-width: 640px) 100vw, 360px"
-                        style={{ objectFit: "cover" }}
-                      />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3
-                      className="font-semibold text-sm"
-                      style={{
-                        color: "#1d1d1f",
-                        lineHeight: 1.5,
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {article.title}
-                    </h3>
-                  </div>
-                </Link>
-              );
-            })}
+            {relatedArticles.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
           </div>
         </section>
       )}
