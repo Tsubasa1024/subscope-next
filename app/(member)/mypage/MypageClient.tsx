@@ -791,14 +791,8 @@ export default function MypageClient({
             {activeTab === "settings" && (
               <>
                 {/* メールアドレス */}
-                <CollapsibleSection title={
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-                    </svg>
-                    メールアドレス変更
-                  </span>
-                }>
+                <SectionLabel>メールアドレス変更</SectionLabel>
+                <Card>
                   <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(0,0,0,0.06)", fontSize: "0.85rem", color: "#86868b" }}>
                     現在: {email}
                   </div>
@@ -824,17 +818,11 @@ export default function MypageClient({
                       </div>
                     </form>
                   )}
-                </CollapsibleSection>
+                </Card>
 
                 {/* パスワード */}
-                <CollapsibleSection title={
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                    パスワード変更
-                  </span>
-                }>
+                <SectionLabel>パスワード変更</SectionLabel>
+                <Card>
                   <form onSubmit={handlePasswordChange}>
                     <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "16px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
                       <input
@@ -858,42 +846,52 @@ export default function MypageClient({
                       </button>
                     </div>
                   </form>
-                </CollapsibleSection>
+                </Card>
 
                 {/* 通知設定 */}
-                <CollapsibleSection title={
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                    </svg>
-                    通知設定
-                  </span>
-                } defaultOpen>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid rgba(0,0,0,0.06)", minHeight: 44 }}>
-                    <div>
-                      <p style={{ fontSize: "0.9rem", fontWeight: 600 }}>新着記事の通知</p>
-                      <p style={{ fontSize: "0.78rem", color: "#86868b", marginTop: "2px" }}>新しい記事が公開されたときに通知</p>
-                    </div>
-                    <Toggle checked={notifArticle} onChange={(v) => { setNotifArticle(v); handleToggleNotif("notification_new_article", v); }} />
+                <SectionLabel>通知設定</SectionLabel>
+                <Card>
+                  <div style={{ padding: "18px 20px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={notifArticle}
+                        onChange={async (e) => {
+                          setNotifArticle(e.target.checked);
+                          const supabase = createClient();
+                          await supabase.from("users").update({ notification_new_article: e.target.checked }).eq("id", userId);
+                        }}
+                        style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#111111" }}
+                      />
+                      <div>
+                        <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>新着記事の通知</p>
+                        <p style={{ fontSize: "0.8rem", color: "#86868b" }}>新しい記事が公開されたときに通知メールを受け取る</p>
+                      </div>
+                    </label>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", minHeight: 44 }}>
-                    <div>
-                      <p style={{ fontSize: "0.9rem", fontWeight: 600 }}>レビュー返信の通知</p>
-                      <p style={{ fontSize: "0.78rem", color: "#86868b", marginTop: "2px" }}>あなたのレビューにコメントがついたときに通知</p>
-                    </div>
-                    <Toggle checked={notifReply} onChange={(v) => { setNotifReply(v); handleToggleNotif("notification_review_reply", v); }} />
+                  <div style={{ padding: "18px 20px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={notifReply}
+                        onChange={async (e) => {
+                          setNotifReply(e.target.checked);
+                          const supabase = createClient();
+                          await supabase.from("users").update({ notification_review_reply: e.target.checked }).eq("id", userId);
+                        }}
+                        style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#111111" }}
+                      />
+                      <div>
+                        <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>レビュー返信の通知</p>
+                        <p style={{ fontSize: "0.8rem", color: "#86868b" }}>あなたのレビューにコメントがついたときに通知メールを受け取る</p>
+                      </div>
+                    </label>
                   </div>
-                </CollapsibleSection>
+                </Card>
 
                 {/* プラン */}
-                <CollapsibleSection title={
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
-                    </svg>
-                    ご利用プラン
-                  </span>
-                }>
+                <SectionLabel>ご利用プラン</SectionLabel>
+                <Card>
                   <div style={{ padding: "20px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
                       <PlanBadge plan={currentPlan} />
@@ -916,17 +914,11 @@ export default function MypageClient({
                       プランを変更する →
                     </Link>
                   </div>
-                </CollapsibleSection>
+                </Card>
 
-                {/* 危険ゾーン */}
-                <CollapsibleSection title={
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                    </svg>
-                    アカウント操作
-                  </span>
-                }>
+                {/* アカウント操作 */}
+                <SectionLabel>アカウント操作</SectionLabel>
+                <Card>
                   <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
                     <button
                       onClick={handleLogout}
@@ -959,7 +951,7 @@ export default function MypageClient({
                       アカウントを削除する
                     </button>
                   </div>
-                </CollapsibleSection>
+                </Card>
               </>
             )}
 
