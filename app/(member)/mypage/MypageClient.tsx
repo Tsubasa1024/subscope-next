@@ -193,6 +193,16 @@ export default function MypageClient({
   const [usernameCheck, setUsernameCheck]   = useState<{ status: CheckStatus; error?: string }>({ status: "idle" });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Sync username state when server sends fresh props (e.g. after router.refresh()
+  // completes, or when the component remounts from a cached RSC payload that was
+  // stale at tab-switch time). Guard against overwriting an in-progress edit.
+  useEffect(() => {
+    if (!editingUsername) {
+      setUsername(initialUsername ?? "");
+      setEditUsername(initialUsername ?? "");
+    }
+  }, [initialUsername]); // eslint-disable-line react-hooks/exhaustive-deps
+
   /* bio */
   const [bio, setBio]           = useState(initialBio ?? "");
   const [savingBio, setSavingBio] = useState(false);
