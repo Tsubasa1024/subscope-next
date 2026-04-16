@@ -41,12 +41,8 @@ const PLAN_LABELS: Record<string, { name: string; price: string }> = {
 type Tab = "profile" | "saves" | "settings";
 type Msg = { type: "success" | "error"; text: string } | null;
 
-function canChangeUsername(changedAt: string | null) {
-  if (!changedAt) return { ok: true, nextDate: null };
-  const next = new Date(changedAt);
-  next.setMonth(next.getMonth() + 1);
-  return { ok: new Date() >= next, nextDate: new Date() >= next ? null : next };
-}
+// canChangeUsername ロジックは lib/profile-validation.ts 側でコメントアウト済み。
+// 将来悪用が確認された場合は同ファイルのコメントを復活させること。
 
 /* ─── Toast ─── */
 function Toast({ msg, onDone }: { msg: Msg; onDone: () => void }) {
@@ -232,9 +228,6 @@ export default function MypageClient({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting]               = useState(false);
 
-  /* derived: 月1回制限（既存ロジックを維持） */
-  const { ok: canEditUsername, nextDate: usernameNextDate } = canChangeUsername(usernameChangedAt);
-
   /* debounce: username リアルタイム重複チェック */
   const checkUsername = useCallback((value: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -299,7 +292,6 @@ export default function MypageClient({
     if (!localResult.ok) {
       showToast({ type: "error", text: localResult.error }); return;
     }
-    if (!canEditUsername) return;
     if (usernameCheck.status === "error") {
       showToast({ type: "error", text: usernameCheck.error ?? "使用できません" }); return;
     }
@@ -640,9 +632,8 @@ export default function MypageClient({
                           }}
                           maxLength={USERNAME_MAX}
                           autoFocus
-                          disabled={!canEditUsername}
                           placeholder={`${USERNAME_MIN}〜${USERNAME_MAX}文字、英数字・_・-`}
-                          style={{ ...inlineInput, color: canEditUsername ? "#111" : "#86868b" }}
+                          style={{ ...inlineInput, color: "#111" }}
                         />
                         {/* check status icon */}
                         {usernameCheck.status === "checking" && (
@@ -655,7 +646,7 @@ export default function MypageClient({
                         )}
                         <button
                           onClick={handleSaveUsername}
-                          disabled={savingUsername || !canEditUsername || usernameCheck.status === "error" || usernameCheck.status === "checking"}
+                          disabled={savingUsername || usernameCheck.status === "error" || usernameCheck.status === "checking"}
                           style={iconBtn(savingUsername || usernameCheck.status !== "ok" ? "#86868b" : "#34c759")}
                         >
                           {savingUsername ? <Spinner /> : (
@@ -689,11 +680,7 @@ export default function MypageClient({
                       {usernameCheck.error}
                     </p>
                   )}
-                  {!canEditUsername && usernameNextDate && (
-                    <p style={{ padding: "4px 20px 14px", fontSize: "0.78rem", color: "#86868b" }}>
-                      次回変更可能日: {usernameNextDate.toLocaleDateString("ja-JP")}
-                    </p>
-                  )}
+
                 </Card>
 
                 {/* 自己紹介 */}

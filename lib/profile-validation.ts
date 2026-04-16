@@ -42,14 +42,21 @@ export function validateUsername(username: string): UsernameValidationResult {
   return { ok: true };
 }
 
-/** 月1回制限チェック。true = 変更可 */
+/**
+ * ユーザー名変更可否チェック。
+ * 現在は制限なし（Twitter/Instagram/GitHub に合わせて撤廃）。
+ * 将来悪用が確認された場合は下記コメントアウトを復活させること。
+ */
 export function canChangeUsername(
-  changedAt: string | null
+  _changedAt: string | null
 ): { canChange: boolean; nextChangeAt: string | null } {
-  if (!changedAt) return { canChange: true, nextChangeAt: null };
-  const next = new Date(changedAt);
-  next.setMonth(next.getMonth() + 1);
-  const now = new Date();
-  if (now >= next) return { canChange: true, nextChangeAt: null };
-  return { canChange: false, nextChangeAt: next.toISOString() };
+  return { canChange: true, nextChangeAt: null };
+
+  // ── 月1回制限ロジック（将来復活用） ──────────────────────────
+  // if (!_changedAt) return { canChange: true, nextChangeAt: null };
+  // const next = new Date(_changedAt);
+  // next.setMonth(next.getMonth() + 1);
+  // const now = new Date();
+  // if (now >= next) return { canChange: true, nextChangeAt: null };
+  // return { canChange: false, nextChangeAt: next.toISOString() };
 }

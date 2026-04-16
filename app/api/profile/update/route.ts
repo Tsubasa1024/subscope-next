@@ -29,7 +29,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 422 });
     }
 
-    // 月1回制限
+    // 変更頻度チェック（現在は canChangeUsername が常に true を返すため実質スルー）
+    // username_changed_at の記録は将来制限を復活させる場合に備えて継続する。
     const { data: current } = await supabase
       .from("users")
       .select("username, username_changed_at")
