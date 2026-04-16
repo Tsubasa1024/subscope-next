@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import PlanBadge from "@/components/PlanBadge";
-import { SAVE_LIMITS } from "@/lib/constants";
+import { SAVE_LIMITS, PHASE1_SAVE_LIMIT } from "@/lib/constants";
+import { FEATURES } from "@/lib/features";
+import { validateUsername, USERNAME_MIN, USERNAME_MAX } from "@/lib/profile-validation";
 import type { ServiceRow, UserSubscriptionRow } from "./page";
 
 interface SavedArticle {
@@ -28,6 +30,8 @@ interface Props {
   avatarUrl: string | null;
   notificationNewArticle: boolean;
   notificationReviewReply: boolean;
+  profilePublic: boolean;
+  showSubscriptions: boolean;
   userSubscriptions: UserSubscriptionRow[];
   allServices: ServiceRow[];
 }
@@ -37,8 +41,6 @@ const PLAN_LABELS: Record<string, { name: string; price: string }> = {
   standard: { name: "Standard", price: "¥580" },
   pro:      { name: "Pro",      price: "¥1,480" },
 };
-const USERNAME_RE = /^[a-zA-Z0-9_]+$/;
-
 type Tab = "profile" | "saves" | "settings";
 type Msg = { type: "success" | "error"; text: string } | null;
 
@@ -165,6 +167,8 @@ export default function MypageClient({
   bio: initialBio, avatarUrl: initialAvatarUrl,
   notificationNewArticle: initNotifArticle,
   notificationReviewReply: initNotifReply,
+  profilePublic: initProfilePublic,
+  showSubscriptions: initShowSubscriptions,
   userSubscriptions: initialSubs, allServices,
 }: Props) {
   const router  = useRef(useRouter()).current;
@@ -189,6 +193,9 @@ export default function MypageClient({
   const [editingUsername, setEditingUsername] = useState(false);
   const [editUsername, setEditUsername]     = useState(initialUsername ?? "");
   const [savingUsername, setSavingUsername] = useState(false);
+  type CheckStatus = "idle" | "checking" | "ok" | "error";
+  const [usernameCheck, setUsernameCheck]   = useState<{ status: CheckStatus; error?: string }>({ status: "idle" });
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* bio */
   const [bio, setBio]           = useState(initialBio ?? "");
@@ -215,22 +222,60 @@ export default function MypageClient({
   const [confirmPass, setConfirmPass] = useState("");
   const [passSaving, setPassSaving]   = useState(false);
 
-  const [notifArticle, setNotifArticle] = useState(initNotifArticle);
-  const [notifReply, setNotifReply]     = useState(initNotifReply);
+  const [notifArticle, setNotifArticle]       = useState(initNotifArticle);
+  const [notifReply, setNotifReply]           = useState(initNotifReply);
+  const [profilePublic, setProfilePublic]     = useState(initProfilePublic);
+  const [showSubs, setShowSubs]               = useState(initShowSubscriptions);
 
   /* delete */
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting]               = useState(false);
 
-  /* derived */
+  /* derived: 月1回制限（既存ロジックを維持） */
   const { ok: canEditUsername, nextDate: usernameNextDate } = canChangeUsername(usernameChangedAt);
+
+  /* debounce: username リアルタイム重複チェック */
+  const checkUsername = useCallback((value: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const trimmed = value.trim();
+
+    // 空 or 変更なし
+    if (!trimmed || trimmed === username) {
+      setUsernameCheck({ status: "idle" });
+      return;
+    }
+
+    // フロントバリデーション
+    const localResult = validateUsername(trimmed);
+    if (!localResult.ok) {
+      setUsernameCheck({ status: "error", error: localResult.error });
+      return;
+    }
+
+    setUsernameCheck({ status: "checking" });
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/profile/check-username?username=${encodeURIComponent(trimmed)}&excludeId=${userId}`
+        );
+        const json = await res.json() as { available: boolean; error?: string };
+        if (json.available) {
+          setUsernameCheck({ status: "ok" });
+        } else {
+          setUsernameCheck({ status: "error", error: json.error ?? "使用できません" });
+        }
+      } catch {
+        setUsernameCheck({ status: "idle" });
+      }
+    }, 400);
+  }, [username, userId]); // eslint-disable-line react-hooks/exhaustive-deps
   const palette = ["#111111","#333333","#555555","#777777","#444444","#666666","#888888","#999999"];
   let h = 0;
   for (let i = 0; i < userId.length; i++) h = (Math.imul(31, h) + userId.charCodeAt(i)) | 0;
   const avatarColor    = palette[Math.abs(h) % palette.length];
   const displayName    = name || email.split("@")[0] || "ユーザー";
   const planInfo       = PLAN_LABELS[currentPlan];
-  const saveLimit      = SAVE_LIMITS[currentPlan];
+  const saveLimit      = FEATURES.tieredSaves ? (SAVE_LIMITS[currentPlan] ?? PHASE1_SAVE_LIMIT) : PHASE1_SAVE_LIMIT;
   const saveCount      = savedArticles.length;
   const remaining      = saveLimit !== null ? saveLimit - saveCount : null;
   const subscribedIds  = new Set(subs.map((s) => s.service_id));
@@ -249,20 +294,33 @@ export default function MypageClient({
 
   async function handleSaveUsername() {
     const trimmed = editUsername.trim();
-    if (!trimmed || !USERNAME_RE.test(trimmed) || trimmed.length < 3 || trimmed.length > 20) {
-      showToast({ type: "error", text: "英数字・アンダースコアで3〜20文字にしてください" }); return;
+
+    // フロント側バリデーション
+    const localResult = validateUsername(trimmed);
+    if (!localResult.ok) {
+      showToast({ type: "error", text: localResult.error }); return;
     }
     if (!canEditUsername) return;
+    if (usernameCheck.status === "error") {
+      showToast({ type: "error", text: usernameCheck.error ?? "使用できません" }); return;
+    }
+
     setSavingUsername(true);
-    const supabase = createClient();
-    const { error } = await supabase.from("users")
-      .update({ username: trimmed, username_changed_at: new Date().toISOString() }).eq("id", userId);
+    const res = await fetch("/api/profile/update", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: trimmed }),
+    });
+    const json = await res.json() as { ok?: boolean; error?: string; nextChangeAt?: string };
     setSavingUsername(false);
-    if (error) {
-      showToast({ type: "error", text: error.code === "23505" ? "このユーザーネームは既に使われています" : error.message });
+
+    if (!res.ok) {
+      showToast({ type: "error", text: json.error ?? "更新に失敗しました" });
     } else {
-      setUsername(trimmed); setEditingUsername(false);
-      showToast({ type: "success", text: "ユーザーネームを更新しました" });
+      setUsername(trimmed);
+      setEditingUsername(false);
+      setUsernameCheck({ status: "idle" });
+      showToast({ type: "success", text: "ユーザー名を更新しました" });
       router.refresh();
     }
   }
@@ -270,10 +328,14 @@ export default function MypageClient({
   async function handleSaveBio() {
     if (bio.length > 200) { showToast({ type: "error", text: "200文字以内で入力してください" }); return; }
     setSavingBio(true);
-    const supabase = createClient();
-    const { error } = await supabase.from("users").update({ bio: bio.trim() || null }).eq("id", userId);
+    const res = await fetch("/api/profile/update", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bio }),
+    });
+    const json = await res.json() as { ok?: boolean; error?: string };
     setSavingBio(false);
-    if (error) { showToast({ type: "error", text: error.message }); }
+    if (!res.ok) { showToast({ type: "error", text: json.error ?? "更新に失敗しました" }); }
     else { showToast({ type: "success", text: "自己紹介を更新しました" }); }
   }
 
@@ -524,7 +586,7 @@ export default function MypageClient({
 
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <p style={{ fontWeight: 700, fontSize: "1.15rem" }}>{displayName}</p>
-                <PlanBadge plan={currentPlan} />
+                {FEATURES.subscription && <PlanBadge plan={currentPlan} />}
               </div>
               {username && <p style={{ fontSize: "0.85rem", color: "#86868b" }}>@{username}</p>}
               <p style={{ fontSize: "0.85rem", color: "#86868b" }}>{email}</p>
@@ -574,27 +636,44 @@ export default function MypageClient({
                   </div>
 
                   {/* ユーザーネーム */}
-                  <div style={{ ...rowStyle, borderBottom: "none" }}>
+                  <div style={{ ...rowStyle, borderBottom: "none", flexWrap: "wrap" }}>
                     <span style={{ fontSize: "0.85rem", fontWeight: 600, minWidth: 90, flexShrink: 0 }}>ユーザー名</span>
                     {editingUsername ? (
                       <>
                         <span style={{ fontSize: "0.9rem", color: "#86868b", flexShrink: 0 }}>@</span>
                         <input
                           value={editUsername}
-                          onChange={(e) => setEditUsername(e.target.value)}
-                          maxLength={20}
+                          onChange={(e) => {
+                            setEditUsername(e.target.value);
+                            checkUsername(e.target.value);
+                          }}
+                          maxLength={USERNAME_MAX}
                           autoFocus
                           disabled={!canEditUsername}
+                          placeholder={`${USERNAME_MIN}〜${USERNAME_MAX}文字、英数字・_・-`}
                           style={{ ...inlineInput, color: canEditUsername ? "#111" : "#86868b" }}
                         />
-                        <button onClick={handleSaveUsername} disabled={savingUsername || !canEditUsername} style={iconBtn("#34c759")}>
+                        {/* check status icon */}
+                        {usernameCheck.status === "checking" && (
+                          <span style={{ fontSize: "0.75rem", color: "#86868b" }}>確認中...</span>
+                        )}
+                        {usernameCheck.status === "ok" && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
+                        <button
+                          onClick={handleSaveUsername}
+                          disabled={savingUsername || !canEditUsername || usernameCheck.status === "error" || usernameCheck.status === "checking"}
+                          style={iconBtn(savingUsername || usernameCheck.status !== "ok" ? "#86868b" : "#34c759")}
+                        >
                           {savingUsername ? <Spinner /> : (
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12"/>
                             </svg>
                           )}
                         </button>
-                        <button onClick={() => { setEditingUsername(false); setEditUsername(username); }} style={iconBtn()}>
+                        <button onClick={() => { setEditingUsername(false); setEditUsername(username); setUsernameCheck({ status: "idle" }); }} style={iconBtn()}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                           </svg>
@@ -605,7 +684,7 @@ export default function MypageClient({
                         <span style={{ flex: 1, fontSize: "0.9rem", color: username ? "#111" : "#86868b" }}>
                           {username ? `@${username}` : "未設定"}
                         </span>
-                        <button onClick={() => { setEditingUsername(true); setEditUsername(username); }} style={iconBtn()}>
+                        <button onClick={() => { setEditingUsername(true); setEditUsername(username); setUsernameCheck({ status: "idle" }); }} style={iconBtn()}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                           </svg>
@@ -613,6 +692,12 @@ export default function MypageClient({
                       </>
                     )}
                   </div>
+                  {/* check error message */}
+                  {editingUsername && usernameCheck.status === "error" && (
+                    <p style={{ padding: "2px 20px 8px", fontSize: "0.78rem", color: "#ff3b30" }}>
+                      {usernameCheck.error}
+                    </p>
+                  )}
                   {!canEditUsername && usernameNextDate && (
                     <p style={{ padding: "4px 20px 14px", fontSize: "0.78rem", color: "#86868b" }}>
                       次回変更可能日: {usernameNextDate.toLocaleDateString("ja-JP")}
@@ -763,12 +848,9 @@ export default function MypageClient({
                         </p>
                       )}
                       {remaining !== null && remaining <= 0 && (
-                        <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "12px" }}>
-                          <p style={{ fontSize: "0.82rem", color: "#ff3b30", fontWeight: 600 }}>保存上限に達しています</p>
-                          <Link href="/pricing" style={{ padding: "6px 14px", borderRadius: 99, background: "#111", color: "#fff", fontSize: "0.78rem", fontWeight: 600, textDecoration: "none" }}>
-                            アップグレード →
-                          </Link>
-                        </div>
+                        <p style={{ fontSize: "0.82rem", color: "#ff3b30", fontWeight: 600, marginTop: "10px" }}>
+                          保存上限に達しました
+                        </p>
                       )}
                     </>
                   )}
@@ -821,6 +903,41 @@ export default function MypageClient({
                     ))}
                   </div>
                 )}
+
+                {/* 今後のアップデート予定 */}
+                <SectionLabel>今後のアップデート予定</SectionLabel>
+                <Card style={{ padding: "20px 24px" }}>
+                  <p style={{ fontSize: "0.8rem", color: "#86868b", marginBottom: "14px", lineHeight: 1.6 }}>
+                    以下の機能を順次リリース予定です。お楽しみに。
+                  </p>
+                  {[
+                    { label: "コメント機能",       desc: "記事へのコメント・意見交換" },
+                    { label: "AI診断機能",         desc: "あなたに合ったサブスクを診断" },
+                    { label: "保存数アップ（無制限）", desc: "記事をもっとたくさん保存" },
+                    { label: "その他予定機能",     desc: "新機能を続々追加予定" },
+                  ].map(({ label, desc }) => (
+                    <div
+                      key={label}
+                      style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "12px 0",
+                        borderBottom: "1px solid rgba(0,0,0,0.05)",
+                      }}
+                    >
+                      <div>
+                        <p style={{ fontWeight: 600, fontSize: "0.875rem", color: "#1d1d1f" }}>{label}</p>
+                        <p style={{ fontSize: "0.75rem", color: "#86868b", marginTop: "2px" }}>{desc}</p>
+                      </div>
+                      <span style={{
+                        fontSize: "0.7rem", fontWeight: 700, padding: "3px 10px",
+                        borderRadius: 99, background: "#f0f0f0", color: "#86868b",
+                        flexShrink: 0, marginLeft: "12px",
+                      }}>
+                        準備中
+                      </span>
+                    </div>
+                  ))}
+                </Card>
               </>
             )}
 
@@ -926,30 +1043,44 @@ export default function MypageClient({
                   </div>
                 </Card>
 
-                {/* プラン */}
-                <SectionLabel>ご利用プラン</SectionLabel>
+                {/* プロフィール公開設定 */}
+                <SectionLabel>プロフィール公開設定</SectionLabel>
                 <Card>
-                  <div style={{ padding: "20px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                      <PlanBadge plan={currentPlan} />
-                      <span style={{ fontWeight: 700, fontSize: "1.05rem" }}>{planInfo.name} プラン</span>
-                      <span style={{ fontSize: "0.85rem", color: "#86868b" }}>{planInfo.price} / 月</span>
-                    </div>
-                    {currentPlan === "free" && (
-                      <div style={{
-                        background: "#f0f7ff", borderRadius: 12, padding: "12px 14px",
-                        marginBottom: "14px", fontSize: "0.85rem", color: "#1d6fa4", lineHeight: 1.6,
-                      }}>
-                        Standardにアップグレードすると保存上限15件・レビュー投稿が使えます
+                  <div style={{ padding: "18px 20px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={profilePublic}
+                        onChange={async (e) => {
+                          setProfilePublic(e.target.checked);
+                          const supabase = createClient();
+                          await supabase.from("users").update({ profile_public: e.target.checked }).eq("id", userId);
+                        }}
+                        style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#111111" }}
+                      />
+                      <div>
+                        <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>プロフィールを公開する</p>
+                        <p style={{ fontSize: "0.8rem", color: "#86868b" }}>オフにするとプロフィールページが非公開になります</p>
                       </div>
-                    )}
-                    <Link href="/pricing" style={{
-                      display: "block", textAlign: "center", padding: "13px",
-                      borderRadius: "12px", background: "#111111",
-                      fontSize: "0.9rem", fontWeight: 600, color: "#fff", textDecoration: "none",
-                    }}>
-                      プランを変更する →
-                    </Link>
+                    </label>
+                  </div>
+                  <div style={{ padding: "18px 20px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={showSubs}
+                        onChange={async (e) => {
+                          setShowSubs(e.target.checked);
+                          const supabase = createClient();
+                          await supabase.from("users").update({ show_subscriptions: e.target.checked }).eq("id", userId);
+                        }}
+                        style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#111111" }}
+                      />
+                      <div>
+                        <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>使っているサブスクを公開する</p>
+                        <p style={{ fontSize: "0.8rem", color: "#86868b" }}>オフにするとサブスク一覧がプロフィールで非表示になります</p>
+                      </div>
+                    </label>
                   </div>
                 </Card>
 

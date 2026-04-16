@@ -19,6 +19,7 @@ export type Article = MicroCMSListContent & {
   category?: Category;
   tags?: Array<{ id: string; name: string } | string>;
   content?: string;  // microCMS のリッチエディタフィールド名
+  isPR?: boolean;    // アフィリエイト記事フラグ（ステマ規制対応）
 };
 
 // ============================================================

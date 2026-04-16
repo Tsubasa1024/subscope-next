@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import PricingClient from "./PricingClient";
+import { FEATURES } from "@/lib/features";
 
 export const metadata: Metadata = {
   title: "料金プラン",
@@ -9,6 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default function PricingPage() {
+  if (!FEATURES.subscription) notFound();
+
   return (
     <Suspense fallback={null}>
       <PricingClient />

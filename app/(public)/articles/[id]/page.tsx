@@ -3,12 +3,15 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getArticle, getAllArticleIds, getImageUrl, normalizeCategory } from "@/lib/microcms";
+import { createClient } from "@/lib/supabase/server";
 import ArticleActions from "./ArticleActions";
 import ArticleComments from "./ArticleComments";
 import ArticleViewTracker from "./ArticleViewTracker";
+import PRLabel from "@/components/PRLabel";
+import { FEATURES } from "@/lib/features";
 
-// ISR: 60秒ごとに再検証
-export const revalidate = 60;
+// 認証状態を読むため動的レンダリング（記事本文はfetchキャッシュで高速）
+export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
 type Props = { params: Promise<{ id: string }> };
@@ -63,10 +66,34 @@ export default async function ArticlePage({ params }: Props) {
     notFound();
   }
 
-  const imgUrl   = getImageUrl(article);
-  const category = normalizeCategory(article.category);
-  const date     = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
+  const imgUrl     = getImageUrl(article);
+  const category   = normalizeCategory(article.category);
+  const date       = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
   const articleUrl = `https://www.subscope.jp/articles/${id}`;
+
+  // サーバー側でユーザーの保存済み・いいね状態を取得（ちらつき防止）
+  let initialSaved: boolean | undefined;
+  let initialLiked: boolean | undefined;
+  let initialLikeCount: number | undefined;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const [likesResult, ...userResults] = await Promise.all([
+      supabase.from("article_likes").select("*", { count: "exact", head: true }).eq("article_id", id),
+      ...(user ? [
+        supabase.from("article_saves").select("user_id").eq("article_id", id).eq("user_id", user.id).maybeSingle(),
+        supabase.from("article_likes").select("user_id").eq("article_id", id).eq("user_id", user.id).maybeSingle(),
+      ] : []),
+    ]);
+    initialLikeCount = likesResult.count ?? 0;
+    if (user) {
+      initialSaved = !!(userResults[0] as { data: unknown }).data;
+      initialLiked = !!(userResults[1] as { data: unknown }).data;
+    }
+  } catch {
+    // 取得失敗時はクライアント側のuseEffectにフォールバック
+  }
 
   return (
     <main style={{ paddingTop: "var(--header-h)", paddingBottom: "60px" }}>
@@ -105,12 +132,18 @@ export default async function ArticlePage({ params }: Props) {
           {article.title}
         </h1>
 
+        {/* PR表記（ステマ規制対応） */}
+        {article.isPR && <PRLabel />}
+
         {/* ===== アクション（上部バー + コンテンツ + 下部バー を内包）===== */}
         <ArticleActions
           articleId={id}
           articleTitle={article.title ?? ""}
           articleUrl={articleUrl}
           articleImageUrl={imgUrl ?? undefined}
+          initialSaved={initialSaved}
+          initialLiked={initialLiked}
+          initialLikeCount={initialLikeCount}
         >
           {/* サムネイル */}
           {imgUrl && (
@@ -160,8 +193,8 @@ export default async function ArticlePage({ params }: Props) {
           )}
         </ArticleActions>
 
-        {/* コメントセクション */}
-        <ArticleComments articleId={id} />
+        {/* コメントセクション（FEATURES.comments が true のときのみ表示）*/}
+        {FEATURES.comments && <ArticleComments articleId={id} />}
 
         {/* 戻るリンク */}
         <div className="mt-10 mb-4">

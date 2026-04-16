@@ -1,8 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DiagnosisClient, { type ServiceForDiagnosis } from "./DiagnosisClient";
+import { FEATURES } from "@/lib/features";
 
 export const metadata: Metadata = {
   title: "サブスク診断",
@@ -12,6 +14,8 @@ export const metadata: Metadata = {
 };
 
 export default async function DiagnosisPage() {
+  if (!FEATURES.aiDiagnosis) notFound();
+
   const supabase = await createClient();
 
   const { data: serviceRows } = await supabase

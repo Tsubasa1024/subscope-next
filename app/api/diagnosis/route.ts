@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic();
 
 interface AnswerItem {
   question: string;
@@ -48,32 +51,21 @@ ${servicesText}
 上位3件を推薦してください。`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": process.env.ANTHROPIC_API_KEY ?? "",
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
-        system:
-          "あなたはサブスクリプションサービスの専門家です。ユーザーの回答を分析して最適なサービスを推薦してください。JSONのみ返してください。",
-        messages: [{ role: "user", content: userPrompt }],
-      }),
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 1000,
+      system: [
+        {
+          type: "text",
+          text: "あなたはサブスクリプションサービスの専門家です。ユーザーの回答を分析して最適なサービスを推薦してください。JSONのみ返してください。",
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userPrompt }],
     });
 
-    if (!res.ok) {
-      return NextResponse.json({ error: "api error" }, { status: 500 });
-    }
-
-    const data = (await res.json()) as {
-      content: Array<{ type: string; text: string }>;
-    };
-
     const rawText =
-      data.content[0]?.type === "text" ? data.content[0].text : "";
+      message.content[0]?.type === "text" ? message.content[0].text : "";
 
     // ```json ブロックがあれば除去
     const cleaned = rawText

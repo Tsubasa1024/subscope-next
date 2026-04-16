@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { SAVE_LIMITS } from "@/lib/constants";
+import { SAVE_LIMITS, PHASE1_SAVE_LIMIT } from "@/lib/constants";
+
+const TIERED_SAVES = process.env.NEXT_PUBLIC_FEATURE_TIERED_SAVES === "true";
 
 export async function GET() {
   const supabase = await createClient();
@@ -12,14 +14,19 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("plan")
-    .eq("id", user.id)
-    .single();
-
-  const plan = profile?.plan ?? "free";
-  const limit = SAVE_LIMITS[plan] ?? 3;
+  // Phase1: 一律3件上限
+  let limit: number | null;
+  if (!TIERED_SAVES) {
+    limit = PHASE1_SAVE_LIMIT;
+  } else {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("plan")
+      .eq("id", user.id)
+      .single();
+    const plan = profile?.plan ?? "free";
+    limit = SAVE_LIMITS[plan] ?? PHASE1_SAVE_LIMIT;
+  }
 
   const { count } = await supabase
     .from("article_saves")

@@ -4,13 +4,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import LoginPromptModal from "@/components/LoginPromptModal";
-import UpgradeModal from "@/components/UpgradeModal";
+import { FEATURES } from "@/lib/features";
 
 interface Props {
   articleId: string;
   articleTitle: string;
   articleUrl: string;
   articleImageUrl?: string;
+  initialSaved?: boolean;
+  initialLiked?: boolean;
+  initialLikeCount?: number;
   children: React.ReactNode;
 }
 
@@ -45,21 +48,20 @@ const PARTICLES = [
 ];
 
 
-export default function ArticleActions({ articleId, articleTitle, articleUrl, articleImageUrl, children }: Props) {
+export default function ArticleActions({ articleId, articleTitle, articleUrl, articleImageUrl, initialSaved, initialLiked, initialLikeCount, children }: Props) {
   const { user, ready } = useAuth();
 
-  const [likeCount,     setLikeCount]     = useState(0);
-  const [liked,         setLiked]         = useState(false);
-  const [saved,         setSaved]         = useState(false);
+  const [likeCount,     setLikeCount]     = useState(initialLikeCount ?? 0);
+  const [liked,         setLiked]         = useState(initialLiked ?? false);
+  const [saved,         setSaved]         = useState(initialSaved ?? false);
   const [commentCount,  setCommentCount]  = useState(0);
   const [copied,        setCopied]        = useState(false);
   const [likeLoading,   setLikeLoading]   = useState(false);
   const [saveLoading,   setSaveLoading]   = useState(false);
   const [likeAnimating, setLikeAnimating] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
-  const [userPlan,      setUserPlan]      = useState<string>("free");
   const [loginModal,    setLoginModal]    = useState(false);
-  const [upgradeModal,  setUpgradeModal]  = useState<{ plan: string; limit: number } | null>(null);
+  const [saveLimitMsg,  setSaveLimitMsg]  = useState(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -67,36 +69,36 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
     async function load() {
       const supabase = createClient();
 
-      const { count: lc } = await supabase
-        .from("article_likes")
-        .select("*", { count: "exact", head: true })
-        .eq("article_id", articleId);
-      setLikeCount(lc ?? 0);
-
-      const { count: cc } = await supabase
-        .from("article_comments")
-        .select("*", { count: "exact", head: true })
-        .eq("article_id", articleId);
-      setCommentCount(cc ?? 0);
+      // いいね数: サーバーから渡されていない場合のみ取得
+      const likeCountPromise = initialLikeCount === undefined
+        ? supabase.from("article_likes").select("*", { count: "exact", head: true }).eq("article_id", articleId)
+        : Promise.resolve({ count: null as number | null });
+      const commentCountPromise = FEATURES.comments
+        ? supabase.from("article_comments").select("*", { count: "exact", head: true }).eq("article_id", articleId)
+        : Promise.resolve({ count: 0 as number | null });
+      const [likesResult, commentsResult] = await Promise.all([likeCountPromise, commentCountPromise]);
+      if (initialLikeCount === undefined) setLikeCount((likesResult as { count: number | null }).count ?? 0);
+      setCommentCount((commentsResult as { count: number | null }).count ?? 0);
 
       if (user) {
-        const [{ data: likeRow }, { data: saveRow }, { data: profileRow }] = await Promise.all([
-          supabase.from("article_likes").select("user_id")
-            .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
-          supabase.from("article_saves").select("user_id")
-            .eq("article_id", articleId).eq("user_id", user.uid).maybeSingle(),
-          supabase.from("users").select("plan").eq("id", user.uid).maybeSingle(),
+        // saved/liked はサーバーから渡されていない場合のみ取得
+        const [{ data: likeRow }, { data: saveRow }] = await Promise.all([
+          initialLiked === undefined
+            ? supabase.from("article_likes").select("user_id").eq("article_id", articleId).eq("user_id", user.uid).maybeSingle()
+            : Promise.resolve({ data: null }),
+          initialSaved === undefined
+            ? supabase.from("article_saves").select("user_id").eq("article_id", articleId).eq("user_id", user.uid).maybeSingle()
+            : Promise.resolve({ data: null }),
         ]);
-        setLiked(!!likeRow);
-        setSaved(!!saveRow);
-        setUserPlan(profileRow?.plan ?? "free");
+        if (initialLiked === undefined) setLiked(!!likeRow);
+        if (initialSaved === undefined) setSaved(!!saveRow);
       } else {
-        setLiked(getLocalLikes().includes(articleId));
+        if (initialLiked === undefined) setLiked(getLocalLikes().includes(articleId));
       }
     }
 
     load();
-  }, [ready, user, articleId]);
+  }, [ready, user, articleId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function triggerLikeAnimation() {
     setLikeAnimating(true);
@@ -141,36 +143,40 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
       return;
     }
     if (saveLoading) return;
-    setSaveLoading(true);
     const supabase = createClient();
 
     if (saved) {
       setSaved(false);
-      const { error } = await supabase.from("article_saves").delete()
-        .eq("article_id", articleId).eq("user_id", user.uid);
-      if (error) setSaved(true);
-    } else {
-      // サーバーサイドで上限チェック
-      const res = await fetch("/api/saves/check");
-      if (res.ok) {
-        const { canSave, limit, count } = await res.json() as {
-          canSave: boolean;
-          limit: number | null;
-          count: number;
-        };
-        if (!canSave) {
-          setUpgradeModal({ plan: userPlan, limit: limit ?? count });
-          setSaveLoading(false);
-          return;
-        }
+      setSaveLoading(true);
+      try {
+        const { error } = await supabase.from("article_saves").delete()
+          .eq("article_id", articleId).eq("user_id", user.uid);
+        if (error) setSaved(true);
+      } finally {
+        setSaveLoading(false);
       }
-
+    } else {
       setSaved(true);
-      const { error } = await supabase.from("article_saves")
-        .insert({ user_id: user.uid, article_id: articleId, title: articleTitle, image_url: articleImageUrl ?? null });
-      if (error) setSaved(false);
+      setSaveLoading(true);
+      try {
+        // サーバーサイドで上限チェック
+        const res = await fetch("/api/saves/check");
+        if (res.ok) {
+          const { canSave } = await res.json() as { canSave: boolean; limit: number | null; count: number };
+          if (!canSave) {
+            setSaved(false);
+            setSaveLimitMsg(true);
+            setTimeout(() => setSaveLimitMsg(false), 3000);
+            return;
+          }
+        }
+        const { error } = await supabase.from("article_saves")
+          .insert({ user_id: user.uid, article_id: articleId, title: articleTitle, image_url: articleImageUrl ?? null });
+        if (error) setSaved(false);
+      } finally {
+        setSaveLoading(false);
+      }
     }
-    setSaveLoading(false);
   }
 
   function handleTwitterShare() {
@@ -273,13 +279,17 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
         mode="login"
       />
 
-      {/* アップグレードモーダル */}
-      <UpgradeModal
-        isOpen={!!upgradeModal}
-        onClose={() => setUpgradeModal(null)}
-        currentPlan={upgradeModal?.plan ?? userPlan}
-        limit={upgradeModal?.limit ?? 5}
-      />
+      {/* 保存上限トースト */}
+      {saveLimitMsg && (
+        <div style={{
+          position: "fixed", bottom: 32, left: "50%", transform: "translateX(-50%)",
+          background: "#1d1d1f", color: "#fff", padding: "12px 24px", borderRadius: 99,
+          fontSize: "0.875rem", fontWeight: 600, zIndex: 9999,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.25)", whiteSpace: "nowrap",
+        }}>
+          保存上限に達しました
+        </div>
+      )}
 
       {/* ===== 上部アクションバー ===== */}
       <div
@@ -347,20 +357,22 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
         {/* 保存 */}
         <SaveButton size="base" />
 
-        {/* コメント数 */}
-        <a
-          href="#comments"
-          className="flex items-center gap-2 text-gray-400 hover:text-gray-700 transition-colors"
-          style={{ textDecoration: "none" }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round"
+        {/* コメント数（FEATURES.comments が true のときのみ表示）*/}
+        {FEATURES.comments && (
+          <a
+            href="#comments"
+            className="flex items-center gap-2 text-gray-400 hover:text-gray-700 transition-colors"
+            style={{ textDecoration: "none" }}
           >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-          <span className="text-base font-medium">{commentCount}</span>
-        </a>
+            <svg width="20" height="20" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <span className="text-base font-medium">{commentCount}</span>
+          </a>
+        )}
 
         <div className="flex-1" />
         <TwitterButton size="base" />

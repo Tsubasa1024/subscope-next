@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import LoginPromptModal from "@/components/LoginPromptModal";
+import { FEATURES } from "@/lib/features";
 
 interface Comment {
   id: string;
@@ -11,6 +13,7 @@ interface Comment {
   content: string;
   createdAt: string;
   userName: string;
+  userUsername: string | null;
 }
 
 interface Props {
@@ -47,19 +50,23 @@ export default function ArticleComments({ articleId }: Props) {
 
     const { data } = await supabase
       .from("article_comments")
-      .select("id, user_id, content, created_at, users(display_name)")
+      .select("id, user_id, content, created_at, users(display_name, username)")
       .eq("article_id", articleId)
       .order("created_at", { ascending: true })
       .limit(50);
 
     setComments(
-      (data ?? []).map((c) => ({
-        id:        c.id,
-        userId:    c.user_id,
-        content:   c.content,
-        createdAt: c.created_at,
-        userName:  (c.users as unknown as { display_name: string | null } | null)?.display_name ?? "ユーザー",
-      }))
+      (data ?? []).map((c) => {
+        const u = c.users as unknown as { display_name: string | null; username: string | null } | null;
+        return {
+          id:           c.id,
+          userId:       c.user_id,
+          content:      c.content,
+          createdAt:    c.created_at,
+          userName:     u?.display_name ?? "ユーザー",
+          userUsername: u?.username ?? null,
+        };
+      })
     );
     setLoading(false);
   }
@@ -89,11 +96,12 @@ export default function ArticleComments({ articleId }: Props) {
       setComments((prev) => [
         ...prev,
         {
-          id:        data.id,
-          userId:    data.user_id,
-          content:   data.content,
-          createdAt: data.created_at,
-          userName:  user.name,
+          id:           data.id,
+          userId:       data.user_id,
+          content:      data.content,
+          createdAt:    data.created_at,
+          userName:     user.name,
+          userUsername: null,
         },
       ]);
       setInput("");
@@ -153,7 +161,13 @@ export default function ArticleComments({ articleId }: Props) {
               {/* 本文 */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-1 flex-wrap">
-                  <span className="text-sm font-semibold" style={{ color: "#111111" }}>{comment.userName}</span>
+                  <Link
+                    href={`/u/${comment.userUsername ?? comment.userId}`}
+                    className="text-sm font-semibold hover:underline"
+                    style={{ color: "#111111", textDecoration: "none" }}
+                  >
+                    {comment.userName}
+                  </Link>
                   <span className="text-xs text-gray-400">{comment.createdAt.slice(0, 10)}</span>
                   {user?.uid === comment.userId && (
                     <button

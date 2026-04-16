@@ -17,7 +17,7 @@ export default async function MypagePage() {
   ] = await Promise.all([
     supabase
       .from("users")
-      .select("plan, username, username_changed_at, bio, avatar_url, notification_new_article, notification_review_reply")
+      .select("plan, username, username_changed_at, bio, avatar_url, notification_new_article, notification_review_reply, profile_public, show_subscriptions")
       .eq("id", user.id)
       .single(),
     supabase
@@ -50,6 +50,8 @@ export default async function MypagePage() {
       avatarUrl={profile?.avatar_url ?? null}
       notificationNewArticle={profile?.notification_new_article ?? true}
       notificationReviewReply={profile?.notification_review_reply ?? true}
+      profilePublic={(profile as unknown as { profile_public: boolean | null })?.profile_public ?? true}
+      showSubscriptions={(profile as unknown as { show_subscriptions: boolean | null })?.show_subscriptions ?? true}
       userSubscriptions={(userSubs ?? []) as unknown as UserSubscriptionRow[]}
       allServices={(allServices ?? []) as unknown as ServiceRow[]}
     />

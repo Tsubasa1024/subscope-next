@@ -33,7 +33,7 @@ type ReviewRow = {
   good_points: string | null;
   bad_points: string | null;
   created_at: string;
-  users: { display_name: string | null } | null;
+  users: { display_name: string | null; username: string | null } | null;
 };
 
 type ServiceRow = {
@@ -67,7 +67,7 @@ export default async function ServiceDetailPage({ params }: Props) {
   // レビュー取得（users をjoin）
   const { data: reviewRows } = await supabase
     .from("service_reviews")
-    .select("user_id, score, good_points, bad_points, created_at, users(display_name)")
+    .select("user_id, score, good_points, bad_points, created_at, users(display_name, username)")
     .eq("service_id", service.id)
     .order("created_at", { ascending: false });
 

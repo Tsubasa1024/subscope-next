@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -13,7 +14,7 @@ interface Review {
   good_points: string | null;
   bad_points: string | null;
   created_at: string;
-  users: { display_name: string | null } | null;
+  users: { display_name: string | null; username: string | null } | null;
 }
 
 interface ServiceData {
@@ -499,6 +500,7 @@ export default function ServiceDetailClient({
             reviews.map((review, i) => {
               const displayName =
                 review.users?.display_name ?? "匿名ユーザー";
+              const profileHref = `/u/${review.users?.username ?? review.user_id}`;
               const date = review.created_at.slice(0, 10);
               return (
                 <div
@@ -513,12 +515,13 @@ export default function ServiceDetailClient({
                 >
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div>
-                      <span
-                        className="font-semibold text-sm"
-                        style={{ color: "#1d1d1f" }}
+                      <Link
+                        href={profileHref}
+                        className="font-semibold text-sm hover:underline"
+                        style={{ color: "#1d1d1f", textDecoration: "none" }}
                       >
                         {displayName}
-                      </span>
+                      </Link>
                       <span
                         className="ml-3 text-xs"
                         style={{ color: "#86868b" }}

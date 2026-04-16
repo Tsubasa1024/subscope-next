@@ -8,16 +8,22 @@ import { normalizeCategory, getImageUrl } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import Image from "next/image";
 import { ChevronRight, X } from "lucide-react";
+import { FEATURES } from "@/lib/features";
 
 interface HeaderProps {
   articles?: Article[];
 }
 
-const NAV_ITEMS = [
-  { href: "/ranking",          label: "記事ランキング" },
-  { href: "/service-ranking",  label: "サブスクランキング" },
-  { href: "/diagnosis",        label: "診断" },
+const NAV_ITEMS_BASE = [
+  { href: "/ranking",         label: "記事ランキング" },
+  { href: "/service-ranking", label: "サブスクランキング" },
 ];
+
+const NAV_ITEMS_DIAGNOSIS = { href: "/diagnosis", label: "診断" };
+
+const NAV_ITEMS = FEATURES.aiDiagnosis
+  ? [...NAV_ITEMS_BASE, NAV_ITEMS_DIAGNOSIS]
+  : NAV_ITEMS_BASE;
 
 
 const ARTICLE_CATEGORIES = [
