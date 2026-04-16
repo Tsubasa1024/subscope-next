@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import PlanBadge from "@/components/PlanBadge";
+import AvatarCropModal from "@/components/AvatarCropModal";
 import { SAVE_LIMITS, PHASE1_SAVE_LIMIT } from "@/lib/constants";
 import { FEATURES } from "@/lib/features";
 import { validateUsername, USERNAME_MIN, USERNAME_MAX } from "@/lib/profile-validation";
-import type { ServiceRow, UserSubscriptionRow } from "./page";
 
 interface SavedArticle {
   user_id: string;
@@ -31,9 +31,6 @@ interface Props {
   notificationNewArticle: boolean;
   notificationReviewReply: boolean;
   profilePublic: boolean;
-  showSubscriptions: boolean;
-  userSubscriptions: UserSubscriptionRow[];
-  allServices: ServiceRow[];
 }
 
 const PLAN_LABELS: Record<string, { name: string; price: string }> = {
@@ -168,8 +165,6 @@ export default function MypageClient({
   notificationNewArticle: initNotifArticle,
   notificationReviewReply: initNotifReply,
   profilePublic: initProfilePublic,
-  showSubscriptions: initShowSubscriptions,
-  userSubscriptions: initialSubs, allServices,
 }: Props) {
   const router  = useRef(useRouter()).current;
   const fileRef = useRef<HTMLInputElement>(null);
@@ -178,9 +173,10 @@ export default function MypageClient({
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
   /* avatar */
-  const [avatarUrl, setAvatarUrl]       = useState(initialAvatarUrl);
-  const [avatarHover, setAvatarHover]   = useState(false);
+  const [avatarUrl, setAvatarUrl]         = useState(initialAvatarUrl);
+  const [avatarHover, setAvatarHover]     = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [cropSrc, setCropSrc]             = useState<string | null>(null);
 
   /* name inline edit */
   const [name, setName]             = useState(initialName);
@@ -209,10 +205,6 @@ export default function MypageClient({
   const [savedArticles, setSavedArticles] = useState<SavedArticle[]>(initialSavedArticles);
   const [unsaving, setUnsaving]           = useState<string | null>(null);
 
-  /* subscriptions */
-  const [subs, setSubs]               = useState<UserSubscriptionRow[]>(initialSubs);
-  const [showSubPicker, setShowSubPicker] = useState(false);
-
   /* account settings */
   const [newEmail, setNewEmail]     = useState("");
   const [emailSent, setEmailSent]   = useState(false);
@@ -225,7 +217,6 @@ export default function MypageClient({
   const [notifArticle, setNotifArticle]       = useState(initNotifArticle);
   const [notifReply, setNotifReply]           = useState(initNotifReply);
   const [profilePublic, setProfilePublic]     = useState(initProfilePublic);
-  const [showSubs, setShowSubs]               = useState(initShowSubscriptions);
 
   /* delete */
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -278,8 +269,6 @@ export default function MypageClient({
   const saveLimit      = FEATURES.tieredSaves ? (SAVE_LIMITS[currentPlan] ?? PHASE1_SAVE_LIMIT) : PHASE1_SAVE_LIMIT;
   const saveCount      = savedArticles.length;
   const remaining      = saveLimit !== null ? saveLimit - saveCount : null;
-  const subscribedIds  = new Set(subs.map((s) => s.service_id));
-  const availableServices = allServices.filter((s) => !subscribedIds.has(s.id));
 
   /* ── handlers ── */
   async function handleSaveName() {
@@ -339,45 +328,37 @@ export default function MypageClient({
     else { showToast({ type: "success", text: "自己紹介を更新しました" }); }
   }
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reset so the same file can be re-selected after cancel
+    e.target.value = "";
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (!allowed.includes(file.type)) { showToast({ type: "error", text: "jpg・png・webp のみ対応しています" }); return; }
     if (file.size > 2 * 1024 * 1024) { showToast({ type: "error", text: "2MB 以下のファイルを選択してください" }); return; }
+    const objectUrl = URL.createObjectURL(file);
+    setCropSrc(objectUrl);
+  }
+
+  async function handleCropConfirm(blob: Blob) {
     setUploadingAvatar(true);
-    const supabase  = createClient();
-    const ext       = file.name.split(".").pop() ?? "jpg";
-    const filePath  = `avatars/${userId}-${Date.now()}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
-    if (uploadError) { showToast({ type: "error", text: uploadError.message }); setUploadingAvatar(false); return; }
-    const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    const { error: updateError } = await supabase.from("users").update({ avatar_url: publicUrl }).eq("id", userId);
-    setUploadingAvatar(false);
-    if (updateError) { showToast({ type: "error", text: updateError.message }); return; }
-    setAvatarUrl(publicUrl);
-    showToast({ type: "success", text: "プロフィール画像を更新しました" });
+    try {
+      const form = new FormData();
+      form.append("avatar", blob, "avatar.jpg");
+      const res = await fetch("/api/profile/avatar", { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok) { showToast({ type: "error", text: json.error ?? "アップロードに失敗しました" }); return; }
+      setAvatarUrl(json.avatarUrl);
+      setCropSrc(null);
+      showToast({ type: "success", text: "プロフィール画像を更新しました" });
+    } finally {
+      setUploadingAvatar(false);
+    }
   }
 
-  async function handleAddSub(service: ServiceRow) {
-    const supabase = createClient();
-    const { data, error } = await supabase.from("user_subscriptions")
-      .insert({ user_id: userId, service_id: service.id })
-      .select("id, service_id, services(id, name, slug, logo_url)").single();
-    if (!error && data) {
-      setSubs((prev) => [...prev, data as unknown as UserSubscriptionRow]);
-      showToast({ type: "success", text: `${service.name} を追加しました` });
-    }
-    setShowSubPicker(false);
-  }
-
-  async function handleRemoveSub(subId: string, subName: string) {
-    const supabase = createClient();
-    const { error } = await supabase.from("user_subscriptions").delete().eq("id", subId);
-    if (!error) {
-      setSubs((prev) => prev.filter((s) => s.id !== subId));
-      showToast({ type: "success", text: `${subName} を削除しました` });
-    }
+  function handleCropCancel() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
   }
 
   async function handleEmailChange(e: React.FormEvent) {
@@ -731,89 +712,6 @@ export default function MypageClient({
                   </div>
                 </Card>
 
-                {/* 使っているサブスク */}
-                <SectionLabel>使っているサブスク</SectionLabel>
-                <Card style={{ padding: "20px" }}>
-                  {subs.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "14px" }}>
-                      {subs.map((sub) => (
-                        <span key={sub.id} style={{
-                          display: "inline-flex", alignItems: "center", gap: "8px",
-                          background: "#f5f5f7", border: "1px solid #e0e0e0", borderRadius: "16px",
-                          padding: "8px 14px", fontSize: "0.85rem", fontWeight: 500,
-                        }}>
-                          {sub.services?.logo_url && (
-                            <img src={sub.services.logo_url} alt="" style={{ width: 22, height: 22, borderRadius: 6, objectFit: "contain" }} />
-                          )}
-                          {sub.services?.name ?? "Unknown"}
-                          <button
-                            onClick={() => handleRemoveSub(sub.id, sub.services?.name ?? "")}
-                            style={{ background: "none", border: "none", cursor: "pointer", padding: "0 0 0 2px", color: "#86868b", lineHeight: 1, display: "flex", alignItems: "center" }}
-                            aria-label="削除"
-                          >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Inline service picker */}
-                  {showSubPicker ? (
-                    <div style={{ animation: "fadeIn 0.2s ease" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "12px" }}>
-                        {availableServices.map((service) => (
-                          <button
-                            key={service.id}
-                            onClick={() => handleAddSub(service)}
-                            style={{
-                              display: "flex", alignItems: "center", gap: "12px",
-                              padding: "12px 14px", borderRadius: "12px",
-                              border: "1px solid #e5e5e5", background: "#fff",
-                              cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-                              fontSize: "0.9rem", fontWeight: 500, minHeight: 44,
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f5f7"; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; }}
-                          >
-                            {service.logo_url && (
-                              <img src={service.logo_url} alt="" style={{ width: 28, height: 28, borderRadius: 8, objectFit: "contain" }} />
-                            )}
-                            {service.name}
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => setShowSubPicker(false)}
-                        style={{ fontSize: "0.85rem", color: "#86868b", background: "none", border: "none", cursor: "pointer" }}
-                      >
-                        キャンセル
-                      </button>
-                    </div>
-                  ) : (
-                    availableServices.length > 0 ? (
-                      <button
-                        onClick={() => setShowSubPicker(true)}
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: "6px",
-                          padding: "10px 18px", borderRadius: "12px",
-                          border: "1.5px dashed #bbb", background: "#f9f9f9",
-                          cursor: "pointer", fontSize: "0.875rem", fontWeight: 600,
-                          color: "#111", fontFamily: "inherit", minHeight: 44,
-                        }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        サブスクを追加
-                      </button>
-                    ) : subs.length === 0 ? (
-                      <p style={{ fontSize: "0.85rem", color: "#86868b" }}>登録できるサブスクがありません</p>
-                    ) : null
-                  )}
-                </Card>
               </>
             )}
 
@@ -1064,24 +962,6 @@ export default function MypageClient({
                       </div>
                     </label>
                   </div>
-                  <div style={{ padding: "18px 20px" }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        checked={showSubs}
-                        onChange={async (e) => {
-                          setShowSubs(e.target.checked);
-                          const supabase = createClient();
-                          await supabase.from("users").update({ show_subscriptions: e.target.checked }).eq("id", userId);
-                        }}
-                        style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#111111" }}
-                      />
-                      <div>
-                        <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>使っているサブスクを公開する</p>
-                        <p style={{ fontSize: "0.8rem", color: "#86868b" }}>オフにするとサブスク一覧がプロフィールで非表示になります</p>
-                      </div>
-                    </label>
-                  </div>
                 </Card>
 
                 {/* アカウント操作 */}
@@ -1169,6 +1049,16 @@ export default function MypageClient({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Avatar crop modal */}
+      {cropSrc && (
+        <AvatarCropModal
+          imageSrc={cropSrc}
+          onConfirm={handleCropConfirm}
+          onCancel={handleCropCancel}
+          loading={uploadingAvatar}
+        />
       )}
     </>
   );
