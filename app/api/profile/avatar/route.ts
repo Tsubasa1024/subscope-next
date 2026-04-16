@@ -36,7 +36,10 @@ export async function POST(req: NextRequest) {
     .single();
 
   const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-  const filePath = `avatars/${user.id}-${Date.now()}.${ext}`;
+  // Path format: {user_id}/{timestamp}.{ext}
+  // The user_id becomes the folder name, satisfying the RLS policy:
+  //   (storage.foldername(name))[1] = auth.uid()
+  const filePath = `${user.id}/${Date.now()}.${ext}`;
 
   const arrayBuffer = await file.arrayBuffer();
   const { error: uploadError } = await supabase.storage
@@ -64,10 +67,14 @@ export async function POST(req: NextRequest) {
   if (profile?.avatar_url) {
     try {
       const url = new URL(profile.avatar_url);
-      // path after /storage/v1/object/public/avatars/
-      const match = url.pathname.match(/\/avatars\/(.+)$/);
-      if (match) {
-        await supabase.storage.from("avatars").remove([`avatars/${match[1]}`]);
+      // Extract path after /storage/v1/object/public/avatars/
+      // e.g. "https://xxx.supabase.co/storage/v1/object/public/avatars/{user_id}/{timestamp}.jpg"
+      // → "{user_id}/{timestamp}.jpg"
+      const marker = "/object/public/avatars/";
+      const idx = url.pathname.indexOf(marker);
+      if (idx !== -1) {
+        const oldPath = url.pathname.slice(idx + marker.length);
+        await supabase.storage.from("avatars").remove([oldPath]);
       }
     } catch {
       // ignore — old file cleanup is non-critical
