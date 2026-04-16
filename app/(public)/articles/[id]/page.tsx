@@ -110,6 +110,7 @@ export default async function ArticlePage({ params }: Props) {
           articleId={id}
           articleTitle={article.title ?? ""}
           articleUrl={articleUrl}
+          articleImageUrl={imgUrl ?? undefined}
         >
           {/* サムネイル */}
           {imgUrl && (

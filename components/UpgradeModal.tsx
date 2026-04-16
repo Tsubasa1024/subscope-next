@@ -29,59 +29,89 @@ export default function UpgradeModal({ isOpen, onClose, currentPlan, limit }: Up
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center px-4"
-      style={{ background: "rgba(0,0,0,0.6)" }}
+      style={{
+        position: "fixed", inset: 0, zIndex: 300,
+        background: "rgba(0,0,0,0.5)", display: "flex",
+        alignItems: "center", justifyContent: "center", padding: "16px",
+      }}
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-sm rounded-2xl p-8 text-center"
-        style={{ background: "#fff", boxShadow: "0 24px 64px rgba(0,0,0,0.18)" }}
+        style={{
+          position: "relative", background: "#fff", borderRadius: "24px",
+          padding: "40px 32px", maxWidth: "380px", width: "100%",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.12)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 閉じるボタン */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
-          style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", color: "#999" }}
+          style={{
+            position: "absolute", top: "16px", right: "16px",
+            width: "32px", height: "32px", borderRadius: "50%",
+            background: "none", border: "none", cursor: "pointer",
+            fontFamily: "inherit", color: "#999", fontSize: "1rem",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
           aria-label="閉じる"
         >
           ✕
         </button>
 
         {/* アイコン */}
-        <div
-          className="flex items-center justify-center rounded-full mx-auto mb-5"
-          style={{ width: "56px", height: "56px", background: "#f5f5f7", fontSize: "1.6rem" }}
-        >
-          🔖
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <div style={{
+            width: "56px", height: "56px", borderRadius: "14px",
+            background: "#f5f5f7", display: "inline-flex",
+            alignItems: "center", justifyContent: "center",
+          }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
+              stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
         </div>
 
         {/* タイトル */}
-        <p className="font-bold mb-1" style={{ fontSize: "1.05rem", color: "#111", letterSpacing: "-0.01em" }}>
+        <h2 style={{
+          fontSize: "1.2rem", fontWeight: 700, textAlign: "center",
+          marginBottom: "8px", letterSpacing: "-0.02em", color: "#111",
+        }}>
           保存上限に達しました
-        </p>
-        <p className="text-sm mb-2" style={{ color: "#86868b" }}>
+        </h2>
+        <p style={{ fontSize: "0.875rem", color: "#86868b", textAlign: "center", marginBottom: "6px", lineHeight: 1.6 }}>
           現在のプラン: <strong style={{ color: "#111" }}>{planLabel}</strong>（最大 {limit} 件）
         </p>
-        <p className="text-sm mb-6" style={{ color: "#86868b" }}>
+        <p style={{ fontSize: "0.875rem", color: "#86868b", textAlign: "center", marginBottom: "28px", lineHeight: 1.6 }}>
           {next.name} プランにアップグレードすると<br />
           <strong style={{ color: "#111" }}>{next.saves}</strong>保存できます
         </p>
 
         {/* ボタン */}
-        <div className="flex flex-col gap-2">
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           <Link
             href="/pricing"
             onClick={onClose}
-            className="flex items-center justify-center w-full py-3 rounded-full font-semibold text-sm"
-            style={{ background: "#111", color: "#fff", textDecoration: "none" }}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: "100%", padding: "14px", borderRadius: "14px",
+              background: "#111", color: "#fff", textDecoration: "none",
+              fontSize: "0.9rem", fontWeight: 600,
+            }}
           >
             プランを見る →
           </Link>
           <button
             onClick={onClose}
-            className="w-full py-3 rounded-full text-sm font-medium"
-            style={{ background: "none", border: "1.5px solid #e5e5ea", cursor: "pointer", fontFamily: "inherit", color: "#555" }}
+            style={{
+              width: "100%", padding: "13px", borderRadius: "14px",
+              background: "transparent", color: "#555",
+              border: "1.5px solid rgba(0,0,0,0.12)",
+              fontSize: "0.9rem", fontWeight: 500,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
           >
             閉じる
           </button>

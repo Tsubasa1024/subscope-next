@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import PlanBadge from "@/components/PlanBadge";
+import { SAVE_LIMITS } from "@/lib/constants";
 import type { ServiceRow, UserSubscriptionRow } from "./page";
 
 interface SavedArticle {
@@ -36,7 +37,6 @@ const PLAN_LABELS: Record<string, { name: string; price: string }> = {
   standard: { name: "Standard", price: "¥580" },
   pro:      { name: "Pro",      price: "¥1,480" },
 };
-const SAVE_LIMITS: Record<string, number | null> = { free: 5, standard: 15, pro: null };
 const USERNAME_RE = /^[a-zA-Z0-9_]+$/;
 
 type Tab = "profile" | "saves" | "settings";
@@ -161,7 +161,7 @@ function Spinner() {
 
 export default function MypageClient({
   userId, email, name: initialName, currentPlan,
-  savedArticles, username: initialUsername, usernameChangedAt,
+  savedArticles: initialSavedArticles, username: initialUsername, usernameChangedAt,
   bio: initialBio, avatarUrl: initialAvatarUrl,
   notificationNewArticle: initNotifArticle,
   notificationReviewReply: initNotifReply,
@@ -197,6 +197,10 @@ export default function MypageClient({
   /* toast */
   const [toast, setToast] = useState<Msg>(null);
   const showToast = (msg: Msg) => setToast(msg);
+
+  /* saved articles */
+  const [savedArticles, setSavedArticles] = useState<SavedArticle[]>(initialSavedArticles);
+  const [unsaving, setUnsaving]           = useState<string | null>(null);
 
   /* subscriptions */
   const [subs, setSubs]               = useState<UserSubscriptionRow[]>(initialSubs);
@@ -341,6 +345,24 @@ export default function MypageClient({
     const supabase = createClient();
     await supabase.from("users").update({ [field]: value }).eq("id", userId);
     showToast({ type: "success", text: "通知設定を更新しました" });
+  }
+
+  async function handleUnsave(articleId: string) {
+    if (unsaving) return;
+    setUnsaving(articleId);
+    const prev = savedArticles;
+    setSavedArticles((a) => a.filter((x) => x.article_id !== articleId));
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("article_saves")
+      .delete()
+      .eq("user_id", userId)
+      .eq("article_id", articleId);
+    if (error) {
+      setSavedArticles(prev);
+      showToast({ type: "error", text: "保存解除に失敗しました" });
+    }
+    setUnsaving(null);
   }
 
   async function handleLogout() {
@@ -759,28 +781,43 @@ export default function MypageClient({
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {savedArticles.map((article) => (
-                      <Link key={article.article_id} href={`/articles/${article.article_id}`} style={{ textDecoration: "none" }}>
-                        <div
-                          style={{ background: "#fff", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", padding: "14px 16px", display: "flex", alignItems: "center", gap: "14px", transition: "opacity 0.15s" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.75"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
-                        >
-                          {article.image_url && (
-                            <img src={article.image_url} alt="" style={{ width: 60, height: 60, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
-                          )}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontWeight: 600, fontSize: "0.9rem", color: "#111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              {article.title}
-                            </p>
-                            <p style={{ fontSize: "0.75rem", color: "#86868b", marginTop: "4px" }}>
-                              {new Date(article.created_at).toLocaleDateString("ja-JP")} 保存
-                            </p>
+                      <div key={article.article_id} style={{ background: "#fff", borderRadius: "16px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", display: "flex", alignItems: "center" }}>
+                        <Link href={`/articles/${article.article_id}`} style={{ textDecoration: "none", flex: 1, minWidth: 0 }}>
+                          <div
+                            style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: "14px", transition: "opacity 0.15s" }}
+                            onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.75"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+                          >
+                            {article.image_url && (
+                              <img src={article.image_url} alt="" style={{ width: 60, height: 60, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
+                            )}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontWeight: 600, fontSize: "0.9rem", color: "#111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {article.title}
+                              </p>
+                              <p style={{ fontSize: "0.75rem", color: "#86868b", marginTop: "4px" }}>
+                                {new Date(article.created_at).toLocaleDateString("ja-JP")} 保存
+                              </p>
+                            </div>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#86868b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
                           </div>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#86868b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
-                        </div>
-                      </Link>
+                        </Link>
+                        <button
+                          onClick={() => handleUnsave(article.article_id)}
+                          disabled={unsaving === article.article_id}
+                          style={{
+                            flexShrink: 0, padding: "14px 16px", background: "none", border: "none",
+                            borderLeft: "1px solid rgba(0,0,0,0.06)", cursor: "pointer",
+                            color: "#ff3b30", fontSize: "0.78rem", fontWeight: 600,
+                            fontFamily: "inherit", opacity: unsaving === article.article_id ? 0.4 : 1,
+                          }}
+                          aria-label="保存解除"
+                        >
+                          解除
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}

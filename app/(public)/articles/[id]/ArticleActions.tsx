@@ -10,6 +10,7 @@ interface Props {
   articleId: string;
   articleTitle: string;
   articleUrl: string;
+  articleImageUrl?: string;
   children: React.ReactNode;
 }
 
@@ -44,7 +45,7 @@ const PARTICLES = [
 ];
 
 
-export default function ArticleActions({ articleId, articleTitle, articleUrl, children }: Props) {
+export default function ArticleActions({ articleId, articleTitle, articleUrl, articleImageUrl, children }: Props) {
   const { user, ready } = useAuth();
 
   const [likeCount,     setLikeCount]     = useState(0);
@@ -145,8 +146,9 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
 
     if (saved) {
       setSaved(false);
-      await supabase.from("article_saves").delete()
+      const { error } = await supabase.from("article_saves").delete()
         .eq("article_id", articleId).eq("user_id", user.uid);
+      if (error) setSaved(true);
     } else {
       // サーバーサイドで上限チェック
       const res = await fetch("/api/saves/check");
@@ -164,8 +166,9 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
       }
 
       setSaved(true);
-      await supabase.from("article_saves")
-        .insert({ user_id: user.uid, article_id: articleId, title: articleTitle });
+      const { error } = await supabase.from("article_saves")
+        .insert({ user_id: user.uid, article_id: articleId, title: articleTitle, image_url: articleImageUrl ?? null });
+      if (error) setSaved(false);
     }
     setSaveLoading(false);
   }
@@ -186,25 +189,30 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ch
 
   // ===== 共通ボタンパーツ =====
 
-  const SaveButton = useCallback(({ size }: { size: "sm" | "base" }) => (
-    <button
-      onClick={handleSave}
-      className="flex items-center gap-1.5 transition-all hover:opacity-70"
-      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-               color: saved ? "#111111" : "#9ca3af", padding: 0 }}
-      aria-label={saved ? "保存を解除する" : "保存する"}
-    >
-      <svg width={size === "sm" ? 16 : 20} height={size === "sm" ? 16 : 20}
-        viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"}
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+  const SaveButton = useCallback(({ size }: { size: "sm" | "base" }) => {
+    const px = size === "sm" ? 16 : 20;
+    return (
+      <button
+        onClick={handleSave}
+        style={{
+          background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+          color: saved ? "#111111" : "#9ca3af", padding: "6px",
+          borderRadius: "8px", display: "flex", alignItems: "center",
+          transition: "background 0.15s",
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,0,0,0.06)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "none"; }}
+        aria-label={saved ? "保存解除" : "保存する"}
       >
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-      </svg>
-      <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 500 }}>
-        {saved ? "保存済" : "保存"}
-      </span>
-    </button>
-  ), [saved, saveLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+        <svg width={px} height={px} viewBox="0 0 24 24"
+          fill={saved ? "currentColor" : "none"}
+          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        >
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+        </svg>
+      </button>
+    );
+  }, [saved, saveLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const TwitterButton = ({ size }: { size: "sm" | "base" }) => (
     <button

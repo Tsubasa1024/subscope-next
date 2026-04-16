@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-const PLAN_LIMITS: Record<string, number | null> = {
-  free: 5,
-  standard: 15,
-  pro: null,
-};
+import { SAVE_LIMITS } from "@/lib/constants";
 
 export async function GET() {
   const supabase = await createClient();
@@ -24,7 +19,7 @@ export async function GET() {
     .single();
 
   const plan = profile?.plan ?? "free";
-  const limit = PLAN_LIMITS[plan] ?? 5;
+  const limit = SAVE_LIMITS[plan] ?? 3;
 
   const { count } = await supabase
     .from("article_saves")

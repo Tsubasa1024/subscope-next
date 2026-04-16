@@ -39,7 +39,7 @@ export default function PremiumModal({ onClose }: PremiumModalProps) {
           プレミアムプランへ
         </h2>
         <p style={{ fontSize: "0.875rem", color: "#86868b", textAlign: "center", marginBottom: "28px", lineHeight: 1.7 }}>
-          無料プランでは保存できる記事は<strong style={{ color: "#1d1d1f" }}>4件まで</strong>です。<br />
+          無料プランでは保存できる記事は<strong style={{ color: "#1d1d1f" }}>3件まで</strong>です。<br />
           プレミアムプランにアップグレードすると<br />
           <strong style={{ color: "#1d1d1f" }}>無制限</strong>で記事を保存できます。
         </p>
@@ -65,10 +65,9 @@ export default function PremiumModal({ onClose }: PremiumModalProps) {
           onClick={handleUpgrade}
           style={{
             width: "100%", padding: "15px", borderRadius: "14px",
-            background: "linear-gradient(135deg, #f7c948 0%, #f0a500 100%)",
-            color: "#1d1d1f", border: "none", fontSize: "0.95rem",
+            background: "#111111", color: "#fff",
+            border: "none", fontSize: "0.95rem",
             fontWeight: 700, cursor: "pointer", marginBottom: "12px",
-            boxShadow: "0 4px 16px rgba(240,165,0,0.3)",
           }}
         >
           プレミアムにアップグレード
