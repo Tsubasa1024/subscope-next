@@ -31,6 +31,7 @@ interface Props {
   notificationNewArticle: boolean;
   notificationReviewReply: boolean;
   profilePublic: boolean;
+  isBanned?: boolean;
 }
 
 const PLAN_LABELS: Record<string, { name: string; price: string }> = {
@@ -161,7 +162,16 @@ export default function MypageClient({
   notificationNewArticle: initNotifArticle,
   notificationReviewReply: initNotifReply,
   profilePublic: initProfilePublic,
+  isBanned = false,
 }: Props) {
+  // DEBUG: Props受け取り時ログ（ブラウザコンソール）
+  console.log("[MypageClient] props受け取り:", {
+    initialUsername,
+    initialBio,
+    userId,
+    email,
+  });
+
   const router  = useRef(useRouter()).current;
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -193,6 +203,11 @@ export default function MypageClient({
   // completes, or when the component remounts from a cached RSC payload that was
   // stale at tab-switch time). Guard against overwriting an in-progress edit.
   useEffect(() => {
+    // DEBUG: initialUsername prop が変わったときのログ
+    console.log("[MypageClient] useEffect[initialUsername]発火:", {
+      initialUsername,
+      editingUsername,
+    });
     if (!editingUsername) {
       setUsername(initialUsername ?? "");
       setEditUsername(initialUsername ?? "");
@@ -474,6 +489,14 @@ export default function MypageClient({
       <Toast msg={toast} onDone={() => setToast(null)} />
 
       <div style={{ minHeight: "100vh", background: "#f5f5f7", paddingTop: "var(--header-h)" }}>
+        {isBanned && (
+          <div style={{
+            background: "#fee2e2", color: "#dc2626", padding: "10px 20px",
+            fontSize: 13, fontWeight: 500, textAlign: "center",
+          }}>
+            アカウントが停止されています。レビューや評価などの投稿操作は行えません。
+          </div>
+        )}
 
         {/* ── Sticky tab bar ── */}
         <div style={{
