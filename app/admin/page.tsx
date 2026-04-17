@@ -1,17 +1,22 @@
-import { createClient } from "@/lib/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
-
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboard() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+import type { Metadata } from "next";
+import { createClient } from "@supabase/supabase-js";
 
-  const adminSupabase = createAdminClient(
+export const metadata: Metadata = { title: "Admin Dashboard | SUBSCOPE" };
+
+const STAT_CARDS = [
+  { label: "総ユーザー数",    unit: "人" },
+  { label: "有料会員数",      unit: "人" },
+  { label: "今月のMRR",       unit: "円" },
+  { label: "今月の新規記事数", unit: "件" },
+];
+
+export default async function AdminDashboard() {
+  const adminSupabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!
+    process.env.SUPABASE_SECRET_KEY!,
+    { auth: { persistSession: false } }
   );
 
   const { count: serviceCount } = await adminSupabase
@@ -20,62 +25,66 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <div style={{ marginBottom: "32px" }}>
+      <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: "1.8rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
           ダッシュボード
         </h1>
-        <p style={{ color: "#86868b", marginTop: "4px", fontSize: "0.875rem" }}>
-          ログイン中: {user?.email}
-        </p>
       </div>
 
-      {/* KPIカード */}
+      {/* Phase 1 統計カード（実数はPhase 3） */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 16,
+          marginBottom: 32,
+        }}
+      >
+        {STAT_CARDS.map(({ label, unit }) => (
+          <StatCard key={label} label={label} unit={unit} />
+        ))}
+      </div>
+
+      {/* 登録サービス数（実値あり） */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-          gap: "16px",
-          marginBottom: "40px",
+          gap: 16,
+          marginBottom: 40,
         }}
       >
-        {[
-          { label: "総ユーザー数",     value: "—",                          color: "#5B8DEF" },
-          { label: "登録サービス数",   value: String(serviceCount ?? "—"),  color: "#4CAF82" },
-          { label: "総レビュー数",     value: "—",                          color: "#E8A23A" },
-          { label: "今月の新規登録",   value: "—",                          color: "#9B72CF" },
-        ].map(({ label, value, color }) => (
-          <div
-            key={label}
-            style={{
-              background: "#fff",
-              borderRadius: "16px",
-              padding: "20px",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-              borderLeft: `4px solid ${color}`,
-            }}
-          >
-            <p style={{ fontSize: "0.8rem", color: "#86868b", marginBottom: "8px" }}>{label}</p>
-            <p style={{ fontSize: "1.8rem", fontWeight: 700 }}>{value}</p>
-          </div>
-        ))}
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: 20,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            borderLeft: "4px solid #4CAF82",
+          }}
+        >
+          <p style={{ fontSize: "0.8rem", color: "#86868b", marginBottom: 8 }}>登録サービス数</p>
+          <p style={{ fontSize: "1.8rem", fontWeight: 700 }}>{serviceCount ?? "—"}</p>
+        </div>
       </div>
 
       {/* クイックリンク */}
       <div
         style={{
           background: "#fff",
-          borderRadius: "16px",
-          padding: "24px",
+          borderRadius: 16,
+          padding: 24,
           boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
         }}
       >
-        <h2 style={{ fontWeight: 700, marginBottom: "16px", fontSize: "1rem" }}>クイックアクセス</h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <h2 style={{ fontWeight: 700, marginBottom: 16, fontSize: "1rem" }}>クイックアクセス</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {[
-            { label: "サービスを追加する",     href: "/admin/services/new" },
-            { label: "ランキングを更新する",   href: "/admin/rankings" },
-            { label: "診断を管理する",         href: "/admin/diagnosis" },
-            { label: "ユーザーを管理する",     href: "/admin/users" },
+            { label: "サービスを追加する",  href: "/admin/services/new" },
+            { label: "ランキングを更新する", href: "/admin/rankings" },
+            { label: "診断を管理する",      href: "/admin/diagnosis" },
+            { label: "ユーザーを管理する",  href: "/admin/users" },
+            { label: "監査ログを確認する",  href: "/admin/audit" },
           ].map(({ label, href }) => (
             <a
               key={href}
@@ -83,7 +92,7 @@ export default async function AdminDashboard() {
               style={{
                 display: "block",
                 padding: "12px 16px",
-                borderRadius: "12px",
+                borderRadius: 12,
                 background: "#f5f5f7",
                 fontSize: "0.875rem",
                 fontWeight: 500,
@@ -95,51 +104,35 @@ export default async function AdminDashboard() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* DBスキーマ概要 */}
+function StatCard({ label, unit }: { label: string; unit: string }) {
+  return (
+    <div
+      style={{
+        background: "#ffffff",
+        borderRadius: 16,
+        padding: "20px 24px",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+      }}
+    >
+      <p style={{ fontSize: "0.78rem", color: "#86868b", marginBottom: 8 }}>{label}</p>
+      {/* Skeleton */}
       <div
         style={{
-          marginTop: "24px",
-          background: "#fff",
-          borderRadius: "16px",
-          padding: "24px",
-          boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+          height: 36,
+          width: 72,
+          background: "#e5e5e5",
+          borderRadius: 6,
+          marginBottom: 8,
         }}
-      >
-        <h2 style={{ fontWeight: 700, marginBottom: "16px", fontSize: "1rem" }}>DBスキーマ（17テーブル）</h2>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "8px",
-          }}
-        >
-          {[
-            "users", "categories", "services", "plans", "tags",
-            "service_tags", "reviews", "favorites", "comparisons",
-            "rankings", "diagnosis_questions", "diagnosis_options",
-            "diagnosis_results", "article_likes", "article_saves",
-            "user_subscriptions",
-          ].map((table) => (
-            <span
-              key={table}
-              style={{
-                padding: "4px 12px",
-                borderRadius: "8px",
-                background: "#f0f0f2",
-                fontSize: "0.78rem",
-                fontFamily: "monospace",
-                color: "#1d1d1f",
-              }}
-            >
-              {table}
-            </span>
-          ))}
-        </div>
-        <p style={{ fontSize: "0.8rem", color: "#86868b", marginTop: "16px" }}>
-          Supabase ダッシュボードでスキーマを確認・管理してください。
-        </p>
-      </div>
+      />
+      <p style={{ fontSize: "0.72rem", color: "#aaaaaa" }}>
+        前月比 <span style={{ display: "inline-block", width: 36, height: 11, background: "#e5e5e5", borderRadius: 3, verticalAlign: "middle" }} /> {unit}
+      </p>
+      <p style={{ fontSize: "0.68rem", color: "#bbbbbb", marginTop: 4 }}>Phase 3 で実装</p>
     </div>
   );
 }

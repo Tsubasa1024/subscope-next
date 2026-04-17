@@ -37,6 +37,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  // 未ログインで管理ページにアクセスしたらログインへ
+  if (!user && pathname.startsWith("/admin")) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
   // ログイン済みでログイン/登録ページにアクセスしたらトップへ
   if (user && (pathname === "/login" || pathname === "/signup" || pathname === "/register")) {
     return NextResponse.redirect(new URL("/", request.url));
