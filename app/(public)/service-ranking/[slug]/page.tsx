@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 type ReviewRow = {
+  id: string;
   user_id: string;
   score: number;
   good_points: string | null;
@@ -67,7 +68,7 @@ export default async function ServiceDetailPage({ params }: Props) {
   // レビュー取得（users をjoin）
   const { data: reviewRows } = await supabase
     .from("service_reviews")
-    .select("user_id, score, good_points, bad_points, created_at, users(display_name, username)")
+    .select("id, user_id, score, good_points, bad_points, created_at, users(display_name, username)")
     .eq("service_id", service.id)
     .order("created_at", { ascending: false });
 
@@ -82,6 +83,19 @@ export default async function ServiceDetailPage({ params }: Props) {
 
   // ログインユーザーの既存レビュー
   const userReview = user ? (reviews.find((r) => r.user_id === user.id) ?? null) : null;
+
+  // ログインユーザーが既に通報済みのレビューID一覧
+  let reportedIds: string[] = [];
+  if (user && reviews.length > 0) {
+    const reviewIds = reviews.map((r) => r.id);
+    const { data: reportedRows } = await supabase
+      .from("reports")
+      .select("target_id")
+      .eq("reporter_id", user.id)
+      .eq("target_type", "service_review")
+      .in("target_id", reviewIds);
+    reportedIds = (reportedRows ?? []).map((r) => r.target_id as string);
+  }
 
   // 関連記事
   let relatedArticles: Article[] = [];
@@ -138,6 +152,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           relatedArticles={relatedArticles}
           userId={user?.id ?? null}
           userReview={userReview}
+          reportedIds={reportedIds}
         />
       </div>
     </main>

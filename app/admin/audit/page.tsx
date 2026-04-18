@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import type { AuditLog } from "@/types/admin";
+import RestoreButton from "@/components/RestoreButton";
 
 export const metadata: Metadata = { title: "監査ログ | Admin | SUBSCOPE" };
 
@@ -52,7 +53,7 @@ export default async function AuditLogPage() {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ background: "#f5f5f7", borderBottom: "1px solid #e5e5e5" }}>
-              {["日時", "管理者", "アクション", "対象タイプ", "対象ID", "メタデータ"].map(
+              {["日時", "管理者", "アクション", "対象タイプ", "対象ID", "メタデータ", ""].map(
                 (col) => (
                   <th
                     key={col}
@@ -74,7 +75,7 @@ export default async function AuditLogPage() {
             {logs.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   style={{
                     padding: "40px 16px",
                     textAlign: "center",
@@ -127,6 +128,14 @@ export default async function AuditLogPage() {
                     title={log.metadata ? JSON.stringify(log.metadata, null, 2) : ""}
                   >
                     {log.metadata ? JSON.stringify(log.metadata) : "—"}
+                  </td>
+                  <td style={{ padding: "10px 16px" }}>
+                    {log.action === "content.delete" && log.target_id ? (
+                      <RestoreButton
+                        targetType={log.target_type}
+                        targetId={log.target_id}
+                      />
+                    ) : null}
                   </td>
                 </tr>
               ))

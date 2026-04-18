@@ -7,8 +7,10 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import type { Article } from "@/lib/utils";
 import ArticleCard from "@/components/ArticleCard";
+import ReportButton from "@/components/ReportButton";
 
 interface Review {
+  id: string;
   user_id: string;
   score: number;
   good_points: string | null;
@@ -33,6 +35,7 @@ interface Props {
   relatedArticles: Article[];
   userId: string | null;
   userReview: Review | null;
+  reportedIds: string[];
 }
 
 function getLogoSrc(logoUrl: string): string {
@@ -110,6 +113,7 @@ export default function ServiceDetailClient({
   relatedArticles,
   userId,
   userReview,
+  reportedIds,
 }: Props) {
   const router = useRouter();
   const [score, setScore] = useState(userReview?.score ?? 7);
@@ -529,7 +533,7 @@ export default function ServiceDetailClient({
                         {date}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <StarDisplay
                         score={review.score}
                         uid={`review-${review.user_id}-${i}`}
@@ -542,6 +546,14 @@ export default function ServiceDetailClient({
                         {review.score.toFixed(1)}
                         <span style={{ color: "#86868b" }}>/10</span>
                       </span>
+                      {review.user_id !== userId && (
+                        <ReportButton
+                          targetType="service_review"
+                          targetId={review.id}
+                          isLoggedIn={!!userId}
+                          alreadyReported={reportedIds.includes(review.id)}
+                        />
+                      )}
                     </div>
                   </div>
                   {review.good_points && (
