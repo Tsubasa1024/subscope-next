@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     .from("users")
     .upsert({
       id: user.id,
+      email: user.email,
       display_name,
       username,
       username_changed_at: new Date().toISOString(),
