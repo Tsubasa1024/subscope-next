@@ -126,8 +126,8 @@ export default function Header({ articles = [] }: HeaderProps) {
             <Image
               src="/logo.svg"
               alt="SUBSCOPE"
-              width={80}
-              height={20}
+              width={160}
+              height={40}
               unoptimized
               priority
             />
