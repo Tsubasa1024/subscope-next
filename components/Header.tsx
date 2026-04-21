@@ -371,16 +371,7 @@ export default function Header({ articles = [] }: HeaderProps) {
                     </div>
                   </div>
                 </li>
-                <li>
-                  <Link
-                    href="/mypage"
-                    onClick={closeDrawer}
-                    className="block px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
-                    style={{ color: "#1d1d1f" }}
-                  >
-                    マイページ
-                  </Link>
-                </li>
+                {/* マイページリンク UI非表示 */}
                 <li>
                   <button
                     onClick={async () => { closeDrawer(); await logout(); }}

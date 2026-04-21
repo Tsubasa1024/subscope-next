@@ -163,15 +163,7 @@ export default function UserProfileClient({ profile, subs, recentComments, comme
               </p>
             )}
 
-            {/* 本人へのマイページリンク */}
-            {isSelf && (
-              <Link href="/mypage" style={{
-                fontSize: "0.8rem", color: "#86868b",
-                textDecoration: "underline", textUnderlineOffset: "2px",
-              }}>
-                プロフィールを編集
-              </Link>
-            )}
+            {/* 本人へのマイページリンク UI非表示 */}
           </div>
 
           {/* 非公開の場合はここで終了 */}
