@@ -81,8 +81,8 @@ export default async function ServiceRankingPage() {
     <main style={{ paddingTop: "96px" }}>
       <div className="container" style={{ paddingBottom: "var(--spacing-section)" }}>
 
-        {/* 未ログイン時バナー */}
-        {!user && (
+        {/* 未ログイン時バナー UI非表示 */}
+        {/* {!user && (
           <div
             className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 px-6 py-5 rounded-2xl"
             style={{ background: "#f5f5f7", border: "1px solid rgba(0,0,0,0.06)" }}
@@ -103,7 +103,7 @@ export default async function ServiceRankingPage() {
               ログイン / 新規登録
             </a>
           </div>
-        )}
+        )} */}
 
         <ServiceRankingClient
           rankedServices={rankedServices}

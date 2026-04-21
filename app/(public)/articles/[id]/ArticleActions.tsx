@@ -296,7 +296,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
         className="flex items-center gap-4 border-b pb-4 mb-6"
         style={{ borderColor: "#e5e5e5" }}
       >
-        <SaveButton size="sm" />
+        {/* <SaveButton size="sm" /> */}{/* 保存ボタン UI非表示 */}
         <TwitterButton size="sm" />
         <CopyButton size="sm" />
       </div>
@@ -309,8 +309,8 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
         className="flex items-center gap-6 border-t pt-8 mb-8"
         style={{ borderColor: "#e5e5e5" }}
       >
-        {/* いいね */}
-        <button
+        {/* いいねボタン UI非表示 */}
+        {/* <button
           onClick={handleLike}
           className="flex items-center gap-2 transition-colors"
           style={{
@@ -352,10 +352,10 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
           >
             {likeCount}
           </span>
-        </button>
+        </button> */}
 
-        {/* 保存 */}
-        <SaveButton size="base" />
+        {/* 保存ボタン UI非表示 */}
+        {/* <SaveButton size="base" /> */}
 
         {/* コメント数（FEATURES.comments が true のときのみ表示）*/}
         {FEATURES.comments && (

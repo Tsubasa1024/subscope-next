@@ -16,7 +16,7 @@ interface HeaderProps {
 
 const NAV_ITEMS_BASE = [
   { href: "/ranking",         label: "記事ランキング" },
-  { href: "/service-ranking", label: "サブスクランキング" },
+  // { href: "/service-ranking", label: "サブスクランキング" }, // UI非表示
 ];
 
 const NAV_ITEMS_DIAGNOSIS = { href: "/diagnosis", label: "診断" };
@@ -392,24 +392,8 @@ export default function Header({ articles = [] }: HeaderProps) {
                 </li>
               </ul>
             ) : (
-              <div className="px-4 flex flex-col gap-3">
-                <Link
-                  href="/login"
-                  onClick={closeDrawer}
-                  className="w-full text-center py-3 rounded-full text-base font-medium transition-colors"
-                  style={{ border: "1px solid #d1d5db", background: "#fff", color: "#111" }}
-                >
-                  ログイン
-                </Link>
-                <Link
-                  href="/signup"
-                  onClick={closeDrawer}
-                  className="bg-black text-white rounded-full py-3 w-full text-center font-medium hover:bg-gray-800 transition-colors"
-                  style={{ backgroundColor: "#000000", color: "#ffffff" }}
-                >
-                  新規登録
-                </Link>
-              </div>
+              // ログイン・会員登録ボタン UI非表示
+              null
             )
           )}
         </div>

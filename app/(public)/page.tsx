@@ -294,7 +294,8 @@ export default async function TopPage() {
       {/* =====================================================
           4. ランキング TOP5（実データ。データなしは非表示）
       ===================================================== */}
-      {top5.length > 0 && (
+      {/* 人気サービス TOP 5 セクション UI非表示 */}
+      {false && top5.length > 0 && (
         <section className="py-14" style={{ background: "#f5f5f7" }}>
           <div className="container">
             <div className="flex items-end justify-between mb-6">

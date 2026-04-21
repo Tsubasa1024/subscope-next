@@ -428,33 +428,8 @@ export default function ServiceDetailClient({
           </form>
         </section>
       ) : (
-        <div
-          className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 px-6 py-5"
-          style={{
-            background: "#f5f5f7",
-            border: "1px solid rgba(0,0,0,0.06)",
-            borderRadius: "20px",
-          }}
-        >
-          <div>
-            <p
-              className="font-semibold text-sm"
-              style={{ color: "#1d1d1f" }}
-            >
-              ログインするとレビューを投稿できます
-            </p>
-            <p className="text-xs mt-1" style={{ color: "#86868b" }}>
-              会員登録は無料です。
-            </p>
-          </div>
-          <a
-            href="/login"
-            className="flex-shrink-0 text-sm font-semibold px-5 py-2.5 rounded-full"
-            style={{ background: "#111111", color: "#fff" }}
-          >
-            ログイン / 新規登録
-          </a>
-        </div>
+        // 未ログイン時のログイン誘導バナー UI非表示
+        null
       )}
 
       {/* ③ ユーザーレビュー一覧 */}

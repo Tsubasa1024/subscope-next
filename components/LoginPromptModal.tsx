@@ -77,24 +77,14 @@ export default function LoginPromptModal({
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
-            <Link
-              href="/login"
-              onClick={onClose}
-              className="flex items-center justify-center w-full py-3 rounded-full font-semibold text-sm"
-              style={{ background: "#111", color: "#fff" }}
-            >
-              ログイン
-            </Link>
-            <Link
-              href="/signup"
-              onClick={onClose}
-              className="flex items-center justify-center w-full py-3 rounded-full font-semibold text-sm border border-gray-200"
-              style={{ background: "#fff", color: "#111" }}
-            >
-              新規登録
-            </Link>
-          </div>
+          // ログイン・新規登録ボタン UI非表示
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-full text-sm font-medium"
+            style={{ background: "none", border: "1.5px solid #e5e5ea", cursor: "pointer", fontFamily: "inherit", color: "#555" }}
+          >
+            閉じる
+          </button>
         )}
       </div>
     </div>

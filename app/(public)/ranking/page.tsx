@@ -74,22 +74,7 @@ export default async function RankingPage() {
             <p className="text-sm mb-8" style={{ color: "#86868b", maxWidth: "340px" }}>
               会員登録（無料）またはログインすると、人気記事ランキングを閲覧できます。
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/login"
-                className="flex items-center justify-center px-8 py-3 rounded-full font-semibold text-sm"
-                style={{ background: "#111", color: "#fff" }}
-              >
-                ログインする
-              </Link>
-              <Link
-                href="/signup"
-                className="flex items-center justify-center px-8 py-3 rounded-full font-semibold text-sm"
-                style={{ background: "#fff", color: "#111", border: "1.5px solid #d1d5db" }}
-              >
-                無料で会員登録
-              </Link>
-            </div>
+            {/* ログイン・会員登録ボタン UI非表示 */}
           </div>
         </div>
       </main>
