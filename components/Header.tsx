@@ -122,16 +122,15 @@ export default function Header({ articles = [] }: HeaderProps) {
           <div className="w-10 flex-shrink-0" />
 
           {/* ===== CENTER: ロゴ ===== */}
-          <Link
-            href="/"
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              letterSpacing: "-0.03em",
-              color: "#1d1d1f",
-            }}
-          >
-            SUBSCOPE
+          <Link href="/">
+            <Image
+              src="/logo.svg"
+              alt="SUBSCOPE"
+              width={0}
+              height={32}
+              style={{ width: "auto", height: "32px" }}
+              priority
+            />
           </Link>
 
           {/* ===== RIGHT: ハンバーガーボタン ===== */}

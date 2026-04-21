@@ -53,6 +53,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      </head>
       <body style={{ fontFamily: "var(--font-inter), var(--font-noto), -apple-system, BlinkMacSystemFont, sans-serif" }}>
         <AuthProvider>
           {children}
