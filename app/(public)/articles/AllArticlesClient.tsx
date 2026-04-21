@@ -183,7 +183,10 @@ export default function AllArticlesClient({
 
         {filtered.length === 0 ? (
           <div className="text-center py-20" style={{ color: "#86868b" }}>
-            <p className="text-5xl mb-4">🔍</p>
+            <svg className="mx-auto mb-4" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
             <p className="font-semibold mb-2" style={{ color: "#1d1d1f" }}>記事が見つかりませんでした</p>
             <p className="text-sm">キーワードやカテゴリを変えてお試しください。</p>
           </div>
