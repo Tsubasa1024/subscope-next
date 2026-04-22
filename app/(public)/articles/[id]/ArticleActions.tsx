@@ -55,7 +55,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
   const [liked,         setLiked]         = useState(initialLiked ?? false);
   const [saved,         setSaved]         = useState(initialSaved ?? false);
   const [commentCount,  setCommentCount]  = useState(0);
-  const [copied,        setCopied]        = useState(false);
   const [likeLoading,   setLikeLoading]   = useState(false);
   const [saveLoading,   setSaveLoading]   = useState(false);
   const [likeAnimating, setLikeAnimating] = useState(false);
@@ -195,14 +194,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener");
   }
 
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(articleUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch { /* noop */ }
-  }
-
   // ===== 共通ボタンパーツ =====
 
   const SaveButton = useCallback(({ size }: { size: "sm" | "base" }) => {
@@ -249,39 +240,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
     </button>
   );
 
-  const CopyButton = ({ size }: { size: "sm" | "base" }) => (
-    <button
-      onClick={handleCopy}
-      className="flex items-center gap-1.5 transition-colors"
-      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0,
-               color: copied ? "#111111" : "#9ca3af" }}
-      aria-label="URLをコピー"
-    >
-      {copied ? (
-        <>
-          <svg width={size === "sm" ? 14 : 18} height={size === "sm" ? 14 : 18}
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-            strokeLinecap="round" strokeLinejoin="round"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 500 }}>コピー済</span>
-        </>
-      ) : (
-        <>
-          <svg width={size === "sm" ? 14 : 18} height={size === "sm" ? 14 : 18}
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round"
-          >
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-          </svg>
-          <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 500 }}>コピー</span>
-        </>
-      )}
-    </button>
-  );
-
   return (
     <>
       {/* ログインモーダル */}
@@ -311,7 +269,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
       >
         {/* <SaveButton size="sm" /> */}{/* 保存ボタン UI非表示 */}
         <ShareButton size="sm" />
-        <CopyButton size="sm" />
       </div>
 
       {/* ===== 記事コンテンツ ===== */}
@@ -389,7 +346,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
 
         <div className="flex-1" />
         <ShareButton size="base" />
-        <CopyButton size="base" />
       </div>
     </>
   );
