@@ -138,11 +138,14 @@ export default function Header({ articles = [] }: HeaderProps) {
           <button
             onClick={openDrawer}
             aria-label="メニューを開く"
-            className="flex flex-col items-center justify-center w-10 h-10 flex-shrink-0 rounded-full hover:bg-gray-100 transition-colors gap-[5px]"
+            className="flex items-center justify-center w-10 h-10 flex-shrink-0 rounded-full hover:bg-gray-100 transition-colors"
           >
-            <span className="block w-[18px] h-[2px] rounded bg-gray-800" />
-            <span className="block w-[14px] h-[2px] rounded bg-gray-800" />
-            <span className="block w-[18px] h-[2px] rounded bg-gray-800" />
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="7" height="7" rx="1.5" fill="#1f2937" />
+              <rect x="11" y="2" width="7" height="7" rx="1.5" fill="#1f2937" />
+              <rect x="2" y="11" width="7" height="7" rx="1.5" fill="#1f2937" />
+              <rect x="11" y="11" width="7" height="7" rx="1.5" fill="#1f2937" />
+            </svg>
           </button>
         </div>
       </header>
