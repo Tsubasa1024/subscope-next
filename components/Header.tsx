@@ -160,9 +160,8 @@ export default function Header({ articles = [] }: HeaderProps) {
 
       {/* ===== ドロワー ===== */}
       <div
-        className="fixed top-0 right-0 h-full z-[170] bg-white flex flex-col"
+        className="fixed top-0 left-0 right-0 sm:left-auto sm:w-[600px] h-full z-[170] bg-white flex flex-col"
         style={{
-          width: "min(600px, 100vw)",
           transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s ease",
           boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
