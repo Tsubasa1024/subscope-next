@@ -85,23 +85,19 @@ export default function AllArticlesClient({
         }}
       >
         <div className="container">
-          {/* カテゴリタブ（横スクロール） */}
-          <div
-            className="flex justify-center gap-1 overflow-x-auto py-3"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
+          {/* カテゴリタブ（折り返し2行） */}
+          <div className="flex flex-wrap justify-center gap-1.5 py-3">
             {["すべて", ...categories].map((cat) => (
               <button
                 key={cat}
                 onClick={() => handleCategory(cat)}
-                className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all"
+                className="px-3 py-1 rounded-full text-xs font-medium transition-all"
                 style={{
                   background: cat === activeCategory ? "#1d1d1f" : "transparent",
                   color:      cat === activeCategory ? "#fff"    : "#1d1d1f",
                   fontFamily: "inherit",
                   border: "none",
                   cursor: "pointer",
-                  whiteSpace: "nowrap",
                 }}
               >
                 {cat}
