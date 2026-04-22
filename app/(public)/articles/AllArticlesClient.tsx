@@ -42,18 +42,17 @@ export default function AllArticlesClient({
     setActiveCategory(cat);
     setSearchQuery("");
     setInputValue("");
-    const params = new URLSearchParams();
-    if (cat !== "すべて") params.set("category", cat);
-    router.push(`/articles${params.size ? `?${params}` : ""}`);
+    const qs = cat !== "すべて" ? `?category=${encodeURIComponent(cat)}` : "";
+    router.push(`/articles${qs}`);
   }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setSearchQuery(inputValue);
     setActiveCategory("すべて");
-    const params = new URLSearchParams();
-    if (inputValue.trim()) params.set("q", inputValue.trim());
-    router.push(`/articles${params.size ? `?${params}` : ""}`);
+    const trimmed = inputValue.trim();
+    const qs = trimmed ? `?q=${encodeURIComponent(trimmed)}` : "";
+    router.push(`/articles${qs}`);
   }
 
   const filtered = articles.filter((a) => {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getArticles } from "@/lib/microcms";
 import AllArticlesClient from "./AllArticlesClient";
 import { fetchAllViewCounts } from "@/lib/viewCounts";
@@ -30,12 +31,14 @@ export default async function ArticlesPage({
   const categories = CATEGORY_ORDER;
 
   return (
-    <AllArticlesClient
-      articles={articles}
-      categories={categories}
-      initialCategory={category ?? "すべて"}
-      initialSearch={q ?? ""}
-      viewCounts={viewCounts}
-    />
+    <Suspense>
+      <AllArticlesClient
+        articles={articles}
+        categories={categories}
+        initialCategory={category ?? "すべて"}
+        initialSearch={q ?? ""}
+        viewCounts={viewCounts}
+      />
+    </Suspense>
   );
 }
