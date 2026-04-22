@@ -300,15 +300,14 @@ export default function Header({ articles = [] }: HeaderProps) {
                     key={href}
                     href={href}
                     onClick={closeDrawer}
-                    className="flex items-center justify-between p-5 bg-white hover:bg-gray-50 transition-colors"
+                    className="flex items-center p-4 bg-white hover:bg-gray-50 transition-colors"
                     style={{
                       color: "#111111",
                       borderRight: i % 2 === 0 ? "1px solid #e5e7eb" : "none",
                       borderBottom: i < ARTICLE_CATEGORIES.length - 2 ? "1px solid #e5e7eb" : "none",
                     }}
                   >
-                    <span className="text-base font-medium">{label}</span>
-                    <ChevronRight size={16} className="text-gray-400" />
+                    <span className="text-sm font-medium">{label}</span>
                   </Link>
                 ))}
               </div>

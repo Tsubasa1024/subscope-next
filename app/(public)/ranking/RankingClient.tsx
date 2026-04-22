@@ -155,10 +155,10 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                     <Link
                       key={article.id}
                       href={`/articles/${article.id}`}
+                      className="flex flex-col sm:flex-row"
                       style={{
-                        display: "flex",
-                        gap: "20px",
-                        padding: "24px",
+                        gap: "16px",
+                        padding: "20px",
                         borderRadius: "28px",
                         background: "#fff",
                         boxShadow: "0 12px 32px rgba(0,0,0,0.08)",
@@ -171,15 +171,15 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                       <div
                         style={{
                           position: "absolute",
-                          top: "20px",
-                          left: "20px",
-                          width: "54px",
-                          height: "54px",
+                          top: "16px",
+                          left: "16px",
+                          width: "44px",
+                          height: "44px",
                           borderRadius: "999px",
                           background: badgeColor,
                           color: "#fff",
                           fontWeight: 700,
-                          fontSize: "1.2rem",
+                          fontSize: "1.1rem",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -191,12 +191,11 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
 
                       {/* サムネイル */}
                       <div
+                        className="w-full sm:w-[200px] flex-shrink-0"
                         style={{
-                          width: "260px",
                           height: "160px",
-                          borderRadius: "20px",
+                          borderRadius: "16px",
                           background: "#f0f0f0",
-                          flexShrink: 0,
                           position: "relative",
                           overflow: "hidden",
                         }}
@@ -206,7 +205,7 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                             src={imgUrl}
                             alt={article.title ?? ""}
                             fill
-                            sizes="260px"
+                            sizes="(max-width: 640px) 100vw, 200px"
                             style={{ objectFit: "cover" }}
                             priority={rank <= 3}
                           />
@@ -214,19 +213,19 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                       </div>
 
                       {/* テキスト */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0 }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
                         {article.service && (
                           <p style={{ fontSize: "0.68rem", fontWeight: 700, color: "#86868b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                             {article.service}
                           </p>
                         )}
-                        <h2 style={{ fontSize: "1.6rem", fontWeight: 700, lineHeight: 1.35 }}>
+                        <h2 style={{ fontSize: "1.2rem", fontWeight: 700, lineHeight: 1.4 }}>
                           {article.title}
                         </h2>
                         {article.description && (
-                          <p style={{ fontSize: "1rem", color: "#555" }}>{article.description}</p>
+                          <p style={{ fontSize: "0.9rem", color: "#555" }}>{article.description}</p>
                         )}
-                        <div style={{ marginTop: "8px", display: "flex", gap: "12px", fontSize: "0.9rem", color: "#86868b", alignItems: "center", flexWrap: "wrap" }}>
+                        <div style={{ marginTop: "8px", display: "flex", gap: "12px", fontSize: "0.85rem", color: "#86868b", alignItems: "center", flexWrap: "wrap" }}>
                           {article.publishedAt && <span>{article.publishedAt.slice(0, 10)}</span>}
                           {normalizeCategory(article.category) && (
                             <span
@@ -234,7 +233,7 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                                 background: "#f0f0f0",
                                 borderRadius: "999px",
                                 padding: "2px 10px",
-                                fontSize: "0.78rem",
+                                fontSize: "0.75rem",
                                 color: "#555",
                               }}
                             >
