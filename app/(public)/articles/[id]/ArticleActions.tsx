@@ -179,7 +179,17 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
     }
   }
 
-  function handleTwitterShare() {
+  async function handleShare() {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: articleTitle, url: articleUrl });
+        return;
+      } catch (e) {
+        // AbortError はユーザーがキャンセルした場合なので無視
+        if (e instanceof DOMException && e.name === "AbortError") return;
+      }
+    }
+    // フォールバック: Twitter シェア
     const text = encodeURIComponent(`${articleTitle} | SUBSCOPE`);
     const url  = encodeURIComponent(articleUrl);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener");
@@ -220,17 +230,20 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
     );
   }, [saved, saveLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const TwitterButton = ({ size }: { size: "sm" | "base" }) => (
+  const ShareButton = ({ size }: { size: "sm" | "base" }) => (
     <button
-      onClick={handleTwitterShare}
+      onClick={handleShare}
       className="flex items-center gap-1.5 text-gray-400 hover:text-gray-700 transition-colors"
       style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
-      aria-label="Xでシェア"
+      aria-label="シェア"
     >
       <svg width={size === "sm" ? 14 : 18} height={size === "sm" ? 14 : 18}
-        viewBox="0 0 24 24" fill="currentColor"
+        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round"
       >
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.633 5.905-5.633Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+        <polyline points="16 6 12 2 8 6" />
+        <line x1="12" y1="2" x2="12" y2="15" />
       </svg>
       <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 500 }}>シェア</span>
     </button>
@@ -297,7 +310,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
         style={{ borderColor: "#e5e5e5" }}
       >
         {/* <SaveButton size="sm" /> */}{/* 保存ボタン UI非表示 */}
-        <TwitterButton size="sm" />
+        <ShareButton size="sm" />
         <CopyButton size="sm" />
       </div>
 
@@ -375,7 +388,7 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
         )}
 
         <div className="flex-1" />
-        <TwitterButton size="base" />
+        <ShareButton size="base" />
         <CopyButton size="base" />
       </div>
     </>
