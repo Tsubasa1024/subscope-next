@@ -10,6 +10,7 @@ import ArticleViewTracker from "./ArticleViewTracker";
 import PRLabel from "@/components/PRLabel";
 import { FEATURES } from "@/lib/features";
 import { transformContent } from "@/lib/transformContent";
+import { formatViews } from "@/lib/utils";
 
 // 認証状態を読むため動的レンダリング（記事本文はfetchキャッシュで高速）
 export const dynamic = "force-dynamic";
@@ -73,22 +74,25 @@ export default async function ArticlePage({ params }: Props) {
   const articleUrl = `https://www.subscope.jp/articles/${id}`;
   const content    = article.content ? await transformContent(article.content) : null;
 
-  // サーバー側でユーザーの保存済み・いいね状態を取得（ちらつき防止）
+  // サーバー側でユーザーの保存済み・いいね状態・views を取得（ちらつき防止）
   let initialSaved: boolean | undefined;
   let initialLiked: boolean | undefined;
   let initialLikeCount: number | undefined;
+  let articleViewCount = 0;
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const [likesResult, ...userResults] = await Promise.all([
+    const [likesResult, viewsResult, ...userResults] = await Promise.all([
       supabase.from("article_likes").select("*", { count: "exact", head: true }).eq("article_id", id),
+      supabase.from("article_views" as never).select("*", { count: "exact", head: true }).eq("article_id", id),
       ...(user ? [
         supabase.from("article_saves").select("user_id").eq("article_id", id).eq("user_id", user.id).maybeSingle(),
         supabase.from("article_likes").select("user_id").eq("article_id", id).eq("user_id", user.id).maybeSingle(),
       ] : []),
     ]);
     initialLikeCount = likesResult.count ?? 0;
+    articleViewCount = (viewsResult as { count: number | null }).count ?? 0;
     if (user) {
       initialSaved = !!(userResults[0] as { data: unknown }).data;
       initialLiked = !!(userResults[1] as { data: unknown }).data;
@@ -117,6 +121,15 @@ export default async function ArticlePage({ params }: Props) {
           )}
           {date && (
             <span className="text-sm" style={{ color: "#aaaaaa" }}>{date}</span>
+          )}
+          {articleViewCount > 0 && (
+            <span className="flex items-center gap-1 text-sm" style={{ color: "#aaaaaa" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              {formatViews(articleViewCount)}
+            </span>
           )}
         </div>
 

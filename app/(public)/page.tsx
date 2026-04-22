@@ -6,6 +6,8 @@ import Image from "next/image";
 import { getArticles, getImageUrl, normalizeCategory } from "@/lib/microcms";
 import { createClient } from "@/lib/supabase/server";
 import { FEATURES } from "@/lib/features";
+import { fetchAllViewCounts } from "@/lib/viewCounts";
+import { formatViews } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "SUBSCOPE｜サブスクリプションのリアルなレビューメディア",
@@ -87,9 +89,10 @@ async function fetchTop5Rankings(): Promise<RankingItem[]> {
 }
 
 export default async function TopPage() {
-  const [articles, top5] = await Promise.all([
+  const [articles, top5, viewCounts] = await Promise.all([
     getArticles(13).catch(() => []),
     fetchTop5Rankings().catch(() => []),
+    fetchAllViewCounts().catch((): Record<string, number> => ({})),
   ]);
   const featured = articles[0] ?? null;
   const grid     = articles.slice(1, 13); // 最大12件
@@ -266,7 +269,7 @@ export default async function TopPage() {
         ) : (
           <div className="articles-grid">
             {grid.map((article, i) => (
-              <ArticleCard key={article.id} article={article} priority={i < 3} />
+              <ArticleCard key={article.id} article={article} priority={i < 3} viewCount={viewCounts[article.id] ?? 0} />
             ))}
           </div>
         )}
@@ -433,9 +436,11 @@ export default async function TopPage() {
 function ArticleCard({
   article,
   priority = false,
+  viewCount = 0,
 }: {
   article: Awaited<ReturnType<typeof getArticles>>[number];
   priority?: boolean;
+  viewCount?: number;
 }) {
   const imgUrl   = getImageUrl(article);
   const category = normalizeCategory(article.category);
@@ -508,7 +513,18 @@ function ArticleCard({
           className="flex items-center justify-between mt-3 pt-3"
           style={{ borderTop: "1px solid rgba(0,0,0,0.05)" }}
         >
-          <span className="text-xs" style={{ color: "#86868b" }}>{date}</span>
+          <span className="flex items-center gap-2">
+            <span className="text-xs" style={{ color: "#86868b" }}>{date}</span>
+            {viewCount > 0 && (
+              <span className="flex items-center gap-1 text-xs" style={{ color: "#86868b" }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                {formatViews(viewCount)}
+              </span>
+            )}
+          </span>
           <span
             className="text-xs font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
             style={{ color: "#111111" }}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getArticles } from "@/lib/microcms";
 import AllArticlesClient from "./AllArticlesClient";
+import { fetchAllViewCounts } from "@/lib/viewCounts";
 
 export const revalidate = 60;
 
@@ -20,7 +21,10 @@ export default async function ArticlesPage({
 }) {
   const { category, q } = await searchParams;
 
-  const articles = await getArticles(100).catch(() => []);
+  const [articles, viewCounts] = await Promise.all([
+    getArticles(100).catch(() => []),
+    fetchAllViewCounts().catch((): Record<string, number> => ({})),
+  ]);
 
   const CATEGORY_ORDER = ["AI", "動画", "音楽", "読書", "フィットネス", "学習", "ビジネス", "その他"];
   const categories = CATEGORY_ORDER;
@@ -31,6 +35,7 @@ export default async function ArticlesPage({
       categories={categories}
       initialCategory={category ?? "すべて"}
       initialSearch={q ?? ""}
+      viewCounts={viewCounts}
     />
   );
 }

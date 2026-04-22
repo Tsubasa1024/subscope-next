@@ -11,6 +11,7 @@ interface AllArticlesClientProps {
   categories: string[];
   initialCategory?: string;
   initialSearch?: string;
+  viewCounts?: Record<string, number>;
 }
 
 export default function AllArticlesClient({
@@ -18,6 +19,7 @@ export default function AllArticlesClient({
   categories,
   initialCategory = "すべて",
   initialSearch = "",
+  viewCounts = {},
 }: AllArticlesClientProps) {
   const router       = useRouter();
   const searchParams = useSearchParams();
@@ -193,7 +195,7 @@ export default function AllArticlesClient({
         ) : (
           <div className="articles-grid">
             {filtered.map((article, i) => (
-              <ArticleCard key={article.id} article={article} priority={i < 3} />
+              <ArticleCard key={article.id} article={article} priority={i < 3} viewCount={viewCounts[article.id] ?? 0} />
             ))}
           </div>
         )}

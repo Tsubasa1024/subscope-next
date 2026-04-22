@@ -1,14 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Article } from "@/lib/utils";
-import { normalizeCategory, getImageUrl } from "@/lib/utils";
+import { normalizeCategory, getImageUrl, formatViews } from "@/lib/utils";
 
 interface ArticleCardProps {
   article: Article;
   priority?: boolean;
+  viewCount?: number;
 }
 
-export default function ArticleCard({ article, priority = false }: ArticleCardProps) {
+export default function ArticleCard({ article, priority = false, viewCount }: ArticleCardProps) {
   const imgUrl = getImageUrl(article);
   const category = normalizeCategory(article.category);
   const date = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
@@ -143,7 +144,18 @@ export default function ArticleCard({ article, priority = false }: ArticleCardPr
           borderTop: "1px solid rgba(0,0,0,0.05)",
         }}
       >
-        <span style={{ fontSize: "10px", color: "#86868b" }}>{date}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "10px", color: "#86868b" }}>{date}</span>
+          {viewCount !== undefined && viewCount > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "10px", color: "#86868b" }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              {formatViews(viewCount)}
+            </span>
+          )}
+        </span>
         <span
           style={{
             width: "24px",

@@ -38,6 +38,12 @@ export function normalizeCategory(category: Category | undefined): string {
   return (category.name || category.id || "").trim();
 }
 
+/** views 数を 1.2k 形式にフォーマット */
+export function formatViews(n: number): string {
+  if (n >= 1000) return `${+((n / 1000).toFixed(1))}k`;
+  return `${n}`;
+}
+
 /** 記事のサムネイルURLを取得 */
 export function getImageUrl(article: Article): string {
   return (
