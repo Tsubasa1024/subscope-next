@@ -73,7 +73,9 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
   const [period,   setPeriod]   = useState<Period>("weekly");
   const [category, setCategory] = useState("すべて");
 
-  const viewCnt = viewCounts[period];
+  // 並び順は選択期間、表示カウントは全期間（他ページと統一）
+  const rankCnt    = viewCounts[period];
+  const displayCnt = viewCounts.all;
 
   // 1. カテゴリフィルタ
   const filtered =
@@ -81,16 +83,16 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
       ? articles
       : articles.filter((a) => normalizeCategory(a.category) === category);
 
-  // 2. 閲覧数降順
+  // 2. 閲覧数降順（選択期間基準）
   const ranked = [...filtered].sort(
-    (a, b) => (viewCnt[b.id] ?? 0) - (viewCnt[a.id] ?? 0)
+    (a, b) => (rankCnt[b.id] ?? 0) - (rankCnt[a.id] ?? 0)
   );
 
   const top3 = ranked.slice(0, 3);
   const rest = ranked.slice(3);
 
   function viewCount(article: Article) {
-    return viewCnt[article.id] ?? 0;
+    return displayCnt[article.id] ?? 0;
   }
 
   return (
