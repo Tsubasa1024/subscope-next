@@ -38,11 +38,12 @@ export default function AllArticlesClient({
   }, [searchParams]);
 
   // カテゴリ切替 → URL を更新
+  // router.push は内部でエンコードするため、生の文字列で渡す
   function handleCategory(cat: string) {
     setActiveCategory(cat);
     setSearchQuery("");
     setInputValue("");
-    const qs = cat !== "すべて" ? `?category=${encodeURIComponent(cat)}` : "";
+    const qs = cat !== "すべて" ? `?category=${cat}` : "";
     router.push(`/articles${qs}`);
   }
 
@@ -51,7 +52,7 @@ export default function AllArticlesClient({
     setSearchQuery(inputValue);
     setActiveCategory("すべて");
     const trimmed = inputValue.trim();
-    const qs = trimmed ? `?q=${encodeURIComponent(trimmed)}` : "";
+    const qs = trimmed ? `?q=${trimmed}` : "";
     router.push(`/articles${qs}`);
   }
 
