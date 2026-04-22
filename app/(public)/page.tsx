@@ -6,7 +6,7 @@ import Image from "next/image";
 import { getArticles, getImageUrl, normalizeCategory } from "@/lib/microcms";
 import { createClient } from "@/lib/supabase/server";
 import { FEATURES } from "@/lib/features";
-import { fetchAllViewCounts } from "@/lib/viewCounts";
+import { fetchAllViewCounts, fetchWeeklyViewCounts } from "@/lib/viewCounts";
 import { formatViews } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -89,13 +89,22 @@ async function fetchTop5Rankings(): Promise<RankingItem[]> {
 }
 
 export default async function TopPage() {
-  const [articles, top5, viewCounts] = await Promise.all([
+  const [articles, top5, viewCounts, weeklyViewCounts] = await Promise.all([
     getArticles(13).catch(() => []),
     fetchTop5Rankings().catch(() => []),
     fetchAllViewCounts().catch((): Record<string, number> => ({})),
+    fetchWeeklyViewCounts().catch((): Record<string, number> => ({})),
   ]);
-  const featured = articles[0] ?? null;
-  const grid     = articles.slice(1, 13); // 最大12件
+
+  // 直近7日間で最も読まれた記事をヒーローに（該当なければ最新記事）
+  const featuredId = articles.reduce<string | null>((bestId, a) => {
+    const count = weeklyViewCounts[a.id] ?? 0;
+    return count > (weeklyViewCounts[bestId ?? ""] ?? 0) ? a.id : bestId;
+  }, null);
+  const featured = (featuredId && (weeklyViewCounts[featuredId] ?? 0) > 0)
+    ? (articles.find((a) => a.id === featuredId) ?? articles[0] ?? null)
+    : (articles[0] ?? null);
+  const grid = articles.filter((a) => a.id !== featured?.id).slice(0, 12);
 
   return (
     <div style={{ paddingTop: "var(--header-h)" }}>
