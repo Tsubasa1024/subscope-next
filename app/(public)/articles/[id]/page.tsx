@@ -9,6 +9,7 @@ import ArticleComments from "./ArticleComments";
 import ArticleViewTracker from "./ArticleViewTracker";
 import PRLabel from "@/components/PRLabel";
 import { FEATURES } from "@/lib/features";
+import { transformContent } from "@/lib/transformContent";
 
 // 認証状態を読むため動的レンダリング（記事本文はfetchキャッシュで高速）
 export const dynamic = "force-dynamic";
@@ -70,6 +71,7 @@ export default async function ArticlePage({ params }: Props) {
   const category   = normalizeCategory(article.category);
   const date       = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
   const articleUrl = `https://www.subscope.jp/articles/${id}`;
+  const content    = article.content ? await transformContent(article.content) : null;
 
   // サーバー側でユーザーの保存済み・いいね状態を取得（ちらつき防止）
   let initialSaved: boolean | undefined;
@@ -148,7 +150,7 @@ export default async function ArticlePage({ params }: Props) {
           {/* サムネイル */}
           {imgUrl && (
             <div
-              className="rounded-lg overflow-hidden mb-10"
+              className="overflow-hidden mb-8"
               style={{ position: "relative", aspectRatio: "16/9", background: "#f0f0f0" }}
             >
               <Image
@@ -163,11 +165,10 @@ export default async function ArticlePage({ params }: Props) {
           )}
 
           {/* 本文 */}
-          {article.content && (
+          {content && (
             <div
               className="article-body"
-              dangerouslySetInnerHTML={{ __html: article.content }}
-              style={{ fontSize: "17px", lineHeight: 2.0, color: "#1f2937" }}
+              dangerouslySetInnerHTML={{ __html: content }}
             />
           )}
 

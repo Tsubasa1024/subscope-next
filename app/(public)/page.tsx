@@ -213,15 +213,14 @@ export default async function TopPage() {
       >
         <div className="container">
           <div
-            className="flex justify-center gap-1 overflow-x-auto py-3"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            className="flex flex-wrap justify-center gap-1.5 py-3"
           >
             {CATEGORY_NAV.map(({ label, href }) => (
               <Link
                 key={label}
                 href={href}
-                className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-gray-100"
-                style={{ color: "#1d1d1f", whiteSpace: "nowrap" }}
+                className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-gray-100"
+                style={{ color: "#1d1d1f" }}
               >
                 {label}
               </Link>
