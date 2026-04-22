@@ -162,7 +162,7 @@ export default function Header({ articles = [] }: HeaderProps) {
       <div
         className="fixed top-0 right-0 h-full z-[170] bg-white flex flex-col"
         style={{
-          width: "600px",
+          width: "min(600px, 100vw)",
           transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s ease",
           boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
@@ -183,7 +183,7 @@ export default function Header({ articles = [] }: HeaderProps) {
         </div>
 
         {/* ドロワー本体（スクロール可能） */}
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
 
           {/* 検索ボックス */}
           <form onSubmit={handleSearch} className="mb-6">

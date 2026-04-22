@@ -89,8 +89,8 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
   const top3 = ranked.slice(0, 3);
   const rest = ranked.slice(3);
 
-  function metricLabel(article: Article) {
-    return `👁 ${(viewCnt[article.id] ?? 0).toLocaleString()} views`;
+  function viewCount(article: Article) {
+    return viewCnt[article.id] ?? 0;
   }
 
   return (
@@ -240,8 +240,14 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                               {normalizeCategory(article.category)}
                             </span>
                           )}
-                          {metricLabel(article) && (
-                            <span>{metricLabel(article)}</span>
+                          {viewCount(article) > 0 && (
+                            <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                              {viewCount(article).toLocaleString()}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -287,7 +293,15 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                             {normalizeCategory(article.category) && (
                               <span>{normalizeCategory(article.category)}</span>
                             )}
-                            {metricLabel(article) && <span>{metricLabel(article)}</span>}
+                            {viewCount(article) > 0 && (
+                              <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                  <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                {viewCount(article).toLocaleString()}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </Link>
