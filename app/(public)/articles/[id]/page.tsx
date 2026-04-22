@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { getArticle, getAllArticleIds, getImageUrl, normalizeCategory } from "@/lib/microcms";
+import { getArticle, getAllArticleIds, getImageUrl, normalizeCategory, getArticles } from "@/lib/microcms";
 import { createClient } from "@/lib/supabase/server";
 import ArticleActions from "./ArticleActions";
 import ArticleComments from "./ArticleComments";
 import ArticleViewTracker from "./ArticleViewTracker";
 import PRLabel from "@/components/PRLabel";
+import ArticleCard from "@/components/ArticleCard";
 import { FEATURES } from "@/lib/features";
 import { transformContent } from "@/lib/transformContent";
 import { formatViews } from "@/lib/utils";
+import { fetchAllViewCounts } from "@/lib/viewCounts";
 
 // 認証状態を読むため動的レンダリング（記事本文はfetchキャッシュで高速）
 export const dynamic = "force-dynamic";
@@ -100,6 +102,15 @@ export default async function ArticlePage({ params }: Props) {
   } catch {
     // 取得失敗時はクライアント側のuseEffectにフォールバック
   }
+
+  // 関連記事（同カテゴリ・最新順・自記事除外）
+  const [allArticles, relatedViewCounts] = await Promise.all([
+    getArticles(100).catch(() => []),
+    fetchAllViewCounts().catch((): Record<string, number> => ({})),
+  ]);
+  const relatedArticles = allArticles
+    .filter((a) => a.id !== id && normalizeCategory(a.category) === category)
+    .slice(0, 4);
 
   return (
     <main style={{ paddingTop: "var(--header-h)", paddingBottom: "60px" }}>
@@ -209,6 +220,28 @@ export default async function ArticlePage({ params }: Props) {
 
         {/* コメントセクション（FEATURES.comments が true のときのみ表示）*/}
         {FEATURES.comments && <ArticleComments articleId={id} />}
+
+        {/* 関連記事 */}
+        {relatedArticles.length > 0 && (
+          <div style={{ marginTop: "48px", paddingTop: "32px", borderTop: "1px solid rgba(0,0,0,0.07)" }}>
+            <h2
+              style={{
+                fontSize: "18px",
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+                marginBottom: "20px",
+                color: "#1d1d1f",
+              }}
+            >
+              関連記事
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              {relatedArticles.map((a) => (
+                <ArticleCard key={a.id} article={a} viewCount={relatedViewCounts[a.id] ?? 0} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 戻るリンク */}
         <div className="mt-10 mb-4">
