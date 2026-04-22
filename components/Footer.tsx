@@ -15,18 +15,17 @@ export default function Footer() {
           style={{
             display: "flex",
             justifyContent: "center",
-            gap: "40px",
+            gap: "20px",
             marginBottom: "20px",
-            flexWrap: "wrap",
           }}
         >
-          <Link href="/privacy" style={{ fontSize: "15px" }}>
+          <Link href="/privacy" style={{ fontSize: "14px" }}>
             プライバシーポリシー
           </Link>
-          <Link href="/terms" style={{ fontSize: "15px" }}>
+          <Link href="/terms" style={{ fontSize: "14px" }}>
             利用規約
           </Link>
-          <Link href="/company" style={{ fontSize: "15px" }}>
+          <Link href="/company" style={{ fontSize: "14px" }}>
             運営会社
           </Link>
         </div>
