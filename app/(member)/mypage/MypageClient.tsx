@@ -4,7 +4,6 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import PlanBadge from "@/components/PlanBadge";
 import AvatarCropModal from "@/components/AvatarCropModal";
 import { SAVE_LIMITS, PHASE1_SAVE_LIMIT } from "@/lib/constants";
 import { FEATURES } from "@/lib/features";
@@ -592,7 +591,6 @@ export default function MypageClient({
 
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <p style={{ fontWeight: 700, fontSize: "1.15rem" }}>{displayName}</p>
-                {FEATURES.subscription && <PlanBadge plan={currentPlan} />}
               </div>
               {username && <p style={{ fontSize: "0.85rem", color: "#86868b" }}>@{username}</p>}
               <p style={{ fontSize: "0.85rem", color: "#86868b" }}>{email}</p>

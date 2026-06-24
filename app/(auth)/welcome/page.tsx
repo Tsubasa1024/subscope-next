@@ -32,9 +32,7 @@ export default function WelcomePage() {
           SUBSCOPEへようこそ
         </p>
         <p className="text-sm mb-8" style={{ color: "#86868b", lineHeight: 1.7 }}>
-          無料プランで今すぐ使い始められます。
-          <br />
-          必要に応じてプランをアップグレードできます。
+          無料で今すぐ使い始められます。
         </p>
 
         {/* CTA */}
@@ -46,19 +44,8 @@ export default function WelcomePage() {
           >
             まず使ってみる →
           </Link>
-          <Link
-            href="/pricing"
-            className="flex items-center justify-center w-full py-3.5 rounded-full font-semibold text-sm"
-            style={{ background: "#fff", color: "#111", border: "1.5px solid #e5e5ea" }}
-          >
-            プランを見る →
-          </Link>
         </div>
       </div>
-
-      <p className="text-xs mt-6" style={{ color: "#aaa" }}>
-        いつでもマイページからプランを変更できます
-      </p>
     </div>
   );
 }

@@ -30,7 +30,6 @@ export default function ArticleComments({ articleId }: Props) {
   const [error,      setError]      = useState<string | null>(null);
   const [userPlan,   setUserPlan]   = useState<string>("free");
   const [modalMsg,   setModalMsg]   = useState("");
-  const [modalMode,  setModalMode]  = useState<"login" | "upgrade">("login");
 
   useEffect(() => {
     loadComments();
@@ -74,7 +73,6 @@ export default function ArticleComments({ articleId }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) {
-      setModalMode("login");
       setModalMsg("コメントするにはログインが必要です");
       return;
     }
@@ -193,7 +191,6 @@ export default function ArticleComments({ articleId }: Props) {
         isOpen={!!modalMsg}
         onClose={() => setModalMsg("")}
         message={modalMsg}
-        mode={modalMode}
       />
 
       {/* 投稿フォーム */}
@@ -201,7 +198,7 @@ export default function ArticleComments({ articleId }: Props) {
         user ? (
           userPlan === "free" ? (
             <button
-              onClick={() => { setModalMode("upgrade"); setModalMsg("コメント機能はStandard以上のプランで利用できます"); }}
+              onClick={() => { setModalMsg("コメント機能はログインが必要です"); }}
               className="w-full rounded-2xl p-5 text-left"
               style={{ background: "#f5f5f5", border: "1px solid #e5e5e5", cursor: "pointer", fontFamily: "inherit" }}
             >
@@ -260,7 +257,7 @@ export default function ArticleComments({ articleId }: Props) {
           )
         ) : (
           <button
-            onClick={() => { setModalMode("login"); setModalMsg("コメントするにはログインが必要です"); }}
+            onClick={() => { setModalMsg("コメントするにはログインが必要です"); }}
             className="w-full rounded-2xl p-5 text-left"
             style={{ background: "#f5f5f5", border: "1px solid #e5e5e5", cursor: "pointer", fontFamily: "inherit" }}
           >

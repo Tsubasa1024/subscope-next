@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import PlanBadge from "@/components/PlanBadge";
 
 type Props = { params: Promise<{ username: string }> };
 
@@ -11,7 +10,6 @@ type UserRow = {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
-  plan: "free" | "standard" | "pro";
   username: string | null;
 };
 
@@ -35,7 +33,7 @@ export default async function UserProfilePage({ params }: Props) {
 
   const { data: userData } = await supabase
     .from("users")
-    .select("id, display_name, avatar_url, plan, username")
+    .select("id, display_name, avatar_url, username")
     .eq("username", username)
     .maybeSingle();
 
@@ -95,7 +93,6 @@ export default async function UserProfilePage({ params }: Props) {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <p style={{ fontWeight: 600, fontSize: "1.1rem" }}>{displayName}</p>
-              <PlanBadge plan={user.plan} />
             </div>
             <p style={{ fontSize: "0.85rem", color: "#86868b" }}>@{username}</p>
             <div style={{ display: "flex", gap: "20px", marginTop: "4px" }}>

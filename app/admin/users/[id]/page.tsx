@@ -110,9 +110,7 @@ export default async function UserDetailPage({ params }: PageProps) {
           <InfoRow label="登録日" value={fmtDate(u.created_at)} />
           <InfoRow label="最終ログイン" value={fmtDate(u.last_sign_in_at)} />
           <InfoRow label="メール確認" value={u.email_confirmed_at ? "確認済み" : "未確認"} />
-          {u.stripe_customer_id && (
-            <InfoRow label="Stripe ID" value={u.stripe_customer_id} mono />
-          )}
+
         </div>
 
         <UserDetailClient userId={u.id} isBanned={!!u.banned_at} />

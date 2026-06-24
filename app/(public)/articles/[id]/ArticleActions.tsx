@@ -247,7 +247,6 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
         isOpen={loginModal}
         onClose={() => setLoginModal(false)}
         message="記事を保存するにはログインが必要です"
-        mode="login"
       />
 
       {/* 保存上限トースト */}

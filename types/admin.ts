@@ -28,7 +28,7 @@ export interface AdminUserView {
   display_name: string | null;
   avatar_url: string | null;
   plan: string;
-  stripe_customer_id: string | null;
+
   role: Role;
   username: string | null;
   banned_at: string | null;

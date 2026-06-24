@@ -26,16 +26,6 @@ const NAV_ITEMS = FEATURES.aiDiagnosis
   : NAV_ITEMS_BASE;
 
 
-const ARTICLE_CATEGORIES = [
-  { label: "AI",           href: "/articles?category=AI" },
-  { label: "動画",         href: "/articles?category=動画" },
-  { label: "音楽",         href: "/articles?category=音楽" },
-  { label: "読書",         href: "/articles?category=読書" },
-  { label: "フィットネス", href: "/articles?category=フィットネス" },
-  { label: "学習",         href: "/articles?category=学習" },
-  { label: "ビジネス",     href: "/articles?category=ビジネス" },
-  { label: "その他",       href: "/articles?category=その他" },
-];
 
 export default function Header({ articles = [] }: HeaderProps) {
   const { user, ready, logout } = useAuth();
@@ -282,44 +272,20 @@ export default function Header({ articles = [] }: HeaderProps) {
             )}
           </form>
 
-          {/* カテゴリグリッド */}
-          <div className="mb-4">
-            {/* 「すべての記事 →」リンク見出し */}
-            <Link
-              href="/articles"
-              onClick={closeDrawer}
-              className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors mb-1"
-              style={{ color: "#1d1d1f" }}
-            >
-              すべての記事
-              <ChevronRight size={16} className="text-gray-400" />
-            </Link>
-
-            {/* 2列グリッド（8項目 = 4行×2列） */}
-            <div className="rounded-xl overflow-hidden border border-gray-200">
-              <div className="grid grid-cols-2">
-                {ARTICLE_CATEGORIES.map(({ label, href }, i) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={closeDrawer}
-                    className="flex items-center p-4 bg-white hover:bg-gray-50 transition-colors"
-                    style={{
-                      color: "#111111",
-                      borderRight: i % 2 === 0 ? "1px solid #e5e7eb" : "none",
-                      borderBottom: i < ARTICLE_CATEGORIES.length - 2 ? "1px solid #e5e7eb" : "none",
-                    }}
-                  >
-                    <span className="text-sm font-medium">{label}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {/* ナビリンク */}
           <nav>
             <ul className="space-y-1">
+              <li>
+                <Link
+                  href="/articles"
+                  onClick={closeDrawer}
+                  className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
+                  style={{ color: "#1d1d1f" }}
+                >
+                  すべての記事
+                  <ChevronRight size={16} className="text-gray-400" />
+                </Link>
+              </li>
               {NAV_ITEMS.map(({ href, label }) => (
                 <li key={href}>
                   <Link
