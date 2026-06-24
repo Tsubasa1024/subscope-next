@@ -20,15 +20,12 @@ export const metadata: Metadata = {
 // カテゴリナビデータ
 // ============================================================
 const CATEGORY_NAV = [
-  { label: "すべて",       href: "/articles" },
-  { label: "AI",           href: "/articles?category=AI" },
-  { label: "動画",         href: "/articles?category=動画" },
-  { label: "音楽",         href: "/articles?category=音楽" },
-  { label: "読書",         href: "/articles?category=読書" },
-  { label: "フィットネス", href: "/articles?category=フィットネス" },
-  { label: "学習",         href: "/articles?category=学習" },
-  { label: "ビジネス",     href: "/articles?category=ビジネス" },
-  { label: "その他",       href: "/articles?category=その他" },
+  { label: "すべて",   href: "/articles" },
+  { label: "ChatGPT", href: "/articles?category=ChatGPT" },
+  { label: "Claude",  href: "/articles?category=Claude" },
+  { label: "Gemini",  href: "/articles?category=Gemini" },
+  { label: "xAI",     href: "/articles?category=xAI" },
+  { label: "その他",  href: "/articles?category=その他" },
 ];
 
 

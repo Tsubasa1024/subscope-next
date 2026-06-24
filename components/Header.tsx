@@ -286,6 +286,25 @@ export default function Header({ articles = [] }: HeaderProps) {
                   <ChevronRight size={16} className="text-gray-400" />
                 </Link>
               </li>
+              {[
+                { label: "ChatGPT", href: "/articles?category=ChatGPT" },
+                { label: "Claude",  href: "/articles?category=Claude" },
+                { label: "Gemini",  href: "/articles?category=Gemini" },
+                { label: "xAI",     href: "/articles?category=xAI" },
+                { label: "その他",  href: "/articles?category=その他" },
+              ].map(({ label, href }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={closeDrawer}
+                    className="flex justify-between items-center w-full px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                    style={{ color: "#86868b", paddingLeft: "28px" }}
+                  >
+                    {label}
+                    <ChevronRight size={14} className="text-gray-300" />
+                  </Link>
+                </li>
+              ))}
               {NAV_ITEMS.map(({ href, label }) => (
                 <li key={href}>
                   <Link
