@@ -1,20 +1,15 @@
 "use client";
 
-import Link from "next/link";
-
 interface LoginPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
   message: string;
-  /** "login": ログイン/新規登録ボタン（デフォルト）, "upgrade": プランを見るボタン */
-  mode?: "login" | "upgrade";
 }
 
 export default function LoginPromptModal({
   isOpen,
   onClose,
   message,
-  mode = "login",
 }: LoginPromptModalProps) {
   if (!isOpen) return null;
 
@@ -44,7 +39,7 @@ export default function LoginPromptModal({
           className="flex items-center justify-center rounded-full mx-auto mb-5"
           style={{ width: "56px", height: "56px", background: "#f5f5f7", fontSize: "1.6rem" }}
         >
-          {mode === "upgrade" ? "🔒" : "👤"}
+          👤
         </div>
 
         {/* メッセージ */}
@@ -52,40 +47,17 @@ export default function LoginPromptModal({
           {message}
         </p>
         <p className="text-sm mb-7" style={{ color: "#86868b", lineHeight: 1.6 }}>
-          {mode === "upgrade"
-            ? "プランをアップグレードして全機能をお楽しみください。"
-            : "アカウントをお持ちでない方は無料で登録できます。"}
+          アカウントをお持ちでない方は無料で登録できます。
         </p>
 
         {/* ボタン */}
-        {mode === "upgrade" ? (
-          <div className="flex flex-col gap-2">
-            <Link
-              href="/pricing"
-              onClick={onClose}
-              className="flex items-center justify-center w-full py-3 rounded-full font-semibold text-sm"
-              style={{ background: "#111", color: "#fff" }}
-            >
-              プランを見る →
-            </Link>
-            <button
-              onClick={onClose}
-              className="w-full py-3 rounded-full text-sm font-medium"
-              style={{ background: "none", border: "1.5px solid #e5e5ea", cursor: "pointer", fontFamily: "inherit", color: "#555" }}
-            >
-              キャンセル
-            </button>
-          </div>
-        ) : (
-          // ログイン・新規登録ボタン UI非表示
-          <button
-            onClick={onClose}
-            className="w-full py-3 rounded-full text-sm font-medium"
-            style={{ background: "none", border: "1.5px solid #e5e5ea", cursor: "pointer", fontFamily: "inherit", color: "#555" }}
-          >
-            閉じる
-          </button>
-        )}
+        <button
+          onClick={onClose}
+          className="w-full py-3 rounded-full text-sm font-medium"
+          style={{ background: "none", border: "1.5px solid #e5e5ea", cursor: "pointer", fontFamily: "inherit", color: "#555" }}
+        >
+          閉じる
+        </button>
       </div>
     </div>
   );
