@@ -57,8 +57,8 @@ export default function CompanyPage() {
           <div style={{ marginTop: 24, background: "#fff", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.06)", padding: "24px 28px" }}>
             <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#111", marginBottom: 12 }}>サービスについて</h2>
             <p style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "#444" }}>
-              SUBSCOPEは、サブスクリプションサービスの比較・レビュー・情報収集を目的としたメディアサービスです。
-              各サービスの最新情報や料金、ユーザーレビューをもとに、あなたに合ったサブスクリプション選びをサポートします。
+              SUBSCOPEは、ChatGPT・Claude・Gemini・xAIなど最新AIツールの正直レビューと最新情報を発信するメディアです。
+              実際の使用感をもとにしたレビューで、あなたに合ったAIツール選びをサポートします。
             </p>
             <div style={{ borderTop: "1px solid #f0f0f0", margin: "20px 0" }} />
             <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#111", marginBottom: 12 }}>お問い合わせ</h2>

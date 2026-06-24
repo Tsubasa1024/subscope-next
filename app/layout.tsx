@@ -25,11 +25,11 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.subscope.jp"),
   title: {
-    default: "SUBSCOPE｜サブスクリプションのリアルなレビューメディア",
+    default: "SUBSCOPE | AIツールのリアルなレビューメディア",
     template: "%s | SUBSCOPE",
   },
   description:
-    "SUBSCOPE（サブスコープ）は、動画・音楽・読書・学習などあらゆるサブスクサービスを実体験レビューで比較・紹介するレビューメディアです。あなたに合ったサブスクが見つかります。",
+    "ChatGPT・Claude・Gemini・xAIなど最新AIツールの正直レビューと最新ニュースをお届け。",
   openGraph: {
     type: "website",
     siteName: "SUBSCOPE",
