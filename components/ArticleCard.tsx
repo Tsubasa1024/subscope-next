@@ -86,7 +86,7 @@ export default function ArticleCard({ article, priority = false, viewCount }: Ar
           flexGrow: 1,
         }}
       >
-        {article.service && (
+        {category && (
           <p
             style={{
               fontSize: "10px",
@@ -97,7 +97,7 @@ export default function ArticleCard({ article, priority = false, viewCount }: Ar
               letterSpacing: "0.07em",
             }}
           >
-            {article.service}
+            {category}
           </p>
         )}
         <h3

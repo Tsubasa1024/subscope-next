@@ -213,9 +213,9 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
 
                       {/* テキスト */}
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0, flex: 1 }}>
-                        {article.service && (
+                        {normalizeCategory(article.category) && (
                           <p style={{ fontSize: "0.68rem", fontWeight: 700, color: "#86868b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                            {article.service}
+                            {normalizeCategory(article.category)}
                           </p>
                         )}
                         <h2 style={{ fontSize: "1.2rem", fontWeight: 700, lineHeight: 1.4 }}>

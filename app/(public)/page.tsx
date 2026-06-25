@@ -484,9 +484,9 @@ function ArticleCard({
 
       {/* テキスト */}
       <div className="flex flex-col flex-1 p-4">
-        {article.service && (
+        {category && (
           <p className="text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "#86868b" }}>
-            {article.service}
+            {category}
           </p>
         )}
         <h3

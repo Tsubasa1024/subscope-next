@@ -39,7 +39,7 @@ export default function Header({ articles = [] }: HeaderProps) {
     query.length >= 1
       ? articles
           .filter((a) => {
-            const hay = [a.title, a.description, a.service, normalizeCategory(a.category)]
+            const hay = [a.title, a.description, normalizeCategory(a.category)]
               .join(" ")
               .toLowerCase();
             return hay.includes(query.toLowerCase());
@@ -246,7 +246,7 @@ export default function Header({ articles = [] }: HeaderProps) {
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate" style={{ color: "#1d1d1f" }}>{a.title}</p>
                         <p className="text-xs mt-0.5" style={{ color: "#86868b" }}>
-                          {normalizeCategory(a.category)}{a.service ? ` · ${a.service}` : ""}
+                          {normalizeCategory(a.category)}
                         </p>
                       </div>
                     </div>

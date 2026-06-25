@@ -63,7 +63,7 @@ export default function AllArticlesClient({
 
     const matchSearch =
       searchQuery === "" ||
-      [a.title, a.description, a.service, normalizeCategory(a.category)]
+      [a.title, a.description, normalizeCategory(a.category)]
         .join(" ")
         .toLowerCase()
         .includes(searchQuery.toLowerCase());

@@ -127,9 +127,6 @@ export default async function ArticlePage({ params }: Props) {
               {category}
             </span>
           )}
-          {article.service && (
-            <span className="text-sm" style={{ color: "#888888" }}>{article.service}</span>
-          )}
           {date && (
             <span className="text-sm" style={{ color: "#aaaaaa" }}>{date}</span>
           )}

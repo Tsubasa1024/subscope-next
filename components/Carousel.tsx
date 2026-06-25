@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Article } from "@/lib/utils";
-import { getImageUrl } from "@/lib/utils";
+import { getImageUrl, normalizeCategory } from "@/lib/utils";
 
 interface CarouselProps {
   articles: Article[];
@@ -119,7 +119,7 @@ export default function Carousel({ articles }: CarouselProps) {
                         )}
                       </div>
                       <div style={{ padding: "14px 16px 0", flexGrow: 1 }}>
-                        {a.service && (
+                        {normalizeCategory(a.category) && (
                           <p
                             style={{
                               fontSize: "10px",
@@ -130,7 +130,7 @@ export default function Carousel({ articles }: CarouselProps) {
                               letterSpacing: "0.07em",
                             }}
                           >
-                            {a.service}
+                            {normalizeCategory(a.category)}
                           </p>
                         )}
                         <h3
