@@ -224,19 +224,30 @@ export default function ArticleActions({ articleId, articleTitle, articleUrl, ar
   const ShareButton = ({ size }: { size: "sm" | "base" }) => (
     <button
       onClick={handleShare}
-      className="flex items-center gap-1.5 text-gray-400 hover:text-gray-700 transition-colors"
-      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
+      className="flex items-center gap-1.5"
+      style={{
+        background: "#111111",
+        color: "#fff",
+        border: "none",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        padding: size === "sm" ? "6px 14px" : "8px 18px",
+        borderRadius: "999px",
+        transition: "transform 0.15s ease",
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.05)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
       aria-label="シェア"
     >
       <svg width={size === "sm" ? 14 : 18} height={size === "sm" ? 14 : 18}
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"
         strokeLinecap="round" strokeLinejoin="round"
       >
         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
         <polyline points="16 6 12 2 8 6" />
         <line x1="12" y1="2" x2="12" y2="15" />
       </svg>
-      <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 500 }}>シェア</span>
+      <span className={size === "sm" ? "text-sm" : "text-base"} style={{ fontWeight: 600 }}>シェア</span>
     </button>
   );
 
