@@ -76,13 +76,13 @@ ul {
   letter-spacing: -0.02em;
 }
 .article-body h1 { font-size: 26px; margin: 2.5em 0 0.6em; }
-.article-body h2 { font-size: 22px; margin: 2.5em 0 0.75em; padding-bottom: 0.5em; border-bottom: 1px solid #e5e5e5; }
+.article-body h2 { font-size: 22px; margin: 2.5em 0 0.75em; }
 .article-body h3 { font-size: 19px; margin: 2em 0 0.6em; }
 .article-body h4 { font-size: 17px; margin: 1.5em 0 0.5em; }
 .article-body p  { margin: 0 0 1.5em; }
 .article-body a  { color: #111111; text-decoration: underline; text-underline-offset: 2px; }
-.article-body ul,
-.article-body ol { padding-left: 1.6em; margin: 0 0 1.5em; }
+.article-body ul { padding-left: 1.6em; margin: 0 0 1.5em; list-style-type: disc; }
+.article-body ol { padding-left: 1.6em; margin: 0 0 1.5em; list-style-type: decimal; }
 .article-body li { margin: 0.4em 0; }
 .article-body img {
   max-width: 100%;
