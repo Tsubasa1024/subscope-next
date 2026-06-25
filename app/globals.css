@@ -80,10 +80,27 @@ ul {
 .article-body h3 { font-size: 19px; margin: 2em 0 0.6em; }
 .article-body h4 { font-size: 17px; margin: 1.5em 0 0.5em; }
 .article-body p  { margin: 0 0 1.5em; }
-.article-body a  { color: #111111; text-decoration: underline; text-underline-offset: 2px; }
+.article-body a  { color: #2563eb; text-decoration: underline; text-underline-offset: 2px; }
+.article-body a:visited { color: #7c3aed; }
 .article-body ul { padding-left: 1.6em; margin: 0 0 1.5em; list-style-type: disc; }
 .article-body ol { padding-left: 1.6em; margin: 0 0 1.5em; list-style-type: decimal; }
 .article-body li { margin: 0.4em 0; }
+.article-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.95em;
+}
+.article-body th,
+.article-body td {
+  border: 1px solid #e5e5e5;
+  padding: 0.6em 0.8em;
+  text-align: left;
+}
+.article-body th {
+  background: #f9f9f9;
+  font-weight: 700;
+}
 .article-body img {
   max-width: 100%;
   border-radius: 0;
