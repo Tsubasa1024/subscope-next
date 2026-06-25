@@ -16,18 +16,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.subscope.jp/" },
 };
 
-// ============================================================
-// カテゴリナビデータ
-// ============================================================
-const CATEGORY_NAV = [
-  { label: "すべて",   href: "/articles" },
-  { label: "ChatGPT", href: "/articles?category=ChatGPT" },
-  { label: "Claude",  href: "/articles?category=Claude" },
-  { label: "Gemini",  href: "/articles?category=Gemini" },
-  { label: "xAI",     href: "/articles?category=xAI" },
-  { label: "その他",  href: "/articles?category=その他" },
-];
-
 
 // ============================================================
 // Page
@@ -207,36 +195,6 @@ export default async function TopPage() {
           </div>
         </Link>
       )}
-
-      {/* =====================================================
-          2. カテゴリナビ（横スクロール）
-      ===================================================== */}
-      <section
-        className="sticky z-40"
-        style={{
-          top: "var(--header-h)",
-          background: "rgba(255,255,255,0.95)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(0,0,0,0.06)",
-        }}
-      >
-        <div className="container">
-          <div
-            className="flex flex-wrap justify-center gap-1.5 py-3"
-          >
-            {CATEGORY_NAV.map(({ label, href }) => (
-              <Link
-                key={label}
-                href={href}
-                className="px-4 py-2 rounded-full text-base font-medium transition-colors hover:bg-gray-100"
-                style={{ color: "#1d1d1f" }}
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* =====================================================
           3. 記事グリッド（最新12件）

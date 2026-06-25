@@ -240,19 +240,6 @@ export default async function ArticlePage({ params }: Props) {
           </div>
         )}
 
-        {/* 戻るリンク */}
-        <div className="mt-10 mb-4">
-          <Link
-            href="/articles"
-            className="inline-flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
-            style={{ color: "#666666" }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11.5 7h-9M5 2.5L.5 7 5 11.5" />
-            </svg>
-            記事一覧へ戻る
-          </Link>
-        </div>
 
       </div>
     </main>

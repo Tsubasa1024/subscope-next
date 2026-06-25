@@ -6,8 +6,8 @@ export const metadata: Metadata = {
 
 const rows: { label: string; value: string }[] = [
   { label: "サービス名",     value: "SUBSCOPE" },
-  { label: "運営者",         value: "個人運営" },
-  { label: "所在地",         value: "神奈川県" },
+  { label: "運営者",         value: "伊野 翼（個人運営）" },
+  { label: "所在地",         value: "東京都" },
   { label: "設立",           value: "2025年" },
   { label: "お問い合わせ",   value: "subscope.info@gmail.com" },
 ];
@@ -57,8 +57,7 @@ export default function CompanyPage() {
           <div style={{ marginTop: 24, background: "#fff", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.06)", padding: "24px 28px" }}>
             <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#111", marginBottom: 12 }}>サービスについて</h2>
             <p style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "#444" }}>
-              SUBSCOPEは、ChatGPT・Claude・Gemini・xAIなど最新AIツールの正直レビューと最新情報を発信するメディアです。
-              実際の使用感をもとにしたレビューで、あなたに合ったAIツール選びをサポートします。
+              ChatGPT・Claude・Gemini・xAIなど最新AIツールの正直レビューと最新ニュースを届けるメディアです。広告に左右されない体験ベースの情報で、あなたに合ったAIツール選びをサポートします。
             </p>
             <div style={{ borderTop: "1px solid #f0f0f0", margin: "20px 0" }} />
             <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#111", marginBottom: 12 }}>お問い合わせ</h2>
