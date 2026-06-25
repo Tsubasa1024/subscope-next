@@ -145,7 +145,7 @@ export default function AllArticlesClient({
           </div>
 
           {/* カテゴリタブ（折り返し2行） */}
-          <div className="flex flex-wrap justify-center gap-1.5 py-3">
+          <div className="flex flex-wrap gap-1.5 py-3">
             {["すべて", ...categories].map((cat) => (
               <button
                 key={cat}
