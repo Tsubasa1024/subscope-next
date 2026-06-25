@@ -156,8 +156,11 @@ export default function AllArticlesClient({
             )}
           </div>
 
-          {/* カテゴリタブ（折り返し2行） */}
-          <div className="flex flex-wrap gap-1.5 py-3">
+          {/* カテゴリタブ（横スクロール1行） */}
+          <div
+            className="hide-scrollbar py-3"
+            style={{ display: "flex", gap: "8px", overflowX: "auto", scrollbarWidth: "none" }}
+          >
             {["すべて", ...categories].map((cat) => (
               <button
                 key={cat}
@@ -172,6 +175,8 @@ export default function AllArticlesClient({
                   border:     cat === activeCategory ? "1px solid #111111" : "1px solid #d2d2d7",
                   fontFamily: "inherit",
                   cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
                   transition: "all 0.2s ease",
                   transform:  cat === activeCategory ? "scale(1.0)" : undefined,
                 }}
