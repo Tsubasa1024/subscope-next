@@ -16,13 +16,10 @@ const PERIODS = [
 
 const CATEGORIES = [
   "すべて",
-  "AI",
-  "動画",
-  "音楽",
-  "読書",
-  "フィットネス",
-  "学習",
-  "ビジネス",
+  "ChatGPT",
+  "Claude",
+  "Gemini",
+  "xAI",
   "その他",
 ];
 
