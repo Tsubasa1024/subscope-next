@@ -85,45 +85,8 @@ export default function AllArticlesClient({
         }}
       >
         <div className="container">
-          {/* カテゴリタブ（折り返し2行） */}
-          <div className="flex flex-wrap justify-center gap-1.5 py-3">
-            {["すべて", ...categories].map((cat) => (
-              <button
-                key={cat}
-                onClick={() => handleCategory(cat)}
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: "999px",
-                  fontSize: "0.875rem",
-                  background: cat === activeCategory ? "#111111" : "#fff",
-                  color:      cat === activeCategory ? "#fff"    : "#1d1d1f",
-                  fontWeight:  cat === activeCategory ? 600       : 400,
-                  border:     cat === activeCategory ? "1px solid #111111" : "1px solid #d2d2d7",
-                  fontFamily: "inherit",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  transform:  cat === activeCategory ? "scale(1.0)" : undefined,
-                }}
-                onMouseEnter={(e) => {
-                  if (cat !== activeCategory) {
-                    e.currentTarget.style.background = "#f5f5f5";
-                    e.currentTarget.style.transform = "scale(1.03)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (cat !== activeCategory) {
-                    e.currentTarget.style.background = "#fff";
-                    e.currentTarget.style.transform = "scale(1.0)";
-                  }
-                }}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
           {/* 検索フォーム */}
-          <div className="pb-3">
+          <div className="pt-3">
             <form
               onSubmit={handleSearch}
               className="flex gap-2 items-center"
@@ -179,6 +142,43 @@ export default function AllArticlesClient({
                 「{searchQuery}」の検索結果：{filtered.length}件
               </p>
             )}
+          </div>
+
+          {/* カテゴリタブ（折り返し2行） */}
+          <div className="flex flex-wrap justify-center gap-1.5 py-3">
+            {["すべて", ...categories].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => handleCategory(cat)}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: "999px",
+                  fontSize: "0.875rem",
+                  background: cat === activeCategory ? "#111111" : "#fff",
+                  color:      cat === activeCategory ? "#fff"    : "#1d1d1f",
+                  fontWeight:  cat === activeCategory ? 600       : 400,
+                  border:     cat === activeCategory ? "1px solid #111111" : "1px solid #d2d2d7",
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  transform:  cat === activeCategory ? "scale(1.0)" : undefined,
+                }}
+                onMouseEnter={(e) => {
+                  if (cat !== activeCategory) {
+                    e.currentTarget.style.background = "#f5f5f5";
+                    e.currentTarget.style.transform = "scale(1.03)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (cat !== activeCategory) {
+                    e.currentTarget.style.background = "#fff";
+                    e.currentTarget.style.transform = "scale(1.0)";
+                  }
+                }}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
         </div>
       </div>
