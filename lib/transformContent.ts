@@ -8,6 +8,8 @@ function cleanupHtml(html: string): string {
   s = s.replace(/<p>\s*<\/p>/gi, "");
   s = s.replace(/<li>\s*<p>([\s\S]*?)<\/p>\s*<\/li>/gi, "<li>$1</li>");
   s = s.replace(/<(h[2-4])([^>]*)>\s*<strong>([\s\S]*?)<\/strong>\s*<\/\1>/gi, "<$1$2>$3</$1>");
+  s = s.replace(/<table/gi, '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:1.5em 0"><table style="margin:0"');
+  s = s.replace(/<\/table>/gi, "</table></div>");
   return s;
 }
 
