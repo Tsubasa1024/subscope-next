@@ -117,6 +117,12 @@ ul {
   padding: 0.15em 0.4em;
   font-size: 0.875em;
 }
+@media (max-width: 640px) {
+  .article-body ul,
+  .article-body ol {
+    padding-left: 1.4em;
+  }
+}
 
 /* ===== リンクカード（OGP プレビュー） ===== */
 .link-card {
