@@ -91,13 +91,30 @@ export default function AllArticlesClient({
               <button
                 key={cat}
                 onClick={() => handleCategory(cat)}
-                className="px-3 py-1 rounded-full text-xs font-medium transition-all"
                 style={{
-                  background: cat === activeCategory ? "#1d1d1f" : "transparent",
+                  padding: "6px 14px",
+                  borderRadius: "999px",
+                  fontSize: "0.875rem",
+                  background: cat === activeCategory ? "#111111" : "#fff",
                   color:      cat === activeCategory ? "#fff"    : "#1d1d1f",
+                  fontWeight:  cat === activeCategory ? 600       : 400,
+                  border:     cat === activeCategory ? "1px solid #111111" : "1px solid #d2d2d7",
                   fontFamily: "inherit",
-                  border: "none",
                   cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  transform:  cat === activeCategory ? "scale(1.0)" : undefined,
+                }}
+                onMouseEnter={(e) => {
+                  if (cat !== activeCategory) {
+                    e.currentTarget.style.background = "#f5f5f5";
+                    e.currentTarget.style.transform = "scale(1.03)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (cat !== activeCategory) {
+                    e.currentTarget.style.background = "#fff";
+                    e.currentTarget.style.transform = "scale(1.0)";
+                  }
                 }}
               >
                 {cat}

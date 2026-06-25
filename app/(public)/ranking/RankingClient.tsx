@@ -49,14 +49,28 @@ function TabButton({
       style={{
         padding: "6px 14px",
         borderRadius: "999px",
-        border: "1px solid #d2d2d7",
-        fontSize: "0.85rem",
-        background: active ? "#000" : "#fff",
+        border: active ? "1px solid #111111" : "1px solid #d2d2d7",
+        fontSize: "0.875rem",
+        background: active ? "#111111" : "#fff",
         color: active ? "#fff" : "#1d1d1f",
         cursor: "pointer",
         fontWeight: active ? 600 : 400,
         whiteSpace: "nowrap",
         flexShrink: 0,
+        transition: "all 0.2s ease",
+        transform: active ? "scale(1.0)" : undefined,
+      }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = "#f5f5f5";
+          e.currentTarget.style.transform = "scale(1.03)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = "#fff";
+          e.currentTarget.style.transform = "scale(1.0)";
+        }
       }}
     >
       {children}
