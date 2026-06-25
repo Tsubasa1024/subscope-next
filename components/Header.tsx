@@ -279,13 +279,16 @@ export default function Header({ articles = [] }: HeaderProps) {
                 <Link
                   href="/articles"
                   onClick={closeDrawer}
-                  className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
-                  style={{ color: "#1d1d1f" }}
+                  className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50"
+                  style={{ color: "#1d1d1f", transition: "transform 0.15s ease, background 0.15s ease" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
                 >
                   すべての記事
                   <ChevronRight size={16} className="text-gray-400" />
                 </Link>
               </li>
+              <div style={{ borderLeft: "2px solid #e5e5e5", marginLeft: "16px", paddingLeft: "0" }}>
               {[
                 { label: "ChatGPT", href: "/articles?category=ChatGPT" },
                 { label: "Claude",  href: "/articles?category=Claude" },
@@ -297,21 +300,26 @@ export default function Header({ articles = [] }: HeaderProps) {
                   <Link
                     href={href}
                     onClick={closeDrawer}
-                    className="flex justify-between items-center w-full px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
-                    style={{ color: "#86868b", paddingLeft: "28px" }}
+                    className="flex justify-between items-center w-full px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50"
+                    style={{ color: "#1d1d1f", paddingLeft: "28px", transition: "color 0.15s ease, border-color 0.15s ease, transform 0.15s ease" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
                   >
                     {label}
                     <ChevronRight size={14} className="text-gray-300" />
                   </Link>
                 </li>
               ))}
+              </div>
               {NAV_ITEMS.map(({ href, label }) => (
                 <li key={href}>
                   <Link
                     href={href}
                     onClick={closeDrawer}
-                    className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
-                    style={{ color: "#1d1d1f" }}
+                    className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50"
+                    style={{ color: "#1d1d1f", transition: "transform 0.15s ease, background 0.15s ease" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
                   >
                     {label}
                     <ChevronRight size={16} className="text-gray-400" />
