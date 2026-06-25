@@ -74,6 +74,18 @@ export default function AllArticlesClient({
   return (
     <main style={{ paddingTop: "var(--header-h)" }}>
 
+      {/* ===== 大タイトル ===== */}
+      <div className="container" style={{ paddingTop: "32px" }}>
+        <section style={{ paddingBottom: "32px" }}>
+          <p style={{ fontSize: "0.85rem", color: "#86868b", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            Articles
+          </p>
+          <h1 style={{ fontSize: "2.4rem", fontWeight: 700, letterSpacing: "-0.03em", marginTop: "10px" }}>
+            記事一覧
+          </h1>
+        </section>
+      </div>
+
       {/* ===== スティッキーヘッダー（カテゴリタブ + 検索） ===== */}
       <div
         className="sticky z-30"
@@ -187,17 +199,14 @@ export default function AllArticlesClient({
       <div className="container" style={{ paddingTop: "32px", paddingBottom: "var(--spacing-section)" }}>
 
         {/* 見出し */}
-        <section style={{ paddingBottom: "32px" }}>
-          <p style={{ fontSize: "0.85rem", color: "#86868b", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-            Articles
-          </p>
-          <h1 style={{ fontSize: "2.4rem", fontWeight: 700, letterSpacing: "-0.03em", marginTop: "10px" }}>
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>
             {activeCategory === "すべて" ? "すべての記事" : activeCategory}
-            <span style={{ fontSize: "1rem", fontWeight: 400, color: "#86868b", marginLeft: "12px" }}>
-              {filtered.length}件
-            </span>
-          </h1>
-        </section>
+          </h2>
+          <span className="text-sm" style={{ color: "#86868b" }}>
+            {filtered.length}件
+          </span>
+        </div>
 
         {filtered.length === 0 ? (
           <div className="text-center py-20" style={{ color: "#86868b" }}>

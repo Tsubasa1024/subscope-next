@@ -284,7 +284,7 @@ export default function Header({ articles = [] }: HeaderProps) {
                   onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
                 >
-                  すべての記事
+                  記事一覧
                   <ChevronRight size={16} className="text-gray-400" />
                 </Link>
               </li>
