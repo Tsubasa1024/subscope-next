@@ -187,14 +187,17 @@ export default function AllArticlesClient({
       <div className="container" style={{ paddingTop: "32px", paddingBottom: "var(--spacing-section)" }}>
 
         {/* 見出し */}
-        <div className="flex items-center gap-3 mb-6">
-          <h1 className="font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>
+        <section style={{ paddingBottom: "32px" }}>
+          <p style={{ fontSize: "0.85rem", color: "#86868b", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            Articles
+          </p>
+          <h1 style={{ fontSize: "2.4rem", fontWeight: 700, letterSpacing: "-0.03em", marginTop: "10px" }}>
             {activeCategory === "すべて" ? "すべての記事" : activeCategory}
+            <span style={{ fontSize: "1rem", fontWeight: 400, color: "#86868b", marginLeft: "12px" }}>
+              {filtered.length}件
+            </span>
           </h1>
-          <span className="text-sm" style={{ color: "#86868b" }}>
-            {filtered.length}件
-          </span>
-        </div>
+        </section>
 
         {filtered.length === 0 ? (
           <div className="text-center py-20" style={{ color: "#86868b" }}>
