@@ -52,59 +52,23 @@ export default function PullToRefresh() {
     };
   }, []);
 
-  if (pullDistance < 60) return null;
+  if (pullDistance < 10) return null;
 
-  const translateY = Math.min(0, pullDistance - 80);
-  const triggered = pullDistance >= 80;
+  const widthPct = Math.min(100, (pullDistance / 80) * 100);
 
   return (
-    <>
-      <style>{`
-        @keyframes ptr-spin {
-          to { transform: rotate(360deg); }
-        }
-        .ptr-spinning {
-          animation: ptr-spin 0.7s linear infinite;
-        }
-      `}</style>
-      <div
-        style={{
-          position: "fixed",
-          top: "8px",
-          left: "50%",
-          transform: `translate(-50%, ${translateY}px)`,
-          zIndex: 9999,
-          pointerEvents: "none",
-        }}
-      >
-        <div
-          style={{
-            width: "44px",
-            height: "44px",
-            borderRadius: "50%",
-            background: "#fff",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg
-            className={triggered ? "ptr-spinning" : ""}
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#555555"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M1 4v6h6" />
-            <path d="M3.51 15a9 9 0 1 0 .49-3" />
-          </svg>
-        </div>
-      </div>
-    </>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: `${widthPct}%`,
+        height: "3px",
+        background: "#111111",
+        zIndex: 9999,
+        pointerEvents: "none",
+        transition: "none",
+      }}
+    />
   );
 }
