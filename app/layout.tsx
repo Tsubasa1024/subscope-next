@@ -5,6 +5,7 @@ import Script from "next/script";
 import { AuthProvider } from "@/lib/auth-context";
 import Toast from "@/components/Toast";
 import PullToRefresh from "@/components/PullToRefresh";
+import PageTransition from "@/components/PageTransition";
 import "./globals.css";
 
 const inter = Inter({
@@ -79,7 +80,7 @@ export default function RootLayout({
         )}
         <AuthProvider>
           <PullToRefresh />
-          {children}
+          <PageTransition>{children}</PageTransition>
           <Suspense>
             <Toast />
           </Suspense>
