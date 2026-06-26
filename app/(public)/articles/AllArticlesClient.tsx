@@ -266,13 +266,11 @@ export default function AllArticlesClient({
       {/* ===== 記事グリッド ===== */}
       <div className="container" style={{ paddingTop: "32px", paddingBottom: "var(--spacing-section)" }}>
 
-        <div className="mb-6">
-          {activeCategory !== "すべて" && (
-            <h2 className="font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>
-              {activeCategory}
-            </h2>
-          )}
-        </div>
+        {activeCategory !== "すべて" && (
+          <h2 className="font-bold mb-6" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>
+            {activeCategory}
+          </h2>
+        )}
 
         {filtered.length === 0 ? (
           <div className="text-center py-20" style={{ color: "#86868b" }}>
