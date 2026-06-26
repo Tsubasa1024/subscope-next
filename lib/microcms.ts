@@ -35,11 +35,29 @@ export async function getArticles(
 }
 
 export async function getNewsList(limit = 10) {
-  return getArticles(limit, "news");
+  const res = await client.getList<Article>({
+    endpoint: "articles",
+    queries: {
+      limit,
+      orders: "-publishedAt",
+      filters: "contentType[equals]news[or]contentType[not_exists]true",
+    },
+    customRequestInit: ISR,
+  });
+  return res;
 }
 
 export async function getArticlesList(limit = 10) {
-  return getArticles(limit, "article");
+  const res = await client.getList<Article>({
+    endpoint: "articles",
+    queries: {
+      limit,
+      orders: "-publishedAt",
+      filters: "contentType[equals]article",
+    },
+    customRequestInit: ISR,
+  });
+  return res;
 }
 
 /** 記事詳細を取得 */
