@@ -232,7 +232,7 @@ export default async function ArticlePage({ params }: Props) {
             >
               関連記事
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col">
               {relatedArticles.map((a) => (
                 <ArticleCard key={a.id} article={a} viewCount={relatedViewCounts[a.id] ?? 0} />
               ))}
