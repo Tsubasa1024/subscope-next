@@ -211,7 +211,7 @@ export default async function TopPage() {
           </div>
           <div className="articles-grid">
             {newsItems.map((article) => (
-              <ArticleCard key={article.id} article={article} badge="NEWS" />
+              <ArticleCard key={article.id} article={article} badge="NEWS" viewCount={viewCounts[article.id] ?? 0} />
             ))}
           </div>
           <div className="text-center mt-6">
@@ -233,7 +233,7 @@ export default async function TopPage() {
           </div>
           <div className="articles-grid">
             {articleItems.map((article) => (
-              <ArticleCard key={article.id} article={article} badge="ARTICLE" />
+              <ArticleCard key={article.id} article={article} badge="ARTICLE" viewCount={viewCounts[article.id] ?? 0} />
             ))}
           </div>
           <div className="text-center mt-6">
