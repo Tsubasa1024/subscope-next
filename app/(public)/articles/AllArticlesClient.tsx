@@ -270,9 +270,6 @@ export default function AllArticlesClient({
           <h2 className="font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>
             {activeCategory === "すべて" ? "すべての記事" : activeCategory}
           </h2>
-          <span className="text-sm" style={{ color: "#86868b" }}>
-            {filtered.length}件
-          </span>
         </div>
 
         {filtered.length === 0 ? (
