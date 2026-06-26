@@ -225,7 +225,7 @@ export default function AllArticlesClient({
         ) : (
           <div className="articles-grid">
             {filtered.map((article, i) => (
-              <ArticleCard key={article.id} article={article} priority={i < 3} viewCount={viewCounts[article.id] ?? 0} />
+              <ArticleCard key={article.id} article={article} priority={i < 3} viewCount={viewCounts[article.id] ?? 0} index={i} />
             ))}
           </div>
         )}

@@ -7,9 +7,10 @@ interface ArticleCardProps {
   article: Article;
   priority?: boolean;
   viewCount?: number;
+  index?: number;
 }
 
-export default function ArticleCard({ article, priority = false, viewCount }: ArticleCardProps) {
+export default function ArticleCard({ article, priority = false, viewCount, index = 0 }: ArticleCardProps) {
   const imgUrl = getImageUrl(article);
   const category = normalizeCategory(article.category);
   const date = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
@@ -17,7 +18,7 @@ export default function ArticleCard({ article, priority = false, viewCount }: Ar
   return (
     <Link
       href={`/articles/${article.id}`}
-      className="hover:opacity-75 transition-opacity duration-150"
+      className="stagger-item hover:opacity-75 transition-opacity duration-150"
       style={{
         display: "flex",
         flexDirection: "row",
@@ -26,6 +27,7 @@ export default function ArticleCard({ article, priority = false, viewCount }: Ar
         borderBottom: "1px solid rgba(0,0,0,0.06)",
         textDecoration: "none",
         color: "inherit",
+        animationDelay: `${index * 0.06}s`,
       }}
     >
       <div

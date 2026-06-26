@@ -279,6 +279,7 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                       <Link
                         key={article.id}
                         href={`/articles/${article.id}`}
+                        className="stagger-item"
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -287,6 +288,7 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                           borderRadius: "16px",
                           textDecoration: "none",
                           color: "inherit",
+                          animationDelay: `${i * 0.06}s`,
                         }}
                       >
                         <span style={{ width: "28px", textAlign: "right", fontWeight: 600, fontSize: "0.95rem", color: "#555", flexShrink: 0 }}>

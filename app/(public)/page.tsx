@@ -233,7 +233,7 @@ export default async function TopPage() {
         ) : (
           <div className="articles-grid">
             {grid.map((article, i) => (
-              <ArticleCard key={article.id} article={article} priority={i < 3} viewCount={viewCounts[article.id] ?? 0} />
+              <ArticleCard key={article.id} article={article} priority={i < 3} viewCount={viewCounts[article.id] ?? 0} index={i} />
             ))}
           </div>
         )}
@@ -401,10 +401,12 @@ function ArticleCard({
   article,
   priority = false,
   viewCount = 0,
+  index = 0,
 }: {
   article: Awaited<ReturnType<typeof getArticles>>[number];
   priority?: boolean;
   viewCount?: number;
+  index?: number;
 }) {
   const imgUrl   = getImageUrl(article);
   const category = normalizeCategory(article.category);
@@ -413,7 +415,7 @@ function ArticleCard({
   return (
     <Link
       href={`/articles/${article.id}`}
-      className="hover:opacity-75 transition-opacity duration-150"
+      className="stagger-item hover:opacity-75 transition-opacity duration-150"
       style={{
         display: "flex",
         flexDirection: "row",
@@ -422,6 +424,7 @@ function ArticleCard({
         borderBottom: "1px solid rgba(0,0,0,0.06)",
         textDecoration: "none",
         color: "inherit",
+        animationDelay: `${index * 0.06}s`,
       }}
     >
       <div
