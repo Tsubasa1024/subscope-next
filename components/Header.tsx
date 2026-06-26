@@ -15,7 +15,7 @@ interface HeaderProps {
 }
 
 const NAV_ITEMS = [
-  ...(FEATURES.aiDiagnosis ? [{ label: "AI診断", href: "/diagnosis" }] : []),
+  { label: "記事ランキング", href: "/ranking" },
 ];
 
 
