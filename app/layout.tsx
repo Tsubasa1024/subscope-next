@@ -31,14 +31,14 @@ export const metadata: Metadata = {
     template: "%s | SUBSCOPE",
   },
   description:
-    "ChatGPT・Claude・Gemini・xAIなど最新AIツールの正直レビューと最新ニュースをお届け。",
+    "ChatGPT・Claude・Geminiなど最新AIツールの情報を届けるAIメディア",
   openGraph: {
     type: "website",
     siteName: "SUBSCOPE",
     locale: "ja_JP",
     images: [
       {
-        url: "/ogp-default-v3.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
       },
