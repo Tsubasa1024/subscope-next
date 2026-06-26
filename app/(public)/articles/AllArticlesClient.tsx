@@ -266,10 +266,12 @@ export default function AllArticlesClient({
       {/* ===== 記事グリッド ===== */}
       <div className="container" style={{ paddingTop: "32px", paddingBottom: "var(--spacing-section)" }}>
 
-        <div className="flex items-center gap-3 mb-6">
-          <h2 className="font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>
-            {activeCategory === "すべて" ? "すべての記事" : activeCategory}
-          </h2>
+        <div className="mb-6">
+          {activeCategory !== "すべて" && (
+            <h2 className="font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>
+              {activeCategory}
+            </h2>
+          )}
         </div>
 
         {filtered.length === 0 ? (
