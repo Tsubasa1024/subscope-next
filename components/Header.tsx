@@ -15,8 +15,6 @@ interface HeaderProps {
 }
 
 const NAV_ITEMS = [
-  { label: "ニュース", href: "/news" },
-  { label: "記事", href: "/articles" },
   ...(FEATURES.aiDiagnosis ? [{ label: "AI診断", href: "/diagnosis" }] : []),
 ];
 
@@ -274,7 +272,7 @@ export default function Header({ articles = [] }: HeaderProps) {
                 <Link
                   href="/articles"
                   onClick={closeDrawer}
-                  className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50"
+                  className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-semibold hover:bg-gray-50"
                   style={{ color: "#1d1d1f", transition: "transform 0.15s ease, background 0.15s ease" }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}

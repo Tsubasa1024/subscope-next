@@ -11,49 +11,78 @@ interface AllArticlesClientProps {
   categories: string[];
   initialCategory?: string;
   initialSearch?: string;
+  initialType?: string;
   viewCounts?: Record<string, number>;
 }
+
+const TYPE_TABS = [
+  { label: "すべて",   value: "all" },
+  { label: "ニュース", value: "news" },
+  { label: "記事",     value: "article" },
+];
 
 export default function AllArticlesClient({
   articles,
   categories,
   initialCategory = "すべて",
   initialSearch = "",
+  initialType = "all",
   viewCounts = {},
 }: AllArticlesClientProps) {
   const router       = useRouter();
   const searchParams = useSearchParams();
 
+  const [activeType,     setActiveType]     = useState(initialType);
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [searchQuery,    setSearchQuery]    = useState(initialSearch);
   const [inputValue,     setInputValue]     = useState(initialSearch);
 
-  // URL の ?category= / ?q= が変わったら追従（ブラウザバック対応）
   useEffect(() => {
-    const cat = searchParams.get("category") ?? "すべて";
-    const q   = searchParams.get("q") ?? "";
+    const cat  = searchParams.get("category") ?? "すべて";
+    const q    = searchParams.get("q")        ?? "";
+    const type = searchParams.get("type")     ?? "all";
+    setActiveType(type);
     setActiveCategory(cat);
     setSearchQuery(q);
     setInputValue(q);
   }, [searchParams]);
 
-  // カテゴリ切替 → URL を更新
-  // router.push は内部でエンコードするため、生の文字列で渡す
+  function buildQS(overrides: Record<string, string>) {
+    const params = new URLSearchParams();
+    const merged = {
+      type: activeType,
+      category: activeCategory !== "すべて" ? activeCategory : "",
+      q: searchQuery,
+      ...overrides,
+    };
+    if (merged.type && merged.type !== "all") params.set("type", merged.type);
+    if (merged.category) params.set("category", merged.category);
+    if (merged.q)        params.set("q", merged.q);
+    return params.toString() ? `?${params.toString()}` : "";
+  }
+
+  function handleType(type: string) {
+    setActiveType(type);
+    setActiveCategory("すべて");
+    setSearchQuery("");
+    setInputValue("");
+    const qs = type !== "all" ? `?type=${type}` : "";
+    router.push(`/articles${qs}`);
+  }
+
   function handleCategory(cat: string) {
     setActiveCategory(cat);
     setSearchQuery("");
     setInputValue("");
-    const qs = cat !== "すべて" ? `?category=${cat}` : "";
-    router.push(`/articles${qs}`);
+    router.push(`/articles${buildQS({ category: cat !== "すべて" ? cat : "", q: "" })}`);
   }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    setSearchQuery(inputValue);
-    setActiveCategory("すべて");
     const trimmed = inputValue.trim();
-    const qs = trimmed ? `?q=${trimmed}` : "";
-    router.push(`/articles${qs}`);
+    setSearchQuery(trimmed);
+    setActiveCategory("すべて");
+    router.push(`/articles${buildQS({ q: trimmed, category: "" })}`);
   }
 
   const filtered = articles.filter((a) => {
@@ -71,6 +100,21 @@ export default function AllArticlesClient({
     return matchCategory && matchSearch;
   });
 
+  const tabStyle = (active: boolean) => ({
+    padding: "6px 16px",
+    borderRadius: "999px",
+    fontSize: "0.875rem",
+    background: active ? "#111111" : "#fff",
+    color:      active ? "#fff"    : "#1d1d1f",
+    fontWeight: active ? 600       : 400,
+    border:     active ? "1px solid #111111" : "1px solid #d2d2d7",
+    fontFamily: "inherit",
+    cursor: "pointer",
+    whiteSpace: "nowrap" as const,
+    flexShrink: 0,
+    transition: "all 0.2s ease",
+  });
+
   return (
     <main style={{ paddingTop: "var(--header-h)" }}>
 
@@ -86,7 +130,7 @@ export default function AllArticlesClient({
         </section>
       </div>
 
-      {/* ===== スティッキーヘッダー（カテゴリタブ + 検索） ===== */}
+      {/* ===== スティッキーヘッダー ===== */}
       <div
         className="sticky z-30"
         style={{
@@ -97,6 +141,26 @@ export default function AllArticlesClient({
         }}
       >
         <div className="container">
+
+          {/* タイプタブ */}
+          <div className="pt-3 pb-1" style={{ display: "flex", gap: "8px" }}>
+            {TYPE_TABS.map(({ label, value }) => (
+              <button
+                key={value}
+                onClick={() => handleType(value)}
+                style={tabStyle(activeType === value)}
+                onMouseEnter={(e) => {
+                  if (activeType !== value) e.currentTarget.style.background = "#f5f5f5";
+                }}
+                onMouseLeave={(e) => {
+                  if (activeType !== value) e.currentTarget.style.background = "#fff";
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           {/* 検索フォーム */}
           <div className="pt-3">
             <form
@@ -156,7 +220,7 @@ export default function AllArticlesClient({
             )}
           </div>
 
-          {/* カテゴリタブ（横スクロール1行） */}
+          {/* カテゴリタブ */}
           <div
             className="hide-scrollbar py-3"
             style={{ display: "flex", gap: "8px", overflowX: "auto", scrollbarWidth: "none" }}
@@ -178,7 +242,6 @@ export default function AllArticlesClient({
                   whiteSpace: "nowrap",
                   flexShrink: 0,
                   transition: "all 0.2s ease",
-                  transform:  cat === activeCategory ? "scale(1.0)" : undefined,
                 }}
                 onMouseEnter={(e) => {
                   if (cat !== activeCategory) {
@@ -203,7 +266,6 @@ export default function AllArticlesClient({
       {/* ===== 記事グリッド ===== */}
       <div className="container" style={{ paddingTop: "32px", paddingBottom: "var(--spacing-section)" }}>
 
-        {/* 見出し */}
         <div className="flex items-center gap-3 mb-6">
           <h2 className="font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>
             {activeCategory === "すべて" ? "すべての記事" : activeCategory}

@@ -1,43 +1,48 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getArticlesList } from "@/lib/microcms";
+import { getArticles, getNewsList, getArticlesList } from "@/lib/microcms";
 import AllArticlesClient from "./AllArticlesClient";
 import { fetchAllViewCounts } from "@/lib/viewCounts";
 
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "すべての記事",
+  title: "記事一覧",
   description:
-    "SUBSCOPEが発信するすべての記事一覧。サブスクリプション選びに役立つ情報をまとめてチェック。",
+    "SUBSCOPEが発信するニュース・記事の一覧。最新AIツールの情報をまとめてチェック。",
   alternates: { canonical: "https://www.subscope.jp/articles" },
 };
 
-type SearchParams = Promise<{ category?: string; q?: string }>;
+type SearchParams = Promise<{ category?: string; q?: string; type?: string }>;
 
 export default async function ArticlesPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
-  const { category, q } = await searchParams;
+  const { category, q, type } = await searchParams;
+
+  const fetchFn =
+    type === "news"    ? getNewsList(100) :
+    type === "article" ? getArticlesList(100) :
+                         getArticles(100);
 
   const [articlesRes, viewCounts] = await Promise.all([
-    getArticlesList(100).catch(() => ({ contents: [] })),
+    fetchFn.catch(() => ({ contents: [] })),
     fetchAllViewCounts().catch((): Record<string, number> => ({})),
   ]);
   const articles = articlesRes.contents;
 
   const CATEGORY_ORDER = ["ChatGPT", "Claude", "Gemini", "xAI", "その他"];
-  const categories = CATEGORY_ORDER;
 
   return (
     <Suspense>
       <AllArticlesClient
         articles={articles}
-        categories={categories}
+        categories={CATEGORY_ORDER}
         initialCategory={category ?? "すべて"}
         initialSearch={q ?? ""}
+        initialType={type ?? "all"}
         viewCounts={viewCounts}
       />
     </Suspense>
