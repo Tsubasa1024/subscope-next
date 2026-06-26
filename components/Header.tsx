@@ -14,16 +14,11 @@ interface HeaderProps {
   articles?: Article[];
 }
 
-const NAV_ITEMS_BASE = [
-  { href: "/ranking",         label: "記事ランキング" },
-  // { href: "/service-ranking", label: "サブスクランキング" }, // UI非表示
+const NAV_ITEMS = [
+  { label: "ニュース", href: "/news" },
+  { label: "記事", href: "/articles" },
+  ...(FEATURES.aiDiagnosis ? [{ label: "AI診断", href: "/diagnosis" }] : []),
 ];
-
-const NAV_ITEMS_DIAGNOSIS = { href: "/diagnosis", label: "診断" };
-
-const NAV_ITEMS = FEATURES.aiDiagnosis
-  ? [...NAV_ITEMS_BASE, NAV_ITEMS_DIAGNOSIS]
-  : NAV_ITEMS_BASE;
 
 
 
@@ -288,6 +283,24 @@ export default function Header({ articles = [] }: HeaderProps) {
                   <ChevronRight size={16} className="text-gray-400" />
                 </Link>
               </li>
+              <ul className="space-y-1 mb-4">
+                {[
+                  { label: "📰 ニュース", href: "/news" },
+                  { label: "📝 記事",     href: "/articles" },
+                ].map(({ label, href }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      onClick={closeDrawer}
+                      className="flex justify-between items-center w-full px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50"
+                      style={{ color: "#1d1d1f", transition: "color 0.15s ease" }}
+                    >
+                      {label}
+                      <ChevronRight size={14} className="text-gray-300" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
               <div style={{ borderLeft: "2px solid #e5e5e5", marginLeft: "16px", paddingLeft: "0" }}>
               {[
                 { label: "ChatGPT", href: "/articles?category=ChatGPT" },

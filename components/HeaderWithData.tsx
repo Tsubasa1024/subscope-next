@@ -6,6 +6,6 @@ import Header from "./Header";
  * (public) layout から呼び出し、各ページで重複インポート不要にする。
  */
 export default async function HeaderWithData() {
-  const articles = await getArticles(100).catch(() => []);
+  const articles = await getArticles(100).then(r => r.contents).catch(() => []);
   return <Header articles={articles} />;
 }

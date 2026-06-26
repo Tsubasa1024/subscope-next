@@ -3,7 +3,8 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { getArticles, getImageUrl, normalizeCategory } from "@/lib/microcms";
+import { getNewsList, getArticlesList, getImageUrl, normalizeCategory } from "@/lib/microcms";
+import type { Article } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { FEATURES } from "@/lib/features";
 import { fetchAllViewCounts, fetchWeeklyViewCounts } from "@/lib/viewCounts";
@@ -74,22 +75,25 @@ async function fetchTop5Rankings(): Promise<RankingItem[]> {
 }
 
 export default async function TopPage() {
-  const [articles, top5, viewCounts, weeklyViewCounts] = await Promise.all([
-    getArticles(13).catch(() => []),
+  const [newsRes, articleRes, top5, viewCounts, weeklyViewCounts] = await Promise.all([
+    getNewsList(3).catch(() => ({ contents: [] as Article[] })),
+    getArticlesList(4).catch(() => ({ contents: [] as Article[] })),
     fetchTop5Rankings().catch(() => []),
     fetchAllViewCounts().catch((): Record<string, number> => ({})),
     fetchWeeklyViewCounts().catch((): Record<string, number> => ({})),
   ]);
+  const newsItems = newsRes.contents;
+  const articleItems = articleRes.contents;
 
   // 直近7日間で最も読まれた記事をヒーローに（該当なければ最新記事）
-  const featuredId = articles.reduce<string | null>((bestId, a) => {
+  const allItems = [...newsItems, ...articleItems];
+  const featuredId = allItems.reduce<string | null>((bestId, a) => {
     const count = weeklyViewCounts[a.id] ?? 0;
     return count > (weeklyViewCounts[bestId ?? ""] ?? 0) ? a.id : bestId;
   }, null);
   const featured = (featuredId && (weeklyViewCounts[featuredId] ?? 0) > 0)
-    ? (articles.find((a) => a.id === featuredId) ?? articles[0] ?? null)
-    : (articles[0] ?? null);
-  const grid = articles.filter((a) => a.id !== featured?.id).slice(0, 12);
+    ? (allItems.find((a) => a.id === featuredId) ?? allItems[0] ?? null)
+    : (allItems[0] ?? null);
 
   return (
     <div style={{ paddingTop: "var(--header-h)" }}>
@@ -197,63 +201,40 @@ export default async function TopPage() {
       )}
 
       {/* =====================================================
-          3. 記事グリッド（最新12件）
+          3. ニュースセクション
       ===================================================== */}
-      <section className="container" style={{ paddingTop: "32px", paddingBottom: "8px" }}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>
-            最新記事
-          </h2>
-          <Link
-            href="/articles"
-            className="text-sm font-semibold flex items-center gap-1 hover:opacity-70 transition-opacity"
-            style={{ color: "#111111" }}
-          >
-            すべて見る
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2.5 7h9M7 2.5l4.5 4.5-4.5 4.5" />
-            </svg>
-          </Link>
+      <section className="py-12">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-xl font-bold mb-6">📰 最新ニュース</h2>
+          <div className="articles-grid">
+            {newsItems.map((article) => (
+              <ArticleCard key={article.id} article={article} badge="NEWS" />
+            ))}
+          </div>
+          <div className="text-center mt-6">
+            <Link href="/news" className="text-sm text-gray-500 hover:text-black">
+              ニュースをもっと見る →
+            </Link>
+          </div>
         </div>
+      </section>
 
-        {grid.length === 0 ? (
-          /* スケルトン */
+      {/* =====================================================
+          4. 記事セクション
+      ===================================================== */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-xl font-bold mb-6">📝 記事</h2>
           <div className="articles-grid">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden bg-white" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
-                <div className="aspect-video bg-gray-100 animate-pulse" />
-                <div className="p-4 space-y-2">
-                  <div className="h-3 bg-gray-100 rounded animate-pulse w-1/3" />
-                  <div className="h-4 bg-gray-100 rounded animate-pulse" />
-                  <div className="h-4 bg-gray-100 rounded animate-pulse w-4/5" />
-                </div>
-              </div>
+            {articleItems.map((article) => (
+              <ArticleCard key={article.id} article={article} badge="ARTICLE" />
             ))}
           </div>
-        ) : (
-          <div className="articles-grid">
-            {grid.map((article, i) => (
-              <ArticleCard key={article.id} article={article} priority={i < 3} viewCount={viewCounts[article.id] ?? 0} index={i} />
-            ))}
+          <div className="text-center mt-6">
+            <Link href="/articles" className="text-sm text-gray-500 hover:text-black">
+              記事をもっと見る →
+            </Link>
           </div>
-        )}
-
-        {/* もっと見るボタン */}
-        <div className="text-center mt-10 mb-4">
-          <Link
-            href="/articles"
-            className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-semibold transition-all hover:shadow-md hover:-translate-y-0.5"
-            style={{
-              background: "#1d1d1f",
-              color: "#fff",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
-            }}
-          >
-            もっと見る
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2.5 7h9M7 2.5l4.5 4.5-4.5 4.5" />
-            </svg>
-          </Link>
         </div>
       </section>
 
@@ -402,11 +383,13 @@ function ArticleCard({
   priority = false,
   viewCount = 0,
   index = 0,
+  badge,
 }: {
-  article: Awaited<ReturnType<typeof getArticles>>[number];
+  article: Article;
   priority?: boolean;
   viewCount?: number;
   index?: number;
+  badge?: string;
 }) {
   const imgUrl   = getImageUrl(article);
   const category = normalizeCategory(article.category);
@@ -453,19 +436,23 @@ function ArticleCard({
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        {category && (
-          <p
-            style={{
-              fontSize: "11px",
-              fontWeight: 600,
-              color: "#86868b",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              marginBottom: "4px",
-            }}
-          >
-            {category}
-          </p>
+        {(badge || category) && (
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+            {badge && (
+              <span style={{
+                fontSize: "10px", fontWeight: 700, color: "#fff",
+                background: badge === "NEWS" ? "#2563eb" : "#111111",
+                borderRadius: "4px", padding: "1px 5px", letterSpacing: "0.05em",
+              }}>
+                {badge}
+              </span>
+            )}
+            {category && (
+              <p style={{ fontSize: "11px", fontWeight: 600, color: "#86868b", textTransform: "uppercase", letterSpacing: "0.06em", margin: 0 }}>
+                {category}
+              </p>
+            )}
+          </div>
         )}
         <h3
           style={{

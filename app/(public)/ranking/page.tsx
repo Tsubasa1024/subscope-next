@@ -27,7 +27,7 @@ async function fetchLikeCounts(): Promise<Counts> {
 
 export default async function RankingPage() {
   const [articles, allCounts, weeklyCounts, monthlyCounts, likeCounts] = await Promise.all([
-    getArticles(50).catch(() => []),
+    getArticles(50).then(r => r.contents).catch(() => []),
     fetchAllViewCounts().catch(() => ({})),
     fetchWeeklyViewCounts().catch(() => ({})),
     fetchMonthlyViewCounts().catch(() => ({})),

@@ -18,14 +18,28 @@ export const client = createClient({
 // ============================================================
 const ISR = { next: { revalidate: 60 } } as const;
 
-/** 記事一覧を取得（最大100件） */
-export async function getArticles(limit = 100) {
-  const data = await client.getList<Article>({
+/** 記事一覧を取得 */
+export async function getArticles(
+  limit = 100,
+  contentType?: "news" | "article"
+) {
+  const filters = contentType
+    ? `contentType[equals]${contentType}`
+    : undefined;
+  const res = await client.getList<Article>({
     endpoint: "articles",
-    queries: { limit, depth: 2, orders: "-publishedAt" },
+    queries: { limit, orders: "-publishedAt", ...(filters && { filters }) },
     customRequestInit: ISR,
   });
-  return data.contents;
+  return res;
+}
+
+export async function getNewsList(limit = 10) {
+  return getArticles(limit, "news");
+}
+
+export async function getArticlesList(limit = 10) {
+  return getArticles(limit, "article");
 }
 
 /** 記事詳細を取得 */

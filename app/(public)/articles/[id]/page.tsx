@@ -105,7 +105,7 @@ export default async function ArticlePage({ params }: Props) {
 
   // 関連記事（同カテゴリ・最新順・自記事除外）
   const [allArticles, relatedViewCounts] = await Promise.all([
-    getArticles(100).catch(() => []),
+    getArticles(100).then(r => r.contents).catch(() => []),
     fetchAllViewCounts().catch((): Record<string, number> => ({})),
   ]);
   const relatedArticles = allArticles
