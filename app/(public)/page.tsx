@@ -205,7 +205,10 @@ export default async function TopPage() {
       ===================================================== */}
       <section className="py-12">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-xl font-bold mb-6">📰 最新ニュース</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-xs font-bold tracking-widest text-white bg-black px-3 py-1 rounded-full">NEWS</span>
+            <h2 className="text-xl font-bold">最新ニュース</h2>
+          </div>
           <div className="articles-grid">
             {newsItems.map((article) => (
               <ArticleCard key={article.id} article={article} badge="NEWS" />
@@ -224,7 +227,10 @@ export default async function TopPage() {
       ===================================================== */}
       <section className="py-12 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-xl font-bold mb-6">📝 記事</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-xs font-bold tracking-widest text-white bg-gray-600 px-3 py-1 rounded-full">ARTICLE</span>
+            <h2 className="text-xl font-bold">記事</h2>
+          </div>
           <div className="articles-grid">
             {articleItems.map((article) => (
               <ArticleCard key={article.id} article={article} badge="ARTICLE" />

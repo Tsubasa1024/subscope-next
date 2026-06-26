@@ -37,11 +37,7 @@ export async function getArticles(
 export async function getNewsList(limit = 10) {
   const res = await client.getList<Article>({
     endpoint: "articles",
-    queries: {
-      limit,
-      orders: "-publishedAt",
-      filters: "contentType[equals]news[or]contentType[not_exists]true",
-    },
+    queries: { limit, orders: "-publishedAt" },
     customRequestInit: ISR,
   });
   return res;
@@ -50,11 +46,7 @@ export async function getNewsList(limit = 10) {
 export async function getArticlesList(limit = 10) {
   const res = await client.getList<Article>({
     endpoint: "articles",
-    queries: {
-      limit,
-      orders: "-publishedAt",
-      filters: "contentType[equals]article",
-    },
+    queries: { limit, orders: "-publishedAt" },
     customRequestInit: ISR,
   });
   return res;
