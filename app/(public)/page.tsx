@@ -413,91 +413,91 @@ function ArticleCard({
   return (
     <Link
       href={`/articles/${article.id}`}
-      className="group flex flex-col bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+      className="hover:opacity-75 transition-opacity duration-150"
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        gap: "12px",
+        padding: "12px 0",
+        borderBottom: "1px solid rgba(0,0,0,0.06)",
+        textDecoration: "none",
+        color: "inherit",
+      }}
     >
-      {/* サムネイル */}
-      <div className="relative aspect-video overflow-hidden bg-gray-100 flex-shrink-0">
+      <div
+        style={{
+          width: "100px",
+          height: "75px",
+          borderRadius: "10px",
+          background: "#f0f0f0",
+          flexShrink: 0,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
         {imgUrl ? (
           <Image
             src={imgUrl}
             alt={article.title ?? ""}
             fill
-            sizes="(max-width: 767px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="100px"
+            style={{ objectFit: "cover" }}
             priority={priority}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200" />
         )}
-        {category && (
-          <span
-            className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full text-white"
-            style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)" }}
-          >
-            {category}
-          </span>
-        )}
       </div>
 
-      {/* テキスト */}
-      <div className="flex flex-col flex-1 p-4">
+      <div style={{ flex: 1, minWidth: 0 }}>
         {category && (
-          <p className="text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "#86868b" }}>
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "#86868b",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: "4px",
+            }}
+          >
             {category}
           </p>
         )}
         <h3
-          className="font-bold leading-snug text-sm flex-1"
           style={{
-            color: "#1d1d1f",
+            fontSize: "0.95rem",
+            fontWeight: 700,
+            lineHeight: 1.4,
+            marginBottom: "6px",
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
+            color: "#1d1d1f",
           }}
         >
           {article.title}
         </h3>
-        {article.description && (
-          <p
-            className="text-xs mt-2 leading-relaxed"
-            style={{
-              color: "#666666",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {article.description}
-          </p>
-        )}
         <div
-          className="flex items-center justify-between mt-3 pt-3"
-          style={{ borderTop: "1px solid rgba(0,0,0,0.05)" }}
+          style={{
+            display: "flex",
+            gap: "8px",
+            fontSize: "0.78rem",
+            color: "#86868b",
+            alignItems: "center",
+          }}
         >
-          <span className="flex items-center gap-2">
-            <span className="text-xs" style={{ color: "#86868b" }}>{date}</span>
-            {viewCount > 0 && (
-              <span className="flex items-center gap-1 text-xs" style={{ color: "#86868b" }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                {formatViews(viewCount)}
-              </span>
-            )}
-          </span>
-          <span
-            className="text-xs font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
-            style={{ color: "#111111" }}
-          >
-            続きを読む
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 6h8M6 2l4 4-4 4" />
-            </svg>
-          </span>
+          {date && <span>{date}</span>}
+          {viewCount > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              {formatViews(viewCount)}
+            </span>
+          )}
         </div>
       </div>
     </Link>

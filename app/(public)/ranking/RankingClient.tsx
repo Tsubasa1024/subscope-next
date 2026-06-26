@@ -292,13 +292,13 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                         <span style={{ width: "28px", textAlign: "right", fontWeight: 600, fontSize: "0.95rem", color: "#555", flexShrink: 0 }}>
                           {rank}
                         </span>
-                        <div style={{ width: "64px", height: "48px", borderRadius: "10px", background: "#f0f0f0", flexShrink: 0, position: "relative", overflow: "hidden" }}>
+                        <div style={{ width: "100px", height: "75px", borderRadius: "10px", background: "#f0f0f0", flexShrink: 0, position: "relative", overflow: "hidden" }}>
                           {imgUrl && (
-                            <Image src={imgUrl} alt={article.title ?? ""} fill sizes="64px" style={{ objectFit: "cover" }} />
+                            <Image src={imgUrl} alt={article.title ?? ""} fill sizes="100px" style={{ objectFit: "cover" }} />
                           )}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: "0.98rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          <p style={{ fontSize: "0.95rem", fontWeight: 700, lineHeight: 1.4, marginBottom: "4px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                             {article.title}
                           </p>
                           <p style={{ marginTop: "2px", fontSize: "0.78rem", color: "#86868b", display: "flex", gap: "10px", alignItems: "center" }}>
