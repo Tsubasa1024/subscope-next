@@ -16,9 +16,9 @@ interface AllArticlesClientProps {
 }
 
 const TYPE_TABS = [
-  { label: "すべて",   value: "all" },
-  { label: "ニュース", value: "news" },
-  { label: "記事",     value: "article" },
+  { label: "ALL",     value: "all" },
+  { label: "NEWS",    value: "news" },
+  { label: "ARTICLE", value: "article" },
 ];
 
 export default function AllArticlesClient({
@@ -142,25 +142,6 @@ export default function AllArticlesClient({
       >
         <div className="container">
 
-          {/* タイプタブ */}
-          <div className="pt-3 pb-1" style={{ display: "flex", gap: "8px" }}>
-            {TYPE_TABS.map(({ label, value }) => (
-              <button
-                key={value}
-                onClick={() => handleType(value)}
-                style={tabStyle(activeType === value)}
-                onMouseEnter={(e) => {
-                  if (activeType !== value) e.currentTarget.style.background = "#f5f5f5";
-                }}
-                onMouseLeave={(e) => {
-                  if (activeType !== value) e.currentTarget.style.background = "#fff";
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
           {/* 検索フォーム */}
           <div className="pt-3">
             <form
@@ -218,6 +199,25 @@ export default function AllArticlesClient({
                 「{searchQuery}」の検索結果：{filtered.length}件
               </p>
             )}
+          </div>
+
+          {/* タイプタブ */}
+          <div className="pt-2 pb-1" style={{ display: "flex", gap: "8px" }}>
+            {TYPE_TABS.map(({ label, value }) => (
+              <button
+                key={value}
+                onClick={() => handleType(value)}
+                style={tabStyle(activeType === value)}
+                onMouseEnter={(e) => {
+                  if (activeType !== value) e.currentTarget.style.background = "#f5f5f5";
+                }}
+                onMouseLeave={(e) => {
+                  if (activeType !== value) e.currentTarget.style.background = "#fff";
+                }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           {/* カテゴリタブ */}
