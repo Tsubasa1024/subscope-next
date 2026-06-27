@@ -83,14 +83,22 @@ ul {
 
 /* ===== ニュースカルーセル 1日分の列 ===== */
 .day-column {
-  width: 100%;       /* スマホ：全幅（隣は見えない） */
-  flex-shrink: 0;
+  flex: 0 0 92%;     /* スマホ：次の日が右端に約8%チラ見え */
   scroll-snap-align: start;
 }
 @media (min-width: 768px) {
   .day-column {
-    width: 62%;      /* PC：次の日が右に約36%覗く */
+    flex: 0 0 62%;   /* PC：次の日が右に約36%覗く */
   }
+}
+
+/* ===== スワイプヒント チェブロン ===== */
+@keyframes chev {
+  0%, 55%, 100% { opacity: .2; }
+  28%           { opacity: 1;  }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes chev { 0%, 100% { opacity: .6; } }
 }
 
 /* ===== 記事本文スタイル（noteライク） ===== */

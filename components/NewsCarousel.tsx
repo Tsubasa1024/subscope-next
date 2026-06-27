@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { Article } from "@/lib/utils";
 import { getImageUrl, normalizeCategory, formatViews } from "@/lib/utils";
 import { formatDateJST } from "@/lib/date";
+import SwipeHint from "@/components/SwipeHint";
 
 export type NewsDay = {
   dateStr: string; // "2026-06-27"
@@ -124,47 +125,52 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
         )}
       </div>
 
-      {/* カルーセルトラック */}
-      <div
-        role="region"
-        aria-label="最新ニュース"
-        ref={trackRef}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        className="no-scrollbar news-carousel-track"
-        style={{ outline: "none" }}
-      >
-        {days.map((day, pageIdx) => (
-          <div
-            key={day.dateStr}
-            aria-label={day.label}
-            className="day-column"
-          >
-            {/* 日付ラベル */}
-            <p
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                color: "#86868b",
-                letterSpacing: "0.04em",
-                marginBottom: "6px",
-                paddingTop: "2px",
-              }}
+      {/* カルーセルトラック（SwipeHint の基点として position:relative） */}
+      <div style={{ position: "relative" }}>
+        <div
+          role="region"
+          aria-label="最新ニュース"
+          ref={trackRef}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
+          className="no-scrollbar news-carousel-track"
+          style={{ outline: "none" }}
+        >
+          {days.map((day, pageIdx) => (
+            <div
+              key={day.dateStr}
+              aria-label={day.label}
+              className="day-column"
             >
-              {day.label}
-            </p>
+              {/* 日付ラベル */}
+              <p
+                style={{
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  color: "#86868b",
+                  letterSpacing: "0.04em",
+                  marginBottom: "6px",
+                  paddingTop: "2px",
+                }}
+              >
+                {day.label}
+              </p>
 
-            {/* カード（デザイン現状維持） */}
-            {day.articles.map((article) => (
-              <NewsCard
-                key={article.id}
-                article={article}
-                viewCount={viewCounts[article.id] ?? 0}
-                eager={pageIdx === 0}
-              />
-            ))}
-          </div>
-        ))}
+              {/* カード（デザイン現状維持） */}
+              {day.articles.map((article) => (
+                <NewsCard
+                  key={article.id}
+                  article={article}
+                  viewCount={viewCounts[article.id] ?? 0}
+                  eager={pageIdx === 0}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* スワイプ誘導：初回のみ右下にチェブロン点滅 */}
+        <SwipeHint trackRef={trackRef} />
       </div>
 
       {/* ドットナビ */}
