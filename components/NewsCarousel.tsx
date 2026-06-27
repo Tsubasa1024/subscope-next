@@ -27,13 +27,16 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
   const atStart = currentIndex === 0;
   const atEnd   = currentIndex === days.length - 1;
 
-  // 列の offsetLeft を使うことで モバイル(100%幅) / PC(62%幅) 両方に対応
+  // getBoundingClientRect でビューポート基準の位置を使う
+  // （offsetLeft は offsetParent 基準でコンテナ外のオフセットが混入するため不正確）
   const scrollToPage = useCallback((index: number) => {
     const track = trackRef.current;
     if (!track) return;
     const col = track.children[index] as HTMLElement | undefined;
     if (!col) return;
-    track.scrollTo({ left: col.offsetLeft, behavior: "smooth" });
+    const scrollTarget =
+      track.scrollLeft + col.getBoundingClientRect().left - track.getBoundingClientRect().left;
+    track.scrollTo({ left: scrollTarget, behavior: "smooth" });
   }, []);
 
   // scroll → rAF throttle でドット同期 ＋ 現在列インデックス更新
@@ -44,12 +47,13 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
     const handler = () => {
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        const scrollLeft = track.scrollLeft;
+        const trackLeft = track.getBoundingClientRect().left;
         let closest = 0;
         let minDist = Infinity;
         for (let i = 0; i < track.children.length; i++) {
           const col = track.children[i] as HTMLElement;
-          const dist = Math.abs(col.offsetLeft - scrollLeft);
+          // 各列の「トラック左端からの視覚距離」= 0 に最も近い列が現在ページ
+          const dist = Math.abs(col.getBoundingClientRect().left - trackLeft);
           if (dist < minDist) { minDist = dist; closest = i; }
         }
         setCurrentIndex(closest);
@@ -295,10 +299,11 @@ function NewsCard({
             style={{
               fontSize: "10px",
               fontWeight: 700,
-              color: "#fff",
-              background: "#2563eb",
+              color: "#111111",
+              background: "#fff",
+              border: "1px solid #111111",
               borderRadius: "4px",
-              padding: "1px 5px",
+              padding: "0px 4px",
               letterSpacing: "0.05em",
             }}
           >

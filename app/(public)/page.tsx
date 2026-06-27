@@ -141,17 +141,16 @@ export default async function TopPage() {
               fill
               sizes="(min-width: 1100px) 1068px, (min-width: 768px) calc(100vw - 32px), 100vw"
               className="object-cover transition-transform duration-700 group-hover:scale-105"
-              style={{ opacity: 0.78 }}
               priority
             />
           )}
 
-          {/* グラデーションオーバーレイ */}
+          {/* グラデーションオーバーレイ（テキスト側の下部のみ） */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.0) 100%)",
+                "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.22) 38%, rgba(0,0,0,0) 65%)",
             }}
           />
 
@@ -193,24 +192,6 @@ export default async function TopPage() {
               {featured.title}
             </h1>
 
-            {/* 説明文 */}
-            {featured.description && (
-              <p
-                className="mt-3 opacity-75 hidden sm:block"
-                style={{
-                  fontSize: "1rem",
-                  lineHeight: 1.65,
-                  maxWidth: "640px",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                }}
-              >
-                {featured.description}
-              </p>
-            )}
-
             {/* 続きを読む */}
             <span className="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold opacity-90 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
               続きを読む
@@ -243,7 +224,7 @@ export default async function TopPage() {
       <section className="py-12 bg-gray-50">
         <div className="max-w-[1100px] mx-auto px-4">
           <div className="flex items-center gap-3 mb-6">
-            <span className="text-xs font-bold tracking-widest text-white bg-gray-600 px-3 py-1 rounded-full">ARTICLE</span>
+            <span className="text-xs font-bold tracking-widest text-white bg-black px-3 py-1 rounded-full">ARTICLE</span>
             <h2 className="text-xl font-bold">記事</h2>
           </div>
           <div className="articles-grid">
@@ -461,9 +442,13 @@ function ArticleCard({
         {(badge || category) && (
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
             {badge && (
-              <span style={{
+              <span style={badge === "NEWS" ? {
+                fontSize: "10px", fontWeight: 700, color: "#111111",
+                background: "#fff", border: "1px solid #111111",
+                borderRadius: "4px", padding: "0px 4px", letterSpacing: "0.05em",
+              } : {
                 fontSize: "10px", fontWeight: 700, color: "#fff",
-                background: badge === "NEWS" ? "#2563eb" : "#111111",
+                background: "#111111",
                 borderRadius: "4px", padding: "1px 5px", letterSpacing: "0.05em",
               }}>
                 {badge}
