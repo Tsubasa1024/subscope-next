@@ -76,7 +76,7 @@ async function fetchTop5Rankings(): Promise<RankingItem[]> {
 
 export default async function TopPage() {
   const [newsRes, articleRes, top5, viewCounts, weeklyViewCounts] = await Promise.all([
-    getNewsList(3).catch(() => ({ contents: [] as Article[] })),
+    getNewsList(8).catch(() => ({ contents: [] as Article[] })),
     getArticlesList(4).catch(() => ({ contents: [] as Article[] })),
     fetchTop5Rankings().catch(() => []),
     fetchAllViewCounts().catch((): Record<string, number> => ({})),
@@ -104,12 +104,8 @@ export default async function TopPage() {
       {featured && (
         <Link
           href={`/articles/${featured.id}`}
-          className="group block relative w-full overflow-hidden"
-          style={{
-            minHeight: "460px",
-            height: "clamp(460px, 55vw, 620px)",
-            background: "#111",
-          }}
+          className="group block relative w-full overflow-hidden hero-section"
+          style={{ background: "#111" }}
         >
           {/* 背景画像 */}
           {getImageUrl(featured) && (
@@ -165,7 +161,7 @@ export default async function TopPage() {
                 fontSize: "clamp(1.4rem, 3.5vw, 2.4rem)",
                 letterSpacing: "-0.025em",
                 textShadow: "0 2px 16px rgba(0,0,0,0.6)",
-                maxWidth: "900px",
+                maxWidth: "640px",
               }}
             >
               {featured.title}
@@ -178,7 +174,7 @@ export default async function TopPage() {
                 style={{
                   fontSize: "1rem",
                   lineHeight: 1.65,
-                  maxWidth: "760px",
+                  maxWidth: "640px",
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: "vertical",
@@ -204,12 +200,12 @@ export default async function TopPage() {
           3. ニュースセクション
       ===================================================== */}
       <section className="py-12">
-        <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-[1100px] mx-auto px-4">
           <div className="flex items-center gap-3 mb-6">
             <span className="text-xs font-bold tracking-widest text-white bg-black px-3 py-1 rounded-full">NEWS</span>
             <h2 className="text-xl font-bold">最新ニュース</h2>
           </div>
-          <div className="articles-grid">
+          <div className="news-grid">
             {newsItems.map((article) => (
               <ArticleCard key={article.id} article={article} badge="NEWS" viewCount={viewCounts[article.id] ?? 0} />
             ))}
@@ -226,7 +222,7 @@ export default async function TopPage() {
           4. 記事セクション
       ===================================================== */}
       <section className="py-12 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-[1100px] mx-auto px-4">
           <div className="flex items-center gap-3 mb-6">
             <span className="text-xs font-bold tracking-widest text-white bg-gray-600 px-3 py-1 rounded-full">ARTICLE</span>
             <h2 className="text-xl font-bold">記事</h2>
@@ -435,6 +431,7 @@ function ArticleCard({
             sizes="100px"
             style={{ objectFit: "cover" }}
             priority={priority}
+            loading={priority ? undefined : "lazy"}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200" />

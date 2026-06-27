@@ -42,10 +42,32 @@ ul {
   width: 100%;
 }
 
+/* ===== ヒーローセクション高さ ===== */
+.hero-section {
+  height: min(42vh, 340px);
+}
+@media (min-width: 768px) {
+  .hero-section {
+    height: clamp(360px, 50vh, 520px);
+  }
+}
+
 /* ===== 記事リスト ===== */
 .articles-grid {
   display: flex;
   flex-direction: column;
+}
+
+/* ===== ニュースグリッド（md以上で2カラム） ===== */
+.news-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .news-grid {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 32px;
+  }
 }
 
 /* ===== 記事本文スタイル（noteライク） ===== */
