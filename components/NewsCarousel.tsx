@@ -21,9 +21,11 @@ interface Props {
 export default function NewsCarousel({ days, viewCounts = {} }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [atStart, setAtStart] = useState(true);   // 初期は左端
-  const [atEnd,   setAtEnd]   = useState(false);
   const multiPage = days.length > 1;
+
+  // currentIndex から導出（別 state にすると scroll 非同期で食い違う）
+  const atStart = currentIndex === 0;
+  const atEnd   = currentIndex === days.length - 1;
 
   // 列の offsetLeft を使うことで モバイル(100%幅) / PC(62%幅) 両方に対応
   const scrollToPage = useCallback((index: number) => {
@@ -34,15 +36,7 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
     track.scrollTo({ left: col.offsetLeft, behavior: "smooth" });
   }, []);
 
-  // 端判定（マウント・scroll・resize で呼ぶ）
-  const checkBounds = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    setAtStart(track.scrollLeft <= 1);
-    setAtEnd(track.scrollLeft + track.clientWidth >= track.scrollWidth - 1);
-  }, []);
-
-  // scroll → rAF throttle でドット同期 ＋ 端判定を一括更新
+  // scroll → rAF throttle でドット同期 ＋ 現在列インデックス更新
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -51,10 +45,6 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
         const scrollLeft = track.scrollLeft;
-        // 端判定
-        setAtStart(scrollLeft <= 1);
-        setAtEnd(scrollLeft + track.clientWidth >= track.scrollWidth - 1);
-        // 最近傍の列を探してインデックス更新
         let closest = 0;
         let minDist = Infinity;
         for (let i = 0; i < track.children.length; i++) {
@@ -71,13 +61,6 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
       cancelAnimationFrame(rafId);
     };
   }, []);
-
-  // マウント直後 ＋ resize でも端判定
-  useEffect(() => {
-    checkBounds();
-    window.addEventListener("resize", checkBounds);
-    return () => window.removeEventListener("resize", checkBounds);
-  }, [checkBounds]);
 
   // Shift+ホイールで横移動（PC）
   useEffect(() => {
@@ -117,9 +100,8 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
           <div className="hidden md:flex" style={{ gap: "6px" }}>
             <button
               onClick={() => scrollToPage(currentIndex - 1)}
-              disabled={atStart}
               aria-label="前の日へ"
-              aria-hidden={atStart}
+              aria-hidden={atStart || undefined}
               tabIndex={atStart ? -1 : 0}
               style={{ ...BASE_ARROW_STYLE, opacity: atStart ? 0 : 1, pointerEvents: atStart ? "none" : "auto" }}
             >
@@ -127,9 +109,8 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
             </button>
             <button
               onClick={() => scrollToPage(currentIndex + 1)}
-              disabled={atEnd}
               aria-label="次の日へ"
-              aria-hidden={atEnd}
+              aria-hidden={atEnd || undefined}
               tabIndex={atEnd ? -1 : 0}
               style={{ ...BASE_ARROW_STYLE, opacity: atEnd ? 0 : 1, pointerEvents: atEnd ? "none" : "auto" }}
             >
