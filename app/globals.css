@@ -92,15 +92,6 @@ ul {
   }
 }
 
-/* ===== スワイプヒント チェブロン ===== */
-@keyframes chev {
-  0%, 55%, 100% { opacity: .2; }
-  28%           { opacity: 1;  }
-}
-@media (prefers-reduced-motion: reduce) {
-  @keyframes chev { 0%, 100% { opacity: .6; } }
-}
-
 /* ===== 記事本文スタイル（noteライク） ===== */
 .article-body {
   font-size: 17px;
