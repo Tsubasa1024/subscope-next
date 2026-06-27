@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import LoginPromptModal from "@/components/LoginPromptModal";
 import { FEATURES } from "@/lib/features";
+import { formatDateJST } from "@/lib/date";
 
 interface Comment {
   id: string;
@@ -166,7 +167,7 @@ export default function ArticleComments({ articleId }: Props) {
                   >
                     {comment.userName}
                   </Link>
-                  <span className="text-xs text-gray-400">{comment.createdAt.slice(0, 10)}</span>
+                  <span className="text-xs text-gray-400">{formatDateJST(comment.createdAt)}</span>
                   {user?.uid === comment.userId && (
                     <button
                       onClick={() => handleDelete(comment.id)}

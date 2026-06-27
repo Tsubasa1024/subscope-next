@@ -13,6 +13,7 @@ import { FEATURES } from "@/lib/features";
 import { transformContent } from "@/lib/transformContent";
 import { formatViews } from "@/lib/utils";
 import { fetchAllViewCounts } from "@/lib/viewCounts";
+import { formatDateJST } from "@/lib/date";
 
 // 認証状態を読むため動的レンダリング（記事本文はfetchキャッシュで高速）
 export const dynamic = "force-dynamic";
@@ -72,7 +73,7 @@ export default async function ArticlePage({ params }: Props) {
 
   const imgUrl     = getImageUrl(article);
   const category   = normalizeCategory(article.category);
-  const date       = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
+  const date       = article.publishedAt ? formatDateJST(article.publishedAt) : "";
   const articleUrl = `https://www.subscope.jp/articles/${id}`;
   const content    = article.content ? await transformContent(article.content) : null;
 

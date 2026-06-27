@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Article } from "@/lib/utils";
 import { getImageUrl, normalizeCategory } from "@/lib/utils";
+import { formatDateJST } from "@/lib/date";
 
 // ─── 定数 ────────────────────────────────────────────────────
 
@@ -239,7 +240,7 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                           <p style={{ fontSize: "0.9rem", color: "#555" }}>{article.description}</p>
                         )}
                         <div style={{ marginTop: "8px", display: "flex", gap: "12px", fontSize: "0.85rem", color: "#86868b", alignItems: "center", flexWrap: "wrap" }}>
-                          {article.publishedAt && <span>{article.publishedAt.slice(0, 10)}</span>}
+                          {article.publishedAt && <span>{formatDateJST(article.publishedAt)}</span>}
                           {normalizeCategory(article.category) && (
                             <span
                               style={{
@@ -304,7 +305,7 @@ export default function RankingClient({ articles, viewCounts }: RankingClientPro
                             {article.title}
                           </p>
                           <p style={{ marginTop: "2px", fontSize: "0.78rem", color: "#86868b", display: "flex", gap: "10px", alignItems: "center" }}>
-                            <span>{article.publishedAt?.slice(0, 10)}</span>
+                            <span>{article.publishedAt ? formatDateJST(article.publishedAt) : ""}</span>
                             {normalizeCategory(article.category) && (
                               <span>{normalizeCategory(article.category)}</span>
                             )}

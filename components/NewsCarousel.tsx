@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Article } from "@/lib/utils";
 import { getImageUrl, normalizeCategory, formatViews } from "@/lib/utils";
+import { formatDateJST } from "@/lib/date";
 
 export type NewsDay = {
   dateStr: string; // "2026-06-27"
@@ -231,7 +232,7 @@ function NewsCard({
 }) {
   const imgUrl = getImageUrl(article);
   const category = normalizeCategory(article.category);
-  const date = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
+  const date = article.publishedAt ? formatDateJST(article.publishedAt) : "";
 
   return (
     <Link

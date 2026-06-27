@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Article } from "@/lib/utils";
 import { getImageUrl, normalizeCategory } from "@/lib/utils";
+import { formatDateJST } from "@/lib/date";
 
 interface CarouselProps {
   articles: Article[];
@@ -159,7 +160,7 @@ export default function Carousel({ articles }: CarouselProps) {
                         }}
                       >
                         <span style={{ fontSize: "10px", color: "#86868b" }}>
-                          {a.publishedAt?.slice(0, 10)}
+                          {a.publishedAt ? formatDateJST(a.publishedAt) : ""}
                         </span>
                         <span
                           style={{

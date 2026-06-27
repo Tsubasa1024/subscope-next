@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getNewsList, getArticlesList, getImageUrl, normalizeCategory } from "@/lib/microcms";
 import NewsCarousel, { type NewsDay } from "@/components/NewsCarousel";
+import { formatDateJST, todayJST, yesterdayJST } from "@/lib/date";
 import type { Article } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { FEATURES } from "@/lib/features";
@@ -87,8 +88,8 @@ export default async function TopPage() {
   const articleItems = articleRes.contents;
 
   // ── ニュースを日付ごとにグルーピング（最大7日・1日3件） ──
-  const _today = new Date().toISOString().slice(0, 10);
-  const _yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const _today = todayJST();
+  const _yesterday = yesterdayJST();
 
   function makeDateLabel(d: string): string {
     if (d === _today) return `${d.slice(5).replace("-", "/")}（今日）`;
@@ -98,7 +99,7 @@ export default async function TopPage() {
 
   const _byDay: Record<string, Article[]> = {};
   for (const a of newsItems) {
-    const d = a.publishedAt?.slice(0, 10) ?? "unknown";
+    const d = a.publishedAt ? formatDateJST(a.publishedAt) : "unknown";
     if (!_byDay[d]) _byDay[d] = [];
     if (_byDay[d].length < 3) _byDay[d].push(a);
   }
@@ -171,7 +172,7 @@ export default async function TopPage() {
               )}
               {featured.publishedAt && (
                 <span className="text-xs opacity-50 ml-auto">
-                  {featured.publishedAt.slice(0, 10)}
+                  {formatDateJST(featured.publishedAt)}
                 </span>
               )}
             </div>
@@ -409,7 +410,7 @@ function ArticleCard({
 }) {
   const imgUrl   = getImageUrl(article);
   const category = normalizeCategory(article.category);
-  const date     = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
+  const date     = article.publishedAt ? formatDateJST(article.publishedAt) : "";
 
   return (
     <Link

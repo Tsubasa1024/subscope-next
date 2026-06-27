@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Article } from "@/lib/utils";
 import ArticleCard from "@/components/ArticleCard";
 import ReportButton from "@/components/ReportButton";
+import { formatDateJST } from "@/lib/date";
 
 interface Review {
   id: string;
@@ -480,7 +481,7 @@ export default function ServiceDetailClient({
               const displayName =
                 review.users?.display_name ?? "匿名ユーザー";
               const profileHref = `/u/${review.users?.username ?? review.user_id}`;
-              const date = review.created_at.slice(0, 10);
+              const date = formatDateJST(review.created_at);
               return (
                 <div
                   key={`${review.user_id}-${i}`}

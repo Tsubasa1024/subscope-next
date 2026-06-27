@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Article } from "@/lib/utils";
 import { normalizeCategory, getImageUrl, formatViews } from "@/lib/utils";
+import { formatDateJST } from "@/lib/date";
 
 interface ArticleCardProps {
   article: Article;
@@ -13,7 +14,7 @@ interface ArticleCardProps {
 export default function ArticleCard({ article, priority = false, viewCount, index = 0 }: ArticleCardProps) {
   const imgUrl = getImageUrl(article);
   const category = normalizeCategory(article.category);
-  const date = article.publishedAt ? article.publishedAt.slice(0, 10) : "";
+  const date = article.publishedAt ? formatDateJST(article.publishedAt) : "";
 
   return (
     <Link

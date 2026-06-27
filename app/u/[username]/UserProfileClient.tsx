@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatYearMonthJST } from "@/lib/date";
 
 export type Profile = {
   id: string;
@@ -57,8 +58,7 @@ function hashColor(id: string): string {
 }
 
 function joinedText(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}年${d.getMonth() + 1}月から`;
+  return formatYearMonthJST(dateStr) + "から";
 }
 
 function relativeTime(dateStr: string): string {

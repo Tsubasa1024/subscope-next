@@ -794,7 +794,7 @@ export default function MypageClient({
                                 {article.title}
                               </p>
                               <p style={{ fontSize: "0.75rem", color: "#86868b", marginTop: "4px" }}>
-                                {new Date(article.created_at).toLocaleDateString("ja-JP")} 保存
+                                {new Date(article.created_at).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" })} 保存
                               </p>
                             </div>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#86868b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
