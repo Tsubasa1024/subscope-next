@@ -67,6 +67,32 @@ ul {
   display: none;
 }
 
+/* ===== ニュースカルーセル トラック ===== */
+.news-carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* gap はスマホ 0・PC 20px */
+  gap: 0;
+}
+@media (min-width: 768px) {
+  .news-carousel-track {
+    gap: 20px;
+  }
+}
+
+/* ===== ニュースカルーセル 1日分の列 ===== */
+.day-column {
+  width: 100%;       /* スマホ：全幅（隣は見えない） */
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+@media (min-width: 768px) {
+  .day-column {
+    width: 62%;      /* PC：次の日が右に約36%覗く */
+  }
+}
+
 /* ===== 記事本文スタイル（noteライク） ===== */
 .article-body {
   font-size: 17px;

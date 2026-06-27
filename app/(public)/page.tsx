@@ -122,12 +122,15 @@ export default async function TopPage() {
     <div style={{ paddingTop: "var(--header-h)" }}>
 
       {/* =====================================================
-          1. 注目記事（ファーストビュー・画面幅いっぱい）
+          1. 注目記事（ファーストビュー）
+          - PC: 下のコンテンツと同じ最大幅で中央寄せ
+          - スマホ: 全幅（現状維持）
       ===================================================== */}
       {featured && (
+        <div className="md:max-w-[1100px] md:mx-auto md:px-4">
         <Link
           href={`/articles/${featured.id}`}
-          className="group block relative w-full overflow-hidden hero-section"
+          className="group block relative w-full overflow-hidden hero-section md:rounded-2xl"
           style={{ background: "#111" }}
         >
           {/* 背景画像 */}
@@ -136,7 +139,7 @@ export default async function TopPage() {
               src={getImageUrl(featured)}
               alt={featured.title ?? ""}
               fill
-              sizes="100vw"
+              sizes="(min-width: 1100px) 1068px, (min-width: 768px) calc(100vw - 32px), 100vw"
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               style={{ opacity: 0.78 }}
               priority
@@ -152,10 +155,10 @@ export default async function TopPage() {
             }}
           />
 
-          {/* テキスト（コンテナ幅に収める） */}
+          {/* テキスト */}
           <div
             className="absolute inset-x-0 bottom-0 text-white"
-            style={{ maxWidth: "var(--container-width)", margin: "0 auto", padding: "0 24px 40px" }}
+            style={{ padding: "0 24px 40px" }}
           >
             {/* バッジ行 */}
             <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -217,6 +220,7 @@ export default async function TopPage() {
             </span>
           </div>
         </Link>
+        </div>
       )}
 
       {/* =====================================================

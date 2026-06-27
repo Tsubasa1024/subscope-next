@@ -23,20 +23,29 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const multiPage = days.length > 1;
 
+  // 列の offsetLeft を使うことで モバイル(100%幅) / PC(62%幅) 両方に対応
   const scrollToPage = useCallback((index: number) => {
     const track = trackRef.current;
     if (!track) return;
-    track.scrollTo({ left: index * track.clientWidth, behavior: "smooth" });
+    const col = track.children[index] as HTMLElement | undefined;
+    if (!col) return;
+    track.scrollTo({ left: col.offsetLeft, behavior: "smooth" });
   }, []);
 
-  // ドットをスクロール位置と同期
+  // ドットをスクロール位置と同期（最も近い列を探す）
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
     const handler = () => {
-      const w = track.clientWidth;
-      if (!w) return;
-      setCurrentIndex(Math.round(track.scrollLeft / w));
+      const scrollLeft = track.scrollLeft;
+      let closest = 0;
+      let minDist = Infinity;
+      for (let i = 0; i < track.children.length; i++) {
+        const col = track.children[i] as HTMLElement;
+        const dist = Math.abs(col.offsetLeft - scrollLeft);
+        if (dist < minDist) { minDist = dist; closest = i; }
+      }
+      setCurrentIndex(closest);
     };
     track.addEventListener("scroll", handler, { passive: true });
     return () => track.removeEventListener("scroll", handler);
@@ -105,20 +114,14 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
         ref={trackRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className="no-scrollbar"
-        style={{
-          display: "flex",
-          overflowX: "auto",
-          scrollSnapType: "x mandatory",
-          scrollBehavior: "smooth",
-          outline: "none",
-        }}
+        className="no-scrollbar news-carousel-track"
+        style={{ outline: "none" }}
       >
         {days.map((day, pageIdx) => (
           <div
             key={day.dateStr}
             aria-label={day.label}
-            style={{ width: "100%", flexShrink: 0, scrollSnapAlign: "start" }}
+            className="day-column"
           >
             {/* 日付ラベル */}
             <p
