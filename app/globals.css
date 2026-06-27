@@ -58,16 +58,13 @@ ul {
   flex-direction: column;
 }
 
-/* ===== ニュースグリッド（md以上で2カラム） ===== */
-.news-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+/* ===== カルーセル：スクロールバーを非表示 ===== */
+.no-scrollbar {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
-@media (min-width: 768px) {
-  .news-grid {
-    grid-template-columns: 1fr 1fr;
-    column-gap: 32px;
-  }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* ===== 記事本文スタイル（noteライク） ===== */

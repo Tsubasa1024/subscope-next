@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { getNewsList, getArticlesList, getImageUrl, normalizeCategory } from "@/lib/microcms";
+import NewsCarousel, { type NewsDay } from "@/components/NewsCarousel";
 import type { Article } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { FEATURES } from "@/lib/features";
@@ -76,7 +77,7 @@ async function fetchTop5Rankings(): Promise<RankingItem[]> {
 
 export default async function TopPage() {
   const [newsRes, articleRes, top5, viewCounts, weeklyViewCounts] = await Promise.all([
-    getNewsList(8).catch(() => ({ contents: [] as Article[] })),
+    getNewsList(21).catch(() => ({ contents: [] as Article[] })),
     getArticlesList(4).catch(() => ({ contents: [] as Article[] })),
     fetchTop5Rankings().catch(() => []),
     fetchAllViewCounts().catch((): Record<string, number> => ({})),
@@ -84,6 +85,27 @@ export default async function TopPage() {
   ]);
   const newsItems = newsRes.contents;
   const articleItems = articleRes.contents;
+
+  // ── ニュースを日付ごとにグルーピング（最大7日・1日3件） ──
+  const _today = new Date().toISOString().slice(0, 10);
+  const _yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+  function makeDateLabel(d: string): string {
+    if (d === _today) return `${d.slice(5).replace("-", "/")}（今日）`;
+    if (d === _yesterday) return `${d.slice(5).replace("-", "/")}（昨日）`;
+    return d.slice(5).replace("-", "/");
+  }
+
+  const _byDay: Record<string, Article[]> = {};
+  for (const a of newsItems) {
+    const d = a.publishedAt?.slice(0, 10) ?? "unknown";
+    if (!_byDay[d]) _byDay[d] = [];
+    if (_byDay[d].length < 3) _byDay[d].push(a);
+  }
+  const newsGroups: NewsDay[] = Object.entries(_byDay)
+    .sort(([a], [b]) => b.localeCompare(a))
+    .slice(0, 7)
+    .map(([dateStr, articles]) => ({ dateStr, label: makeDateLabel(dateStr), articles }));
 
   // 直近7日間で最も読まれた記事をヒーローに（該当なければ最新記事）
   const allItems = [...newsItems, ...articleItems];
@@ -197,19 +219,11 @@ export default async function TopPage() {
       )}
 
       {/* =====================================================
-          3. ニュースセクション
+          3. ニュースセクション（日付ごとカルーセル）
       ===================================================== */}
       <section className="py-12">
         <div className="max-w-[1100px] mx-auto px-4">
-          <div className="flex items-center gap-3 mb-6">
-            <span className="text-xs font-bold tracking-widest text-white bg-black px-3 py-1 rounded-full">NEWS</span>
-            <h2 className="text-xl font-bold">最新ニュース</h2>
-          </div>
-          <div className="news-grid">
-            {newsItems.map((article) => (
-              <ArticleCard key={article.id} article={article} badge="NEWS" viewCount={viewCounts[article.id] ?? 0} />
-            ))}
-          </div>
+          <NewsCarousel days={newsGroups} viewCounts={viewCounts} />
           <div className="text-center mt-6">
             <Link href="/news" className="text-sm text-gray-500 hover:text-black">
               ニュースをもっと見る →
