@@ -21,6 +21,8 @@ interface Props {
 export default function NewsCarousel({ days, viewCounts = {} }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [atStart, setAtStart] = useState(true);   // 初期は左端
+  const [atEnd,   setAtEnd]   = useState(false);
   const multiPage = days.length > 1;
 
   // 列の offsetLeft を使うことで モバイル(100%幅) / PC(62%幅) 両方に対応
@@ -32,24 +34,50 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
     track.scrollTo({ left: col.offsetLeft, behavior: "smooth" });
   }, []);
 
-  // ドットをスクロール位置と同期（最も近い列を探す）
+  // 端判定（マウント・scroll・resize で呼ぶ）
+  const checkBounds = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    setAtStart(track.scrollLeft <= 1);
+    setAtEnd(track.scrollLeft + track.clientWidth >= track.scrollWidth - 1);
+  }, []);
+
+  // scroll → rAF throttle でドット同期 ＋ 端判定を一括更新
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
+    let rafId = 0;
     const handler = () => {
-      const scrollLeft = track.scrollLeft;
-      let closest = 0;
-      let minDist = Infinity;
-      for (let i = 0; i < track.children.length; i++) {
-        const col = track.children[i] as HTMLElement;
-        const dist = Math.abs(col.offsetLeft - scrollLeft);
-        if (dist < minDist) { minDist = dist; closest = i; }
-      }
-      setCurrentIndex(closest);
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const scrollLeft = track.scrollLeft;
+        // 端判定
+        setAtStart(scrollLeft <= 1);
+        setAtEnd(scrollLeft + track.clientWidth >= track.scrollWidth - 1);
+        // 最近傍の列を探してインデックス更新
+        let closest = 0;
+        let minDist = Infinity;
+        for (let i = 0; i < track.children.length; i++) {
+          const col = track.children[i] as HTMLElement;
+          const dist = Math.abs(col.offsetLeft - scrollLeft);
+          if (dist < minDist) { minDist = dist; closest = i; }
+        }
+        setCurrentIndex(closest);
+      });
     };
     track.addEventListener("scroll", handler, { passive: true });
-    return () => track.removeEventListener("scroll", handler);
+    return () => {
+      track.removeEventListener("scroll", handler);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
+
+  // マウント直後 ＋ resize でも端判定
+  useEffect(() => {
+    checkBounds();
+    window.addEventListener("resize", checkBounds);
+    return () => window.removeEventListener("resize", checkBounds);
+  }, [checkBounds]);
 
   // Shift+ホイールで横移動（PC）
   useEffect(() => {
@@ -84,22 +112,26 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
         </span>
         <h2 className="text-xl font-bold flex-1">最新ニュース</h2>
 
-        {/* 矢印（md 以上のみ表示） */}
+        {/* 矢印（md 以上のみ表示。端では opacity:0 で隠してレイアウト確保） */}
         {multiPage && (
           <div className="hidden md:flex" style={{ gap: "6px" }}>
             <button
               onClick={() => scrollToPage(currentIndex - 1)}
-              disabled={currentIndex === 0}
+              disabled={atStart}
               aria-label="前の日へ"
-              style={arrowStyle(currentIndex === 0)}
+              aria-hidden={atStart}
+              tabIndex={atStart ? -1 : 0}
+              style={{ ...BASE_ARROW_STYLE, opacity: atStart ? 0 : 1, pointerEvents: atStart ? "none" : "auto" }}
             >
               <ChevronLeft />
             </button>
             <button
               onClick={() => scrollToPage(currentIndex + 1)}
-              disabled={currentIndex === days.length - 1}
+              disabled={atEnd}
               aria-label="次の日へ"
-              style={arrowStyle(currentIndex === days.length - 1)}
+              aria-hidden={atEnd}
+              tabIndex={atEnd ? -1 : 0}
+              style={{ ...BASE_ARROW_STYLE, opacity: atEnd ? 0 : 1, pointerEvents: atEnd ? "none" : "auto" }}
             >
               <ChevronRight />
             </button>
@@ -186,24 +218,22 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
 }
 
 // ============================================================
-// 矢印ボタンスタイル
+// 矢印ボタン ベーススタイル（visibility は opacity で制御）
 // ============================================================
-function arrowStyle(disabled: boolean): React.CSSProperties {
-  return {
-    width: "32px",
-    height: "32px",
-    borderRadius: "50%",
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: disabled ? "rgba(0,0,0,0.04)" : "#fff",
-    color: disabled ? "rgba(0,0,0,0.25)" : "#111",
-    cursor: disabled ? "default" : "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    transition: "opacity 0.2s",
-  };
-}
+const BASE_ARROW_STYLE: React.CSSProperties = {
+  width: "32px",
+  height: "32px",
+  borderRadius: "50%",
+  border: "1px solid rgba(0,0,0,0.12)",
+  background: "#fff",
+  color: "#111",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+  transition: "opacity 0.2s ease",
+};
 
 function ChevronLeft() {
   return (
