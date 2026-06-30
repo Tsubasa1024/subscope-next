@@ -8,7 +8,6 @@ import NewsCarousel, { type NewsDay } from "@/components/NewsCarousel";
 import { formatDateJST, todayJST, yesterdayJST } from "@/lib/date";
 import type { Article } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
-import { FEATURES } from "@/lib/features";
 import { fetchAllViewCounts, fetchWeeklyViewCounts } from "@/lib/viewCounts";
 import { formatViews } from "@/lib/utils";
 
@@ -571,51 +570,6 @@ export default async function TopPage() {
                   </svg>
                 </Link>
               ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* =====================================================
-          5. 診断CTAバナー（FEATURES.aiDiagnosis が true のときのみ表示）
-      ===================================================== */}
-      {FEATURES.aiDiagnosis && (
-        <section className="py-14">
-          <div className="container">
-            <div
-              className="relative overflow-hidden rounded-3xl px-8 py-14 text-center text-white"
-              style={{ background: "#111111" }}
-            >
-              <div aria-hidden className="absolute -top-20 -left-20 w-64 h-64 rounded-full" style={{ background: "rgba(255,255,255,0.05)" }} />
-              <div aria-hidden className="absolute -bottom-16 -right-16 w-80 h-80 rounded-full" style={{ background: "rgba(255,255,255,0.04)" }} />
-              <div className="relative">
-                <span
-                  className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold mb-5"
-                  style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(10px)" }}
-                >
-                  ✨ 無料でできる
-                </span>
-                <h2
-                  className="font-bold leading-tight mb-4"
-                  style={{ fontSize: "clamp(1.5rem,4vw,2.2rem)", letterSpacing: "-0.03em" }}
-                >
-                  どのサブスクが合う？<br />診断してみよう。
-                </h2>
-                <p className="mb-8 mx-auto text-sm sm:text-base" style={{ opacity: 0.8, maxWidth: "400px", lineHeight: 1.7 }}>
-                  いくつかの質問に答えるだけで、あなたのライフスタイルに合ったサブスクが見つかります。
-                </p>
-                <Link
-                  href="/diagnosis"
-                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-200 hover:scale-105"
-                  style={{ background: "#fff", color: "#111111", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}
-                >
-                  診断スタート
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 8h10M8 3l5 5-5 5" />
-                  </svg>
-                </Link>
-                <p className="mt-4 text-xs" style={{ opacity: 0.6 }}>約3分・無料・登録不要</p>
-              </div>
             </div>
           </div>
         </section>
