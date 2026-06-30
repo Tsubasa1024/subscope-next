@@ -42,17 +42,6 @@ ul {
   width: 100%;
 }
 
-/* ===== ヒーローセクション高さ ===== */
-.hero-section {
-  height: min(42vh, 340px); /* モバイル: 現状維持 */
-}
-@media (min-width: 768px) {
-  .hero-section {
-    height: auto;
-    aspect-ratio: 16 / 9;
-    max-height: 640px;
-  }
-}
 
 /* ===== 記事リスト ===== */
 .articles-grid {
