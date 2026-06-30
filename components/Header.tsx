@@ -18,6 +18,14 @@ const NAV_ITEMS = [
   { label: "記事ランキング", href: "/ranking" },
 ];
 
+const CATEGORY_CHIPS = [
+  { label: "ChatGPT", href: "/articles?category=ChatGPT", dot: "#10a37f" },
+  { label: "Claude",  href: "/articles?category=Claude",  dot: "#da7756" },
+  { label: "Gemini",  href: "/articles?category=Gemini",  dot: "#4285f4" },
+  { label: "xAI",     href: "/articles?category=xAI",     dot: "#111111" },
+  { label: "その他",  href: "/articles?category=その他",  dot: "#aaaaaa" },
+];
+
 
 
 export default function Header({ articles = [] }: HeaderProps) {
@@ -268,6 +276,22 @@ export default function Header({ articles = [] }: HeaderProps) {
           {/* ナビリンク */}
           <nav>
             <ul className="space-y-1">
+              {/* ニュース */}
+              <li>
+                <Link
+                  href="/news"
+                  onClick={closeDrawer}
+                  className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-semibold hover:bg-gray-50"
+                  style={{ color: "#1d1d1f", transition: "transform 0.15s ease, background 0.15s ease" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
+                >
+                  ニュース
+                  <ChevronRight size={16} className="text-gray-400" />
+                </Link>
+              </li>
+
+              {/* 記事 + カテゴリチップ */}
               <li>
                 <Link
                   href="/articles"
@@ -277,57 +301,44 @@ export default function Header({ articles = [] }: HeaderProps) {
                   onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
                 >
-                  記事一覧
+                  記事
                   <ChevronRight size={16} className="text-gray-400" />
                 </Link>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", padding: "4px 16px 8px" }}>
+                  {CATEGORY_CHIPS.map(({ label, href, dot }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={closeDrawer}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        padding: "4px 10px",
+                        borderRadius: "999px",
+                        fontSize: "12px",
+                        fontWeight: 500,
+                        color: "#1d1d1f",
+                        background: "#f5f5f5",
+                        transition: "background 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "#e8e8e8"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "#f5f5f5"; }}
+                    >
+                      <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: dot, flexShrink: 0 }} />
+                      {label}
+                    </Link>
+                  ))}
+                </div>
               </li>
-              {[
-                { label: "ニュース", href: "/news" },
-                { label: "記事",     href: "/articles" },
-              ].map(({ label, href }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={closeDrawer}
-                    className="flex justify-between items-center w-full px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50"
-                    style={{ color: "#1d1d1f", paddingLeft: "28px", transition: "color 0.15s ease, border-color 0.15s ease, transform 0.15s ease" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
-                  >
-                    {label}
-                    <ChevronRight size={14} className="text-gray-300" />
-                  </Link>
-                </li>
-              ))}
-              <div style={{ borderLeft: "2px solid #e5e5e5", marginLeft: "16px", paddingLeft: "0" }}>
-              {[
-                { label: "ChatGPT", href: "/articles?category=ChatGPT" },
-                { label: "Claude",  href: "/articles?category=Claude" },
-                { label: "Gemini",  href: "/articles?category=Gemini" },
-                { label: "xAI",     href: "/articles?category=xAI" },
-                { label: "その他",  href: "/articles?category=その他" },
-              ].map(({ label, href }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={closeDrawer}
-                    className="flex justify-between items-center w-full px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50"
-                    style={{ color: "#1d1d1f", paddingLeft: "28px", transition: "color 0.15s ease, border-color 0.15s ease, transform 0.15s ease" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
-                  >
-                    {label}
-                    <ChevronRight size={14} className="text-gray-300" />
-                  </Link>
-                </li>
-              ))}
-              </div>
+
+              {/* 記事ランキング (NAV_ITEMS) */}
               {NAV_ITEMS.map(({ href, label }) => (
                 <li key={href}>
                   <Link
                     href={href}
                     onClick={closeDrawer}
-                    className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50"
+                    className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-semibold hover:bg-gray-50"
                     style={{ color: "#1d1d1f", transition: "transform 0.15s ease, background 0.15s ease" }}
                     onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
