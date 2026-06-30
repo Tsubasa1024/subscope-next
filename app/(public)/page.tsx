@@ -110,101 +110,194 @@ export default async function TopPage() {
     .slice(0, 7)
     .map(([dateStr, articles]) => ({ dateStr, label: makeDateLabel(dateStr), articles }));
 
-  // 直近7日間で最も読まれた記事をヒーローに（該当なければ最新記事）
+  // ヒーロー: 週間PVトップ4（1位=主役, 2〜4位=サイドバー）
   const allItems = [...newsItems, ...articleItems];
-  const featuredId = allItems.reduce<string | null>((bestId, a) => {
-    const count = weeklyViewCounts[a.id] ?? 0;
-    return count > (weeklyViewCounts[bestId ?? ""] ?? 0) ? a.id : bestId;
-  }, null);
-  const featured = (featuredId && (weeklyViewCounts[featuredId] ?? 0) > 0)
-    ? (allItems.find((a) => a.id === featuredId) ?? allItems[0] ?? null)
-    : (allItems[0] ?? null);
+  const sortedByWeekly = [...allItems].sort(
+    (a, b) => (weeklyViewCounts[b.id] ?? 0) - (weeklyViewCounts[a.id] ?? 0)
+  );
+  const hasWeeklyData = (weeklyViewCounts[sortedByWeekly[0]?.id ?? ""] ?? 0) > 0;
+  const heroItems = (hasWeeklyData ? sortedByWeekly : allItems).slice(0, 4);
+  const heroFeatured = heroItems[0] ?? null;
+  const heroSidebar = heroItems.slice(1, 4);
 
   return (
     <div style={{ paddingTop: "var(--header-h)" }}>
 
       {/* =====================================================
-          1. 注目記事（ファーストビュー）
-          - PC: 下のコンテンツと同じ最大幅で中央寄せ
-          - スマホ: 全幅（現状維持）
+          1. ヒーローゾーン（左:主役 / 右:人気リスト）
       ===================================================== */}
-      {featured && (
+      {heroFeatured && (
         <div className="md:max-w-[1100px] md:mx-auto md:px-4">
-        <Link
-          href={`/articles/${featured.id}`}
-          className="group block relative w-full overflow-hidden hero-section md:rounded-2xl"
-          style={{ background: "#111" }}
-        >
-          {/* 背景画像 */}
-          {getImageUrl(featured) && (
-            <Image
-              src={getImageUrl(featured)}
-              alt={featured.title ?? ""}
-              fill
-              sizes="(min-width: 1100px) 1068px, (min-width: 768px) calc(100vw - 32px), 100vw"
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              priority
-            />
-          )}
+          <div className="flex flex-col md:flex-row md:gap-5">
 
-          {/* グラデーションオーバーレイ（左下↗右上の2層重ね） */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: [
-                "linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0) 58%)",
-                "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.48) 32%, rgba(0,0,0,0.06) 62%, rgba(0,0,0,0) 82%)",
-              ].join(", "),
-            }}
-          />
-
-          {/* テキスト */}
-          <div
-            className="absolute inset-x-0 bottom-0 text-white"
-            style={{ padding: "0 24px 40px" }}
-          >
-            {/* バッジ行 */}
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <span
-                className="text-xs font-bold px-3 py-1 rounded-full"
-                style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)" }}
-              >
-                ✦ 注目記事
-              </span>
-              {normalizeCategory(featured.category) && (
-                <span className="text-xs font-semibold opacity-75">
-                  {normalizeCategory(featured.category)}
-                </span>
-              )}
-              {featured.publishedAt && (
-                <span className="text-xs opacity-50 ml-auto">
-                  {formatDateJST(featured.publishedAt)}
-                </span>
-              )}
-            </div>
-
-            {/* タイトル */}
-            <h1
-              className="font-bold leading-snug"
-              style={{
-                fontSize: "clamp(1.4rem, 3.5vw, 2.4rem)",
-                letterSpacing: "-0.025em",
-                textShadow: "0 2px 16px rgba(0,0,0,0.6)",
-                maxWidth: "640px",
-              }}
+            {/* 左: 主役記事 62% */}
+            <Link
+              href={`/articles/${heroFeatured.id}`}
+              className="group block md:w-[62%]"
+              style={{ textDecoration: "none", color: "inherit" }}
             >
-              {featured.title}
-            </h1>
+              {/* 画像 16:9 */}
+              <div
+                className="relative w-full overflow-hidden md:rounded-2xl"
+                style={{ aspectRatio: "16/9", background: "#111" }}
+              >
+                {getImageUrl(heroFeatured) && (
+                  <Image
+                    src={getImageUrl(heroFeatured)}
+                    alt={heroFeatured.title ?? ""}
+                    fill
+                    sizes="(min-width: 1100px) 672px, (min-width: 768px) 62vw, 100vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    priority
+                  />
+                )}
+              </div>
 
-            {/* 続きを読む */}
-            <span className="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold opacity-90 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
-              続きを読む
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2.5 7h9M7 2.5l4.5 4.5-4.5 4.5" />
-              </svg>
-            </span>
+              {/* テキスト（画像の下） */}
+              <div style={{ padding: "14px 16px 18px" }}>
+                {/* カテゴリ・日付・閲覧数 */}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#fff", background: "#111", borderRadius: "4px", padding: "2px 6px", letterSpacing: "0.06em" }}>
+                    ✦ 注目
+                  </span>
+                  {normalizeCategory(heroFeatured.category) && (
+                    <span style={{ fontSize: "11px", fontWeight: 600, color: "#86868b", textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
+                      {normalizeCategory(heroFeatured.category)}
+                    </span>
+                  )}
+                  <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.75rem", color: "#86868b" }}>
+                    {heroFeatured.publishedAt && (
+                      <span>{formatDateJST(heroFeatured.publishedAt)}</span>
+                    )}
+                    {(weeklyViewCounts[heroFeatured.id] ?? 0) > 0 && (
+                      <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                        {formatViews(weeklyViewCounts[heroFeatured.id] ?? 0)}
+                      </span>
+                    )}
+                  </span>
+                </div>
+
+                {/* タイトル */}
+                <h1
+                  style={{
+                    fontSize: "clamp(1.1rem, 2.8vw, 1.6rem)",
+                    fontWeight: 700,
+                    lineHeight: 1.4,
+                    letterSpacing: "-0.025em",
+                    color: "#1d1d1f",
+                    marginBottom: "10px",
+                  }}
+                >
+                  {heroFeatured.title}
+                </h1>
+
+                {/* リード文 */}
+                {heroFeatured.description && (
+                  <p
+                    style={{
+                      fontSize: "0.875rem",
+                      color: "#555",
+                      lineHeight: 1.75,
+                      display: "-webkit-box",
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {heroFeatured.description}
+                  </p>
+                )}
+              </div>
+            </Link>
+
+            {/* 右: 人気記事リスト 38% */}
+            {heroSidebar.length > 0 && (
+              <div
+                className="md:w-[38%]"
+                style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}
+              >
+                {/* ヘッダ */}
+                <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
+                  <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", color: "#86868b", textTransform: "uppercase" as const }}>
+                    今週よく読まれている
+                  </p>
+                </div>
+
+                {/* リスト */}
+                {heroSidebar.map((article, i) => (
+                  <Link
+                    key={article.id}
+                    href={`/articles/${article.id}`}
+                    className="group flex gap-3 hover:opacity-75 transition-opacity"
+                    style={{
+                      padding: "14px 16px",
+                      borderBottom: i < heroSidebar.length - 1 ? "1px solid rgba(0,0,0,0.06)" : "none",
+                      textDecoration: "none",
+                      color: "inherit",
+                    }}
+                  >
+                    {/* サムネ */}
+                    <div
+                      style={{
+                        width: "80px",
+                        height: "60px",
+                        borderRadius: "8px",
+                        background: "#f0f0f0",
+                        flexShrink: 0,
+                        position: "relative",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {getImageUrl(article) ? (
+                        <Image
+                          src={getImageUrl(article)}
+                          alt={article.title ?? ""}
+                          fill
+                          sizes="80px"
+                          style={{ objectFit: "cover" }}
+                        />
+                      ) : (
+                        <CategoryPlaceholder category={normalizeCategory(article.category)} />
+                      )}
+                    </div>
+
+                    {/* タイトル・PV */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p
+                        style={{
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          lineHeight: 1.45,
+                          color: "#1d1d1f",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {article.title}
+                      </p>
+                      {(weeklyViewCounts[article.id] ?? 0) > 0 && (
+                        <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "0.72rem", color: "#86868b" }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                          {formatViews(weeklyViewCounts[article.id] ?? 0)}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+
           </div>
-        </Link>
         </div>
       )}
 
