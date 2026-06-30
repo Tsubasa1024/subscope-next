@@ -7,6 +7,25 @@ import type { Article } from "@/lib/utils";
 import { getImageUrl, normalizeCategory, formatViews } from "@/lib/utils";
 import { formatDateJST } from "@/lib/date";
 
+// ③ カテゴリ別サムネプレースホルダー
+const CATEGORY_COLORS: Record<string, { bg: string; dot: string }> = {
+  CHATGPT: { bg: "#f0faf6", dot: "#10a37f" },
+  CLAUDE:  { bg: "#fdf3ef", dot: "#da7756" },
+  GEMINI:  { bg: "#eef3ff", dot: "#4285f4" },
+  XAI:     { bg: "#f5f5f5", dot: "#111111" },
+};
+const DEFAULT_CATEGORY_COLOR = { bg: "#f0f0f0", dot: "#aaaaaa" };
+
+function CategoryPlaceholder({ category }: { category: string }) {
+  const key = category.toUpperCase().replace(/\s/g, "");
+  const { bg, dot } = CATEGORY_COLORS[key] ?? DEFAULT_CATEGORY_COLOR;
+  return (
+    <div style={{ width: "100%", height: "100%", background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: dot, opacity: 0.25 }} />
+    </div>
+  );
+}
+
 export type NewsDay = {
   dateStr: string; // "2026-06-27"
   label: string;   // "6/27（今日）"
@@ -172,7 +191,7 @@ export default function NewsCarousel({ days, viewCounts = {} }: Props) {
                 width: i === currentIndex ? "18px" : "6px",
                 height: "6px",
                 borderRadius: "999px",
-                background: i === currentIndex ? "#111" : "rgba(0,0,0,0.18)",
+                background: i === currentIndex ? "#111" : "rgba(0,0,0,0.35)",
                 border: "none",
                 padding: 0,
                 cursor: "pointer",
@@ -273,7 +292,7 @@ function NewsCard({
             loading={eager ? undefined : "lazy"}
           />
         ) : (
-          <div style={{ width: "100%", height: "100%", background: "#e5e5ea" }} />
+          <CategoryPlaceholder category={category} />
         )}
       </div>
 
@@ -314,6 +333,7 @@ function NewsCard({
             fontSize: "0.95rem",
             fontWeight: 700,
             lineHeight: 1.4,
+            minHeight: "calc(0.95rem * 1.4 * 2)",
             marginBottom: "6px",
             display: "-webkit-box",
             WebkitLineClamp: 2,

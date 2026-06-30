@@ -86,6 +86,8 @@ export default async function TopPage() {
   ]);
   const newsItems = newsRes.contents;
   const articleItems = articleRes.contents;
+  const featuredArticle = articleItems[0] as Article | undefined;
+  const subArticles = articleItems.slice(1);
 
   // ── ニュースを日付ごとにグルーピング（最大7日・1日3件） ──
   const _today = todayJST();
@@ -145,12 +147,14 @@ export default async function TopPage() {
             />
           )}
 
-          {/* グラデーションオーバーレイ（テキスト側の下部のみ） */}
+          {/* グラデーションオーバーレイ（左下↗右上の2層重ね） */}
           <div
             className="absolute inset-0"
             style={{
-              background:
-                "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.22) 38%, rgba(0,0,0,0) 65%)",
+              background: [
+                "linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0) 58%)",
+                "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.48) 32%, rgba(0,0,0,0.06) 62%, rgba(0,0,0,0) 82%)",
+              ].join(", "),
             }}
           />
 
@@ -219,19 +223,160 @@ export default async function TopPage() {
       </section>
 
       {/* =====================================================
-          4. 記事セクション
+          4. 記事セクション（フィーチャー1本 + サブリスト）
       ===================================================== */}
       <section className="py-12 bg-gray-50">
         <div className="max-w-[1100px] mx-auto px-4">
-          <div className="flex items-center gap-3 mb-6">
+          {/* セクションヘッダ */}
+          <div className="flex items-center gap-3 mb-8">
             <span className="text-xs font-bold tracking-widest text-white bg-black px-3 py-1 rounded-full">ARTICLE</span>
             <h2 className="text-xl font-bold">記事</h2>
           </div>
-          <div className="articles-grid">
-            {articleItems.map((article) => (
-              <ArticleCard key={article.id} article={article} badge="ARTICLE" viewCount={viewCounts[article.id] ?? 0} />
-            ))}
-          </div>
+
+          {/* フィーチャー記事 */}
+          {featuredArticle && (
+            <Link
+              href={`/articles/${featuredArticle.id}`}
+              className="article-card-link"
+              style={{
+                display: "block",
+                borderRadius: "16px",
+                overflow: "hidden",
+                border: "1px solid rgba(0,0,0,0.08)",
+                background: "#fff",
+                boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <div className="flex flex-col md:flex-row md:items-stretch">
+                {/* サムネ（4:3, カード内で伸長） */}
+                <div
+                  className="relative w-full md:w-[45%] flex-shrink-0"
+                  style={{ aspectRatio: "4/3" }}
+                >
+                  {getImageUrl(featuredArticle) ? (
+                    <Image
+                      src={getImageUrl(featuredArticle)}
+                      alt={featuredArticle.title ?? ""}
+                      fill
+                      sizes="(min-width: 768px) 495px, 100vw"
+                      style={{ objectFit: "cover" }}
+                      priority
+                    />
+                  ) : (
+                    <CategoryPlaceholder category={normalizeCategory(featuredArticle.category)} />
+                  )}
+                </div>
+
+                {/* テキストエリア */}
+                <div
+                  className="flex flex-col justify-center"
+                  style={{ padding: "28px 32px" }}
+                >
+                  {/* バッジ行 */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
+                    <span
+                      style={{
+                        fontSize: "10px", fontWeight: 700, color: "#fff",
+                        background: "#111", borderRadius: "4px",
+                        padding: "1px 5px", letterSpacing: "0.05em",
+                      }}
+                    >
+                      ARTICLE
+                    </span>
+                    {normalizeCategory(featuredArticle.category) && (
+                      <span style={{ fontSize: "11px", fontWeight: 600, color: "#86868b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                        {normalizeCategory(featuredArticle.category)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* タイトル */}
+                  <h3
+                    style={{
+                      fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)",
+                      fontWeight: 700,
+                      lineHeight: 1.45,
+                      letterSpacing: "-0.02em",
+                      color: "#1d1d1f",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    {featuredArticle.title}
+                  </h3>
+
+                  {/* リード文（descriptionがある場合のみ） */}
+                  {featuredArticle.description && (
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#555",
+                        lineHeight: 1.8,
+                        marginBottom: "18px",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {featuredArticle.description}
+                    </p>
+                  )}
+
+                  {/* 日付 + PV */}
+                  <div style={{ display: "flex", gap: "10px", fontSize: "0.78rem", color: "#86868b", alignItems: "center" }}>
+                    {featuredArticle.publishedAt && (
+                      <span>{formatDateJST(featuredArticle.publishedAt)}</span>
+                    )}
+                    {(viewCounts[featuredArticle.id] ?? 0) > 0 && (
+                      <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                        {formatViews(viewCounts[featuredArticle.id] ?? 0)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 続きを読む */}
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      marginTop: "20px",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      color: "#111",
+                    }}
+                  >
+                    続きを読む
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2.5 7h9M7 2.5l4.5 4.5-4.5 4.5" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {/* サブリスト（フィーチャー以外の最大3件） */}
+          {subArticles.length > 0 && (
+            <div style={{ marginTop: "20px", paddingTop: "4px" }}>
+              {subArticles.map((article, i) => (
+                <ArticleCard
+                  key={article.id}
+                  article={article}
+                  badge="ARTICLE"
+                  viewCount={viewCounts[article.id] ?? 0}
+                  index={i}
+                />
+              ))}
+            </div>
+          )}
+
           <div className="text-center mt-6">
             <Link href="/articles" className="text-sm text-gray-500 hover:text-black">
               記事をもっと見る →
@@ -378,6 +523,27 @@ export default async function TopPage() {
 }
 
 // ============================================================
+// カテゴリ別サムネプレースホルダー
+// ============================================================
+const CATEGORY_COLORS: Record<string, { bg: string; dot: string }> = {
+  CHATGPT: { bg: "#f0faf6", dot: "#10a37f" },
+  CLAUDE:  { bg: "#fdf3ef", dot: "#da7756" },
+  GEMINI:  { bg: "#eef3ff", dot: "#4285f4" },
+  XAI:     { bg: "#f5f5f5", dot: "#111111" },
+};
+const DEFAULT_CATEGORY_COLOR = { bg: "#f0f0f0", dot: "#aaaaaa" };
+
+function CategoryPlaceholder({ category }: { category: string }) {
+  const key = category.toUpperCase().replace(/\s/g, "");
+  const { bg, dot } = CATEGORY_COLORS[key] ?? DEFAULT_CATEGORY_COLOR;
+  return (
+    <div style={{ width: "100%", height: "100%", background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: dot, opacity: 0.25 }} />
+    </div>
+  );
+}
+
+// ============================================================
 // ArticleCard（ページローカル）
 // ============================================================
 function ArticleCard({
@@ -434,7 +600,7 @@ function ArticleCard({
             loading={priority ? undefined : "lazy"}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200" />
+          <CategoryPlaceholder category={category} />
         )}
       </div>
 
@@ -466,6 +632,7 @@ function ArticleCard({
             fontSize: "0.95rem",
             fontWeight: 700,
             lineHeight: 1.4,
+            minHeight: "calc(0.95rem * 1.4 * 2)",
             marginBottom: "6px",
             display: "-webkit-box",
             WebkitLineClamp: 2,
