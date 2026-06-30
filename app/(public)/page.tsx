@@ -119,15 +119,15 @@ export default async function TopPage() {
     .slice(0, 7)
     .map(([dateStr, articles]) => ({ dateStr, label: makeDateLabel(dateStr), articles }));
 
-  // ヒーロー: 週間PVトップ4（1位=主役, 2〜4位=サイドバー）
+  // ヒーロー: 週間PVトップ6（1位=主役, 2〜6位=サイドバー）
   const allItems = [...newsItems, ...articleItems];
   const sortedByWeekly = [...allItems].sort(
     (a, b) => (weeklyViewCounts[b.id] ?? 0) - (weeklyViewCounts[a.id] ?? 0)
   );
   const hasWeeklyData = (weeklyViewCounts[sortedByWeekly[0]?.id ?? ""] ?? 0) > 0;
-  const heroItems = (hasWeeklyData ? sortedByWeekly : allItems).slice(0, 4);
+  const heroItems = (hasWeeklyData ? sortedByWeekly : allItems).slice(0, 6);
   const heroFeatured = heroItems[0] ?? null;
-  const heroSidebar = heroItems.slice(1, 4);
+  const heroSidebar = heroItems.slice(1, 6);
 
   return (
     <div style={{ paddingTop: "var(--header-h)" }}>
@@ -145,10 +145,10 @@ export default async function TopPage() {
               className="group block md:w-[62%]"
               style={{ textDecoration: "none", color: "inherit" }}
             >
-              {/* 画像 16:9 */}
+              {/* 画像 16:9 / PC では最大高さ上限 */}
               <div
                 className="relative w-full overflow-hidden md:rounded-2xl"
-                style={{ aspectRatio: "16/9", background: "#111" }}
+                style={{ aspectRatio: "16/9", background: "#111", maxHeight: "380px" }}
               >
                 {getImageUrl(heroFeatured) && (
                   <Image
@@ -227,23 +227,26 @@ export default async function TopPage() {
             {heroSidebar.length > 0 && (
               <div
                 className="md:w-[38%]"
-                style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}
+                style={{ borderTop: "1px solid rgba(0,0,0,0.08)", display: "flex", flexDirection: "column" }}
               >
                 {/* ヘッダ */}
-                <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
+                <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(0,0,0,0.08)", flexShrink: 0 }}>
                   <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", color: "#86868b", textTransform: "uppercase" as const }}>
                     今週よく読まれている
                   </p>
                 </div>
 
-                {/* リスト */}
+                {/* リスト: flex:1 で左カラムの高さに合わせて縦均等分配 */}
                 {heroSidebar.map((article, i) => (
                   <Link
                     key={article.id}
                     href={`/articles/${article.id}`}
                     className="group flex gap-3 hover:opacity-75 transition-opacity"
                     style={{
-                      padding: "14px 16px",
+                      flex: 1,
+                      alignItems: "center",
+                      padding: "0 16px",
+                      minHeight: "72px",
                       borderBottom: i < heroSidebar.length - 1 ? "1px solid rgba(0,0,0,0.06)" : "none",
                       textDecoration: "none",
                       color: "inherit",
