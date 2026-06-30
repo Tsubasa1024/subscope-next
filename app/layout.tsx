@@ -27,15 +27,18 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.subscope.jp"),
   title: {
-    default: "SUBSCOPE | AIツールのリアルなレビューメディア",
+    default: "SUBSCOPE｜AIニュース・ツール活用メディア",
     template: "%s | SUBSCOPE",
   },
   description:
-    "ChatGPT・Claude・Geminiなど最新AIツールの情報を届けるAIメディア",
+    "ChatGPT・Claude・Gemini・Grokなど、主要AIの最新ニュースを毎日更新。初心者向けの使い方から徹底比較まで、AI活用に役立つ情報を発信するメディアです。",
   openGraph: {
     type: "website",
     siteName: "SUBSCOPE",
     locale: "ja_JP",
+    title: "SUBSCOPE｜AIニュース・ツール活用メディア",
+    description:
+      "ChatGPT・Claude・Gemini・Grokなど、主要AIの最新ニュースを毎日更新。初心者向けの使い方から徹底比較まで、AI活用に役立つ情報を発信するメディアです。",
     images: [
       {
         url: "/og-image.png",
@@ -46,6 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    title: "SUBSCOPE｜AIニュース・ツール活用メディア",
+    description:
+      "ChatGPT・Claude・Gemini・Grokなど、主要AIの最新ニュースを毎日更新。初心者向けの使い方から徹底比較まで、AI活用に役立つ情報を発信するメディアです。",
   },
   icons: {
     icon: "/favicon.svg",

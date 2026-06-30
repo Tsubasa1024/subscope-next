@@ -13,10 +13,20 @@ import { fetchAllViewCounts, fetchWeeklyViewCounts } from "@/lib/viewCounts";
 import { formatViews } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "SUBSCOPE｜サブスクリプションのリアルなレビューメディア",
+  title: "SUBSCOPE｜AIニュース・ツール活用メディア",
   description:
-    "SUBSCOPEは、動画・音楽・読書・学習など各ジャンルのサブスクサービスを実体験レビューで徹底比較。あなたにぴったりのサブスクが見つかるレビューメディアです。",
+    "ChatGPT・Claude・Gemini・Grokなど、主要AIの最新ニュースを毎日更新。初心者向けの使い方から徹底比較まで、AI活用に役立つ情報を発信するメディアです。",
   alternates: { canonical: "https://www.subscope.jp/" },
+  openGraph: {
+    title: "SUBSCOPE｜AIニュース・ツール活用メディア",
+    description:
+      "ChatGPT・Claude・Gemini・Grokなど、主要AIの最新ニュースを毎日更新。初心者向けの使い方から徹底比較まで、AI活用に役立つ情報を発信するメディアです。",
+  },
+  twitter: {
+    title: "SUBSCOPE｜AIニュース・ツール活用メディア",
+    description:
+      "ChatGPT・Claude・Gemini・Grokなど、主要AIの最新ニュースを毎日更新。初心者向けの使い方から徹底比較まで、AI活用に役立つ情報を発信するメディアです。",
+  },
 };
 
 
