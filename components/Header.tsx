@@ -1,41 +1,28 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Article } from "@/lib/utils";
 import { normalizeCategory, getImageUrl } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import Image from "next/image";
-import { ChevronRight, X } from "lucide-react";
-import { FEATURES } from "@/lib/features";
+import NavTabBar from "./NavTabBar";
 
 interface HeaderProps {
   articles?: Article[];
 }
 
-const NAV_ITEMS = [
-  { label: "記事ランキング", href: "/ranking" },
-];
-
-const CATEGORY_CHIPS = [
-  { label: "ChatGPT", href: "/articles?category=ChatGPT", dot: "#10a37f" },
-  { label: "Claude",  href: "/articles?category=Claude",  dot: "#da7756" },
-  { label: "Gemini",  href: "/articles?category=Gemini",  dot: "#4285f4" },
-  { label: "xAI",     href: "/articles?category=xAI",     dot: "#111111" },
-  { label: "その他",  href: "/articles?category=その他",  dot: "#aaaaaa" },
-];
-
-
-
 export default function Header({ articles = [] }: HeaderProps) {
-  const { user, ready, logout } = useAuth();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const mobileSearchRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // サジェスト（記事タイトルから最大5件）
+  // サジェスト
   const suggestions =
     query.length >= 1
       ? articles
@@ -48,363 +35,376 @@ export default function Header({ articles = [] }: HeaderProps) {
           .slice(0, 5)
       : [];
 
-  // ドロワーが開いたら検索ボックスにフォーカス
+  // スクロール時シャドウ
   useEffect(() => {
-    if (drawerOpen) {
-      setTimeout(() => searchInputRef.current?.focus(), 300);
+    const handler = () => setScrolled(window.scrollY > 4);
+    window.addEventListener("scroll", handler, { passive: true });
+    handler();
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
+  // スマホ検索展開時フォーカス
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => mobileSearchRef.current?.focus(), 50);
     } else {
       setQuery("");
     }
-  }, [drawerOpen]);
+  }, [searchOpen]);
 
-  // スクロールロック
+  // BottomNav からの検索起動イベント
   useEffect(() => {
-    if (drawerOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [drawerOpen]);
-
-  function openDrawer() {
-    setDrawerOpen(true);
-  }
-
-  function closeDrawer() {
-    setDrawerOpen(false);
-  }
+    const handler = () => {
+      // PC は PC 入力にフォーカス、スマホは展開してフォーカス
+      if (window.innerWidth >= 768) {
+        searchInputRef.current?.focus();
+      } else {
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("open-header-search", handler);
+    return () => window.removeEventListener("open-header-search", handler);
+  }, []);
 
   function handleSearch(e?: React.FormEvent) {
     e?.preventDefault();
     const q = query.trim();
     if (!q) return;
     router.push(`/articles?q=${encodeURIComponent(q)}`);
-    closeDrawer();
+    setSearchOpen(false);
+    setQuery("");
   }
 
   function handleSuggestionClick(id: string) {
     router.push(`/articles/${id}`);
-    closeDrawer();
+    setSearchOpen(false);
+    setQuery("");
   }
 
-  return (
+  function closeMobileSearch() {
+    setSearchOpen(false);
+  }
+
+  const SearchIcon = () => (
+    <svg
+      width="15" height="15" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round"
+      style={{ color: "#86868b", flexShrink: 0 }}
+    >
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+
+  const SuggestionDropdown = () => (
     <>
-      {/* ===== ヘッダー本体 ===== */}
-      <header
-        className="fixed top-0 left-0 w-full z-[150]"
-        style={{
-          background: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(0,0,0,0.06)",
-        }}
-      >
+      {(suggestions.length > 0 || query.trim()) && (
         <div
-          className="flex items-center justify-between"
           style={{
-            maxWidth: "var(--container-width)",
-            margin: "0 auto",
-            padding: "0 24px",
-            height: "var(--header-h)",
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            right: 0,
+            zIndex: 200,
+            borderRadius: "12px",
+            overflow: "hidden",
+            background: "#fff",
+            border: "1px solid rgba(0,0,0,0.06)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.10)",
           }}
         >
-          {/* ===== LEFT: スペーサー（ハンバーガーと同幅）===== */}
-          <div className="w-10 flex-shrink-0" />
-
-          {/* ===== CENTER: ロゴ ===== */}
-          <Link href="/">
-            <Image
-              src="/logo.svg"
-              alt="SUBSCOPE"
-              width={160}
-              height={32}
-              unoptimized
-              priority
-              style={{ height: "32px", width: "auto", maxWidth: "160px" }}
-            />
-          </Link>
-
-          {/* ===== RIGHT: ハンバーガーボタン ===== */}
-          <button
-            onClick={openDrawer}
-            aria-label="メニューを開く"
-            className="flex items-center justify-center w-10 h-10 flex-shrink-0 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="7" height="7" rx="1.5" fill="#1f2937" />
-              <rect x="11" y="2" width="7" height="7" rx="1.5" fill="#1f2937" />
-              <rect x="2" y="11" width="7" height="7" rx="1.5" fill="#1f2937" />
-              <rect x="11" y="11" width="7" height="7" rx="1.5" fill="#1f2937" />
-            </svg>
-          </button>
+          {suggestions.map((a, i) => {
+            const imgUrl = getImageUrl(a);
+            return (
+              <div
+                key={a.id}
+                onClick={() => handleSuggestionClick(a.id)}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                style={{ borderBottom: i < suggestions.length - 1 ? "1px solid rgba(0,0,0,0.04)" : "none" }}
+              >
+                {imgUrl ? (
+                  <Image
+                    src={imgUrl} alt={a.title ?? ""}
+                    width={36} height={36}
+                    style={{ borderRadius: "6px", objectFit: "cover", flexShrink: 0 }}
+                  />
+                ) : (
+                  <div style={{ width: 36, height: 36, borderRadius: "6px", background: "#f0f0f0", flexShrink: 0 }} />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate" style={{ color: "#1d1d1f" }}>{a.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "#86868b" }}>
+                    {normalizeCategory(a.category)}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+          {query.trim() && (
+            <button
+              type="submit"
+              onClick={() => handleSearch()}
+              className="flex w-full items-center gap-2.5 px-4 py-3 hover:bg-gray-50 transition-colors"
+              style={{
+                color: "#111111",
+                background: "none",
+                border: "none",
+                borderTop: suggestions.length > 0 ? "1px solid rgba(0,0,0,0.05)" : "none",
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              <SearchIcon />
+              <span className="text-sm font-semibold">「{query}」で記事を検索</span>
+            </button>
+          )}
         </div>
-      </header>
+      )}
+    </>
+  );
 
-      {/* ===== オーバーレイ ===== */}
+  return (
+    <header
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 150,
+        background: "rgba(255,255,255,0.94)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(0,0,0,0.06)",
+        boxShadow: scrolled ? "0 1px 12px rgba(0,0,0,0.08)" : "none",
+        transition: "box-shadow 200ms ease-out",
+      }}
+    >
+      {/* ===== 1段目: ロゴ + 検索 ===== */}
       <div
-        className="fixed inset-0 z-[160] transition-opacity duration-300"
         style={{
-          background: "rgba(0,0,0,0.6)",
-          opacity: drawerOpen ? 1 : 0,
-          pointerEvents: drawerOpen ? "auto" : "none",
-        }}
-        onClick={closeDrawer}
-        aria-hidden="true"
-      />
-
-      {/* ===== ドロワー ===== */}
-      <div
-        className="fixed top-0 left-0 right-0 sm:left-auto sm:w-[600px] h-full z-[170] bg-white flex flex-col"
-        style={{
-          transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
-          transition: "transform 0.3s ease",
-          boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
+          maxWidth: "var(--container-width)",
+          margin: "0 auto",
+          padding: "0 16px",
+          height: "var(--header-row1-h)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "12px",
         }}
       >
-        {/* ドロワーヘッダー：閉じるボタン */}
-        <div
-          className="flex items-center justify-end px-4"
-          style={{ height: "var(--header-h)", borderBottom: "1px solid rgba(0,0,0,0.06)", flexShrink: 0 }}
+        {/* ロゴ */}
+        <Link href="/" style={{ flexShrink: 0 }}>
+          <Image
+            src="/logo.svg"
+            alt="SUBSCOPE"
+            width={140}
+            height={28}
+            unoptimized
+            priority
+            style={{ height: "28px", width: "auto" }}
+          />
+        </Link>
+
+        {/* ===== PC 検索（常時展開） ===== */}
+        <form
+          onSubmit={handleSearch}
+          className="hidden md:block"
+          style={{ position: "relative", width: "240px" }}
         >
-          <button
-            onClick={closeDrawer}
-            aria-label="メニューを閉じる"
-            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors text-gray-600"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* ドロワー本体（スクロール可能） */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
-
-          {/* 検索ボックス */}
-          <form onSubmit={handleSearch} className="mb-6">
-            <div className="relative">
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ color: "#86868b" }}
-                width="15" height="15" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" strokeWidth="2"
-                strokeLinecap="round" strokeLinejoin="round"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="検索..."
-                className="w-full text-sm outline-none"
+          <div style={{ position: "relative" }}>
+            <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+              <SearchIcon />
+            </span>
+            <input
+              ref={searchInputRef}
+              id="header-search"
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="記事を検索..."
+              style={{
+                width: "100%",
+                paddingLeft: "32px",
+                paddingRight: query ? "28px" : "12px",
+                paddingTop: "7px",
+                paddingBottom: "7px",
+                borderRadius: "999px",
+                border: "1.5px solid rgba(0,0,0,0.12)",
+                background: "#f5f5f7",
+                fontSize: "0.8125rem",
+                outline: "none",
+                transition: "border-color 150ms ease-out",
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(0,0,0,0.25)"; }}
+              onBlur={(e) => { if (!query) { e.currentTarget.style.borderColor = "rgba(0,0,0,0.12)"; } }}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
                 style={{
-                  paddingLeft: "36px",
-                  paddingRight: query ? "32px" : "12px",
-                  paddingTop: "10px",
-                  paddingBottom: "10px",
-                  borderRadius: "999px",
-                  border: "1.5px solid rgba(0,0,0,0.15)",
-                  background: "#f5f5f5",
+                  position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)",
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "#9ca3af", fontSize: "16px", lineHeight: 1, padding: "2px",
                 }}
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg leading-none"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-
-            {/* サジェスト */}
-            {(suggestions.length > 0 || query.trim()) && (
-              <div
-                className="mt-2 rounded-2xl overflow-hidden bg-white"
-                style={{ border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
               >
-                {suggestions.map((a, i) => {
-                  const imgUrl = getImageUrl(a);
-                  return (
-                    <div
-                      key={a.id}
-                      onClick={() => handleSuggestionClick(a.id)}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                      style={{ borderBottom: i < suggestions.length - 1 ? "1px solid rgba(0,0,0,0.04)" : "none" }}
-                    >
-                      {imgUrl ? (
-                        <Image
-                          src={imgUrl} alt={a.title ?? ""}
-                          width={40} height={40}
-                          style={{ borderRadius: "8px", objectFit: "cover", flexShrink: 0 }}
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate" style={{ color: "#1d1d1f" }}>{a.title}</p>
-                        <p className="text-xs mt-0.5" style={{ color: "#86868b" }}>
-                          {normalizeCategory(a.category)}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-                {query.trim() && (
-                  <button
-                    type="submit"
-                    className="flex w-full items-center gap-2.5 px-4 py-3 hover:bg-blue-50 transition-colors"
-                    style={{
-                      color: "#111111",
-                      borderTop: suggestions.length > 0 ? "1px solid rgba(0,0,0,0.05)" : "none",
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
-                    <span className="text-sm font-semibold">「{query}」で記事を検索</span>
-                  </button>
-                )}
-              </div>
+                ×
+              </button>
             )}
+          </div>
+          <Suspense>
+            <SuggestionDropdown />
+          </Suspense>
+        </form>
+
+        {/* ===== スマホ 検索トグル ===== */}
+        <div className="flex md:hidden" style={{ position: "relative" }}>
+          {/* 検索アイコンボタン（閉じているとき） */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            aria-label="検索を開く"
+            style={{
+              display: searchOpen ? "none" : "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+            }}
+          >
+            <SearchIcon />
+          </button>
+
+          {/* 検索入力フォーム（展開時） */}
+          <form
+            onSubmit={handleSearch}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              width: searchOpen ? "200px" : "0px",
+              opacity: searchOpen ? 1 : 0,
+              overflow: "hidden",
+              transition: "width 200ms ease-out, opacity 200ms ease-out",
+            }}
+            className="header-search-expand"
+          >
+            <span style={{ flexShrink: 0, marginLeft: "2px" }}>
+              <SearchIcon />
+            </span>
+            <input
+              ref={mobileSearchRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="検索..."
+              style={{
+                flex: 1,
+                minWidth: 0,
+                paddingTop: "6px",
+                paddingBottom: "6px",
+                paddingLeft: "4px",
+                paddingRight: "4px",
+                border: "none",
+                borderBottom: "1.5px solid rgba(0,0,0,0.2)",
+                background: "transparent",
+                fontSize: "0.875rem",
+                outline: "none",
+              }}
+            />
+            <button
+              type="button"
+              onClick={closeMobileSearch}
+              aria-label="検索を閉じる"
+              style={{
+                flexShrink: 0,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#9ca3af",
+                fontSize: "18px",
+                lineHeight: 1,
+                padding: "2px",
+              }}
+            >
+              ×
+            </button>
           </form>
 
-          {/* ナビリンク */}
-          <nav>
-            <ul className="space-y-1">
-              {/* ニュース */}
-              <li>
-                <Link
-                  href="/news"
-                  onClick={closeDrawer}
-                  className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-semibold hover:bg-gray-50"
-                  style={{ color: "#1d1d1f", transition: "transform 0.15s ease, background 0.15s ease" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
+          {/* スマホ用サジェスト */}
+          {searchOpen && (
+            <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, left: "-120px", zIndex: 200 }}>
+              {(suggestions.length > 0 || query.trim()) && (
+                <div
+                  style={{
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    background: "#fff",
+                    border: "1px solid rgba(0,0,0,0.06)",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                  }}
                 >
-                  ニュース
-                  <ChevronRight size={16} className="text-gray-400" />
-                </Link>
-              </li>
-
-              {/* 記事 + カテゴリチップ */}
-              <li>
-                <Link
-                  href="/articles"
-                  onClick={closeDrawer}
-                  className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-semibold hover:bg-gray-50"
-                  style={{ color: "#1d1d1f", transition: "transform 0.15s ease, background 0.15s ease" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
-                >
-                  記事
-                  <ChevronRight size={16} className="text-gray-400" />
-                </Link>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", padding: "4px 16px 8px" }}>
-                  {CATEGORY_CHIPS.map(({ label, href, dot }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={closeDrawer}
+                  {suggestions.map((a, i) => {
+                    const imgUrl = getImageUrl(a);
+                    return (
+                      <div
+                        key={a.id}
+                        onClick={() => handleSuggestionClick(a.id)}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                        style={{ borderBottom: i < suggestions.length - 1 ? "1px solid rgba(0,0,0,0.04)" : "none" }}
+                      >
+                        {imgUrl ? (
+                          <Image src={imgUrl} alt={a.title ?? ""} width={32} height={32}
+                            style={{ borderRadius: "6px", objectFit: "cover", flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: 32, height: 32, borderRadius: "6px", background: "#f0f0f0", flexShrink: 0 }} />
+                        )}
+                        <p className="text-sm font-medium truncate" style={{ color: "#1d1d1f" }}>{a.title}</p>
+                      </div>
+                    );
+                  })}
+                  {query.trim() && (
+                    <button
+                      type="submit"
+                      onClick={() => handleSearch()}
+                      className="flex w-full items-center gap-2.5 px-4 py-3 hover:bg-gray-50"
                       style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        padding: "4px 10px",
-                        borderRadius: "999px",
-                        fontSize: "12px",
-                        fontWeight: 500,
-                        color: "#1d1d1f",
-                        background: "#f5f5f5",
-                        transition: "background 0.15s ease",
+                        background: "none",
+                        border: "none",
+                        borderTop: suggestions.length > 0 ? "1px solid rgba(0,0,0,0.05)" : "none",
+                        cursor: "pointer",
+                        fontFamily: "inherit",
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "#e8e8e8"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "#f5f5f5"; }}
                     >
-                      <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: dot, flexShrink: 0 }} />
-                      {label}
-                    </Link>
-                  ))}
+                      <SearchIcon />
+                      <span className="text-sm font-semibold" style={{ color: "#111111" }}>
+                        「{query}」で検索
+                      </span>
+                    </button>
+                  )}
                 </div>
-              </li>
-
-              {/* 記事ランキング (NAV_ITEMS) */}
-              {NAV_ITEMS.map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={closeDrawer}
-                    className="flex justify-between items-center w-full px-4 py-3 rounded-xl text-base font-semibold hover:bg-gray-50"
-                    style={{ color: "#1d1d1f", transition: "transform 0.15s ease, background 0.15s ease" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(4px)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(0)"; }}
-                  >
-                    {label}
-                    <ChevronRight size={16} className="text-gray-400" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* 区切り線 */}
-          <hr className="my-4" style={{ border: "none", borderTop: "1px solid rgba(0,0,0,0.07)" }} />
-
-          {/* ログイン / アカウント */}
-          {ready && (
-            user ? (
-              <ul className="space-y-1">
-                <li>
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    <div
-                      style={{
-                        width: "36px", height: "36px", borderRadius: "50%",
-                        border: "2px solid rgba(0,0,0,0.08)",
-                        background: user.photoURL ? "transparent" : user.color,
-                        overflow: "hidden", flexShrink: 0,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}
-                    >
-                      {user.photoURL ? (
-                        <Image
-                          src={user.photoURL} alt={user.name}
-                          width={36} height={36}
-                          style={{ borderRadius: "50%", objectFit: "cover" }}
-                        />
-                      ) : (
-                        <span style={{ color: "#fff", fontWeight: 700, fontSize: "0.85rem" }}>
-                          {user.name[0].toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: "#1d1d1f" }}>{user.name}</p>
-                      <p className="text-xs truncate" style={{ color: "#86868b" }}>{user.email}</p>
-                    </div>
-                  </div>
-                </li>
-                {/* マイページリンク UI非表示 */}
-                <li>
-                  <button
-                    onClick={async () => { closeDrawer(); await logout(); }}
-                    className="block w-full text-left px-4 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors"
-                    style={{ color: "#111111", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
-                  >
-                    ログアウト
-                  </button>
-                </li>
-              </ul>
-            ) : (
-              // ログイン・会員登録ボタン UI非表示
-              null
-            )
+              )}
+            </div>
           )}
         </div>
       </div>
-    </>
+
+      {/* ===== 2段目: タブバー ===== */}
+      <div
+        style={{
+          borderTop: "1px solid rgba(0,0,0,0.04)",
+          maxWidth: "var(--container-width)",
+          margin: "0 auto",
+        }}
+      >
+        <Suspense>
+          <NavTabBar />
+        </Suspense>
+      </div>
+    </header>
   );
 }

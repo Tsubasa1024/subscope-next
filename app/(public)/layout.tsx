@@ -1,5 +1,6 @@
 import HeaderWithData from "@/components/HeaderWithData";
 import Footer from "@/components/Footer";
+import BottomNav from "@/components/BottomNav";
 
 export default function PublicLayout({
   children,
@@ -11,6 +12,7 @@ export default function PublicLayout({
       <HeaderWithData />
       {children}
       <Footer />
+      <BottomNav />
     </>
   );
 }

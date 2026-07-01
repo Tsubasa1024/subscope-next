@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import HeaderWithData from "@/components/HeaderWithData";
 import Footer from "@/components/Footer";
+import BottomNav from "@/components/BottomNav";
 
 export default async function MemberLayout({
   children,
@@ -41,6 +42,7 @@ export default async function MemberLayout({
       )}
       {children}
       <Footer />
+      <BottomNav />
     </>
   );
 }
