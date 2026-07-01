@@ -28,9 +28,6 @@ export default function Footer() {
           <Link href="/company" style={{ fontSize: "14px" }}>
             運営会社
           </Link>
-          <Link href="/mypage" style={{ fontSize: "14px" }}>
-            マイページ
-          </Link>
         </div>
         <p style={{ color: "#86868b", fontSize: "13px" }}>
           © 2025 SUBSCOPE. All rights reserved.
