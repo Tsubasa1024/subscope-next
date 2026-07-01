@@ -13,7 +13,6 @@
   --header-row1-h: 52px;
   --header-tab-h: 44px;
   --header-h: 96px; /* row1 + tab bar */
-  --bottom-nav-h: 56px;
 }
 
 html,
@@ -346,22 +345,12 @@ ul {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== スマホ下部ナビ用ページ余白 ===== */
-@media (max-width: 767px) {
-  body {
-    padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
-  }
-}
-
 /* ===== アニメーション軽減 ===== */
 @media (prefers-reduced-motion: reduce) {
   .nav-tab-underline {
     transition: none !important;
   }
   .header-search-expand {
-    transition: none !important;
-  }
-  .bottom-nav-icon {
     transition: none !important;
   }
 }

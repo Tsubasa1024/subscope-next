@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Article } from "@/lib/utils";
 import { normalizeCategory, getImageUrl } from "@/lib/utils";
-import { useAuth } from "@/lib/auth-context";
 import Image from "next/image";
 import NavTabBar from "./NavTabBar";
 
@@ -14,7 +13,6 @@ interface HeaderProps {
 }
 
 export default function Header({ articles = [] }: HeaderProps) {
-  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -52,19 +50,6 @@ export default function Header({ articles = [] }: HeaderProps) {
     }
   }, [searchOpen]);
 
-  // BottomNav からの検索起動イベント
-  useEffect(() => {
-    const handler = () => {
-      // PC は PC 入力にフォーカス、スマホは展開してフォーカス
-      if (window.innerWidth >= 768) {
-        searchInputRef.current?.focus();
-      } else {
-        setSearchOpen(true);
-      }
-    };
-    window.addEventListener("open-header-search", handler);
-    return () => window.removeEventListener("open-header-search", handler);
-  }, []);
 
   function handleSearch(e?: React.FormEvent) {
     e?.preventDefault();
