@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getArticles, getNewsList, getArticlesList } from "@/lib/microcms";
+import { getNewsList, getArticlesList } from "@/lib/microcms";
 import AllArticlesClient from "./AllArticlesClient";
 import { fetchAllViewCounts } from "@/lib/viewCounts";
+import type { Article } from "@/lib/utils";
 
+// ISR: searchParams（type/category/q）はクライアント側でフィルタするため
+// サーバーでは読まず、静的レンダリング + 60秒再生成を維持する
 export const revalidate = 60;
 
 export const metadata: Metadata = {
@@ -13,25 +16,21 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.subscope.jp/articles" },
 };
 
-type SearchParams = Promise<{ category?: string; q?: string; type?: string }>;
-
-export default async function ArticlesPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const { category, q, type } = await searchParams;
-
-  const fetchFn =
-    type === "news"    ? getNewsList(100) :
-    type === "article" ? getArticlesList(100) :
-                         getArticles(100);
-
-  const [articlesRes, viewCounts] = await Promise.all([
-    fetchFn.catch(() => ({ contents: [] })),
+export default async function ArticlesPage() {
+  const [newsRes, articlesRes, viewCounts] = await Promise.all([
+    getNewsList(100).catch(() => ({ contents: [] as Article[] })),
+    getArticlesList(100).catch(() => ({ contents: [] as Article[] })),
     fetchAllViewCounts().catch((): Record<string, number> => ({})),
   ]);
-  const articles = articlesRes.contents;
+
+  // ニュース・記事を統合して公開日降順に（typeフィルタはクライアント側）
+  const merged = new Map<string, Article>();
+  for (const a of [...newsRes.contents, ...articlesRes.contents]) {
+    merged.set(a.id, a);
+  }
+  const articles = [...merged.values()].sort((a, b) =>
+    (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "")
+  );
 
   const CATEGORY_ORDER = ["ChatGPT", "Claude", "Gemini", "xAI", "その他"];
 
@@ -40,9 +39,6 @@ export default async function ArticlesPage({
       <AllArticlesClient
         articles={articles}
         categories={CATEGORY_ORDER}
-        initialCategory={category ?? "すべて"}
-        initialSearch={q ?? ""}
-        initialType={type ?? "all"}
         viewCounts={viewCounts}
       />
     </Suspense>

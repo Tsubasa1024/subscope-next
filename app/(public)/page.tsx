@@ -1,4 +1,5 @@
-export const dynamic = "force-dynamic";
+// ISR: microCMS・Supabase の集計データは60秒ごとに再生成
+export const revalidate = 60;
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,25 +8,17 @@ import { getNewsList, getArticlesList, getImageUrl, normalizeCategory } from "@/
 import NewsCarousel, { type NewsDay } from "@/components/NewsCarousel";
 import { formatDateJST, todayJST, yesterdayJST } from "@/lib/date";
 import type { Article } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { fetchAllViewCounts, fetchWeeklyViewCounts } from "@/lib/viewCounts";
 import { formatViews } from "@/lib/utils";
 
+// openGraph / twitter はルート layout の定義（og:image・summary_large_image）を
+// そのまま継承させるため、ここでは上書きしない（Metadata のマージはフィールド単位の置換）
 export const metadata: Metadata = {
-  title: "SUBSCOPE｜AIニュース・ツール活用メディア",
+  title: { absolute: "SUBSCOPE｜AIニュース・ツール活用メディア" },
   description:
     "ChatGPT・Claude・Gemini・Grokなど、主要AIの最新ニュースを毎日更新。初心者向けの使い方から徹底比較まで、AI活用に役立つ情報を発信するメディアです。",
   alternates: { canonical: "https://www.subscope.jp/" },
-  openGraph: {
-    title: "SUBSCOPE｜AIニュース・ツール活用メディア",
-    description:
-      "ChatGPT・Claude・Gemini・Grokなど、主要AIの最新ニュースを毎日更新。初心者向けの使い方から徹底比較まで、AI活用に役立つ情報を発信するメディアです。",
-  },
-  twitter: {
-    title: "SUBSCOPE｜AIニュース・ツール活用メディア",
-    description:
-      "ChatGPT・Claude・Gemini・Grokなど、主要AIの最新ニュースを毎日更新。初心者向けの使い方から徹底比較まで、AI活用に役立つ情報を発信するメディアです。",
-  },
 };
 
 
@@ -42,7 +35,7 @@ type RankingItem = {
 };
 
 async function fetchTop5Rankings(): Promise<RankingItem[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   const [{ data: reviewRows }, { data: serviceRows }] = await Promise.all([
     supabase.from("service_reviews").select("service_id, score"),

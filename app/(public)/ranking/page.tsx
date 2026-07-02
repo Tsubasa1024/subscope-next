@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getArticles } from "@/lib/microcms";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import RankingClient from "./RankingClient";
 import { fetchAllViewCounts, fetchWeeklyViewCounts, fetchMonthlyViewCounts } from "@/lib/viewCounts";
 
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 type Counts = Record<string, number>;
 
 async function fetchLikeCounts(): Promise<Counts> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase.from("article_likes").select("article_id");
   const counts: Counts = {};
   for (const row of (data ?? [])) {

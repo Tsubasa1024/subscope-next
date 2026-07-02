@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getArticle, getAllArticleIds, getImageUrl, normalizeCategory, getArticles, getNewsList } from "@/lib/microcms";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import ArticleActions from "./ArticleActions";
 import ArticleComments from "./ArticleComments";
 import ArticleViewTracker from "./ArticleViewTracker";
@@ -17,8 +17,9 @@ import { fetchAllViewCounts, fetchWeeklyViewCounts } from "@/lib/viewCounts";
 import { formatDateJST, todayJST, yesterdayJST } from "@/lib/date";
 import NewsCarousel, { type NewsDay } from "@/components/NewsCarousel";
 
-// 認証状態を読むため動的レンダリング（記事本文はfetchキャッシュで高速）
-export const dynamic = "force-dynamic";
+// ISR: 記事本文は300秒ごとに再生成（microCMS Webhook で即時再検証も可能）
+// 認証依存のいいね/保存状態は ArticleActions がクライアント側で取得する
+export const revalidate = 300;
 export const dynamicParams = true;
 
 type Props = { params: Promise<{ id: string }> };
@@ -37,13 +38,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: article.description,
         type: "article",
         publishedTime: article.publishedAt,
-        images: imgUrl ? [{ url: imgUrl, width: 1200, height: 630 }] : [],
+        // microCMS のアイキャッチを優先し、無い記事はサイト共通のデフォルト画像
+        images: [{ url: imgUrl || "/og-image.png", width: 1200, height: 630 }],
       },
       twitter: {
         card: "summary_large_image",
         title: article.title,
         description: article.description,
-        images: imgUrl ? [imgUrl] : [],
+        images: [imgUrl || "/og-image.png"],
       },
     };
   } catch {
@@ -79,31 +81,19 @@ export default async function ArticlePage({ params }: Props) {
   const articleUrl = `https://www.subscope.jp/articles/${id}`;
   const content    = article.content ? await transformContent(article.content) : null;
 
-  // サーバー側でユーザーの保存済み・いいね状態・views を取得（ちらつき防止）
-  let initialSaved: boolean | undefined;
-  let initialLiked: boolean | undefined;
-  let initialLikeCount: number | undefined;
+  // views は公開集計なので ISR スナップショットで取得（最大 revalidate 秒の遅延は許容）。
+  // ユーザー固有の保存済み・いいね状態、およびいいね数は
+  // ArticleActions のクライアント側 useEffect が取得する（ISR キャッシュに個人状態を含めない）
   let articleViewCount = 0;
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    const [likesResult, viewsResult, ...userResults] = await Promise.all([
-      supabase.from("article_likes").select("*", { count: "exact", head: true }).eq("article_id", id),
-      supabase.from("article_views" as never).select("*", { count: "exact", head: true }).eq("article_id", id),
-      ...(user ? [
-        supabase.from("article_saves").select("user_id").eq("article_id", id).eq("user_id", user.id).maybeSingle(),
-        supabase.from("article_likes").select("user_id").eq("article_id", id).eq("user_id", user.id).maybeSingle(),
-      ] : []),
-    ]);
-    initialLikeCount = likesResult.count ?? 0;
-    articleViewCount = (viewsResult as { count: number | null }).count ?? 0;
-    if (user) {
-      initialSaved = !!(userResults[0] as { data: unknown }).data;
-      initialLiked = !!(userResults[1] as { data: unknown }).data;
-    }
+    const supabase = createPublicClient();
+    const { count } = await supabase
+      .from("article_views")
+      .select("*", { count: "exact", head: true })
+      .eq("article_id", id);
+    articleViewCount = count ?? 0;
   } catch {
-    // 取得失敗時はクライアント側のuseEffectにフォールバック
+    // 取得失敗時は非表示（0 扱い）
   }
 
   // 関連記事・ランキング・ニュース用データ取得
@@ -208,9 +198,6 @@ export default async function ArticlePage({ params }: Props) {
           articleTitle={article.title ?? ""}
           articleUrl={articleUrl}
           articleImageUrl={imgUrl ?? undefined}
-          initialSaved={initialSaved}
-          initialLiked={initialLiked}
-          initialLikeCount={initialLikeCount}
         >
           {/* サムネイル */}
           {imgUrl && (

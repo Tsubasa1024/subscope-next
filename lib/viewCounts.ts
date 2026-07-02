@@ -1,9 +1,9 @@
-import { createClient } from "./supabase/server";
+import { createPublicClient } from "./supabase/public";
 
 export type ViewCounts = Record<string, number>;
 
 async function fetchViewCounts(since?: Date): Promise<ViewCounts> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   let query = supabase.from("article_views" as never).select("article_id");
   if (since) {
     query = (query as ReturnType<typeof query.gte>).gte("viewed_at", since.toISOString());

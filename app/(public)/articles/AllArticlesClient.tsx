@@ -25,15 +25,23 @@ export default function AllArticlesClient({
 
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [searchQuery,    setSearchQuery]    = useState(initialSearch);
+  const [activeType,     setActiveType]     = useState("all");
 
   useEffect(() => {
     const cat = searchParams.get("category") ?? "すべて";
     const q   = searchParams.get("q")        ?? "";
+    const t   = searchParams.get("type")     ?? "all";
     setActiveCategory(cat);
     setSearchQuery(q);
+    setActiveType(t);
   }, [searchParams]);
 
   const filtered = articles.filter((a) => {
+    // contentType は microCMS 上 "news（ニュース）" / "article（記事）" 形式の値
+    const matchType =
+      activeType === "all" ||
+      String(a.contentType ?? "").includes(activeType);
+
     const matchCategory =
       activeCategory === "すべて" ||
       normalizeCategory(a.category) === activeCategory;
@@ -45,7 +53,7 @@ export default function AllArticlesClient({
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
 
-    return matchCategory && matchSearch;
+    return matchType && matchCategory && matchSearch;
   });
 
   return (
