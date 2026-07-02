@@ -8,10 +8,10 @@ import ArticleActions from "./ArticleActions";
 import ArticleComments from "./ArticleComments";
 import ArticleViewTracker from "./ArticleViewTracker";
 import PRLabel from "@/components/PRLabel";
-import ArticleCard from "@/components/ArticleCard";
+import RelatedArticles from "@/components/RelatedArticles";
 import { FEATURES } from "@/lib/features";
 import { transformContent } from "@/lib/transformContent";
-import { formatViews } from "@/lib/utils";
+import { formatViews, estimateReadingMinutes } from "@/lib/utils";
 import type { Article } from "@/lib/utils";
 import { fetchAllViewCounts, fetchWeeklyViewCounts } from "@/lib/viewCounts";
 import { formatDateJST, todayJST, yesterdayJST } from "@/lib/date";
@@ -81,6 +81,11 @@ export default async function ArticlePage({ params }: Props) {
   const articleUrl = `https://www.subscope.jp/articles/${id}`;
   const content    = article.content ? await transformContent(article.content) : null;
 
+  const readingMinutes = estimateReadingMinutes(article.content);
+  // revisedAt はコンテンツ本体の改稿日時（updatedAt は管理画面操作でも更新されるため使わない）
+  const updatedDate = article.revisedAt ? formatDateJST(article.revisedAt) : "";
+  const showUpdated = !!updatedDate && updatedDate !== date;
+
   // views は公開集計なので ISR スナップショットで取得（最大 revalidate 秒の遅延は許容）。
   // ユーザー固有の保存済み・いいね状態、およびいいね数は
   // ArticleActions のクライアント側 useEffect が取得する（ISR キャッシュに個人状態を含めない）
@@ -103,18 +108,6 @@ export default async function ArticlePage({ params }: Props) {
     fetchWeeklyViewCounts().catch((): Record<string, number> => ({})),
     getNewsList(21).catch(() => ({ contents: [] as Article[] })),
   ]);
-
-  // 関連記事: 同カテゴリ優先、不足分は最新記事で補完（常に3〜4件確保）
-  const sameCategory = allArticles.filter(
-    (a) => a.id !== id && normalizeCategory(a.category) === category
-  );
-  const otherArticles = allArticles.filter(
-    (a) => a.id !== id && normalizeCategory(a.category) !== category
-  );
-  const relatedArticles = [
-    ...sameCategory,
-    ...otherArticles,
-  ].slice(0, 4);
 
   // 週間PVランキング（自記事除外・データあり記事のみ・上位5件）
   const rankingArticles = [...allArticles]
@@ -142,9 +135,6 @@ export default async function ArticlePage({ params }: Props) {
     .slice(0, 7)
     .map(([dateStr, articles]) => ({ dateStr, label: makeDateLabel(dateStr), articles }));
 
-  // viewCounts は allViewCounts（記事カード・NewsCarousel 共用）
-  const relatedViewCounts = viewCounts;
-
   return (
     <main style={{ paddingTop: "var(--header-h)" }}>
       <ArticleViewTracker articleId={id} />
@@ -164,6 +154,18 @@ export default async function ArticlePage({ params }: Props) {
           {date && (
             <span className="text-sm" style={{ color: "#aaaaaa" }}>{date}</span>
           )}
+          {showUpdated && (
+            <span className="text-sm" style={{ color: "#aaaaaa" }}>
+              最終更新: {updatedDate.replace(/-/g, "/")}
+            </span>
+          )}
+          <span className="flex items-center gap-1 text-sm" style={{ color: "#aaaaaa" }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            約{readingMinutes}分で読めます
+          </span>
           {articleViewCount > 0 && (
             <span className="flex items-center gap-1 text-sm" style={{ color: "#aaaaaa" }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -249,27 +251,8 @@ export default async function ArticlePage({ params }: Props) {
         {/* コメントセクション（FEATURES.comments が true のときのみ表示）*/}
         {FEATURES.comments && <ArticleComments articleId={id} />}
 
-        {/* 関連記事 */}
-        {relatedArticles.length > 0 && (
-          <div style={{ marginTop: "48px", paddingTop: "32px", borderTop: "1px solid rgba(0,0,0,0.07)" }}>
-            <h2
-              style={{
-                fontSize: "16px",
-                fontWeight: 700,
-                letterSpacing: "-0.01em",
-                marginBottom: "16px",
-                color: "#1d1d1f",
-              }}
-            >
-              関連記事
-            </h2>
-            <div className="flex flex-col">
-              {relatedArticles.map((a, i) => (
-                <ArticleCard key={a.id} article={a} viewCount={relatedViewCounts[a.id] ?? 0} index={i} />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* 次に読む + 関連記事（タグベースマッチング） */}
+        <RelatedArticles current={article} articles={allArticles} viewCounts={viewCounts} />
 
       </div>{/* /680px */}
 

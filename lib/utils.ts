@@ -39,6 +39,16 @@ export function normalizeCategory(category: Category | undefined): string {
   return (category.name || category.id || "").trim();
 }
 
+/** 本文HTMLから読了時間（分）を概算。日本語 約600字/分 */
+export function estimateReadingMinutes(html?: string): number {
+  if (!html) return 1;
+  const text = html
+    .replace(/<[^>]+>/g, "")
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/\s+/g, "");
+  return Math.max(1, Math.round(text.length / 600));
+}
+
 /** views 数を 1.2k 形式にフォーマット */
 export function formatViews(n: number): string {
   if (n >= 1000) return `${+((n / 1000).toFixed(1))}k`;

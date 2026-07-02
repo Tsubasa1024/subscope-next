@@ -158,6 +158,18 @@ ul {
   padding: 0.15em 0.4em;
   font-size: 0.875em;
 }
+/* 本文テキスト(680pxカラム)より画像・コードブロックを一回り広く出して
+   余白でメリハリをつける（リンクカード内サムネは対象外） */
+@media (min-width: 900px) {
+  .article-body > img,
+  .article-body p > img,
+  .article-body figure img,
+  .article-body pre {
+    width: calc(100% + 96px);
+    max-width: calc(100% + 96px);
+    margin-left: -48px;
+  }
+}
 @media (max-width: 640px) {
   .article-body ul,
   .article-body ol {

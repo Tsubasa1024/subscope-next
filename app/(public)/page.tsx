@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getNewsList, getArticlesList, getImageUrl, normalizeCategory } from "@/lib/microcms";
 import NewsCarousel, { type NewsDay } from "@/components/NewsCarousel";
+import RelativeTime from "@/components/RelativeTime";
 import { formatDateJST, todayJST, yesterdayJST } from "@/lib/date";
 import type { Article } from "@/lib/utils";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -169,7 +170,7 @@ export default async function TopPage() {
                   )}
                   <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.75rem", color: "#86868b" }}>
                     {heroFeatured.publishedAt && (
-                      <span>{formatDateJST(heroFeatured.publishedAt)}</span>
+                      <span><RelativeTime date={heroFeatured.publishedAt} /></span>
                     )}
                     {(weeklyViewCounts[heroFeatured.id] ?? 0) > 0 && (
                       <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
@@ -425,7 +426,7 @@ export default async function TopPage() {
                   {/* 日付 + PV */}
                   <div style={{ display: "flex", gap: "10px", fontSize: "0.78rem", color: "#86868b", alignItems: "center" }}>
                     {featuredArticle.publishedAt && (
-                      <span>{formatDateJST(featuredArticle.publishedAt)}</span>
+                      <span><RelativeTime date={featuredArticle.publishedAt} /></span>
                     )}
                     {(viewCounts[featuredArticle.id] ?? 0) > 0 && (
                       <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
@@ -614,7 +615,6 @@ function ArticleCard({
 }) {
   const imgUrl   = getImageUrl(article);
   const category = normalizeCategory(article.category);
-  const date     = article.publishedAt ? formatDateJST(article.publishedAt) : "";
 
   return (
     <Link
@@ -705,7 +705,9 @@ function ArticleCard({
             alignItems: "center",
           }}
         >
-          {date && <span>{date}</span>}
+          {article.publishedAt && (
+            <span><RelativeTime date={article.publishedAt} /></span>
+          )}
           {viewCount > 0 && (
             <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
